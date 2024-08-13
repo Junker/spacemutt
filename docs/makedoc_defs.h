@@ -69,9 +69,6 @@
 #ifndef USE_HCACHE_COMPRESSION
 #define USE_HCACHE_COMPRESSION
 #endif
-#ifndef USE_LUA
-#define USE_LUA
-#endif
 #ifndef USE_NOTMUCH
 #define USE_NOTMUCH
 #endif

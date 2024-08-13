@@ -71,13 +71,10 @@ NEOMUTTOBJS=	alternates.o commands.o conststrings.o copy.o editmsg.o \
 		mutt_config.o mutt_header.o mutt_logging.o mutt_mailbox.o \
 		mutt_signal.o mutt_socket.o mutt_thread.o mview.o mx.o \
 		recvcmd.o rfc3676.o score.o sort.o status.o subjectrx.o \
-		system.o version.o
+		system.o version.o mutt_guile.o
 
 @if USE_INOTIFY
 NEOMUTTOBJS+=	monitor.o
-@endif
-@if USE_LUA
-NEOMUTTOBJS+=	mutt_lua.o
 @endif
 @if !HAVE_TIMEGM
 NEOMUTTOBJS+=	timegm.o

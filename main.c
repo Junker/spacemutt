@@ -92,7 +92,6 @@
  * | mutt_config.c   | @subpage neo_mutt_config   |
  * | mutt_header.c   | @subpage neo_mutt_header   |
  * | mutt_logging.c  | @subpage neo_mutt_logging  |
- * | mutt_lua.c      | @subpage neo_mutt_lua      |
  * | mutt_mailbox.c  | @subpage neo_mutt_mailbox  |
  * | mutt_signal.c   | @subpage neo_mutt_signal   |
  * | mutt_socket.c   | @subpage neo_mutt_socket   |

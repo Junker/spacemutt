@@ -60,9 +60,6 @@ set valid_options {
   with-sasl:path            => "Location of the SASL network security library"
   # AutoCrypt
   autocrypt=0               => "Enable AutoCrypt support (requires GPGME and SQLite)"
-# Lua
-  lua=0                     => "Enable Lua scripting support"
-  with-lua:path             => "Location of Lua"
 # Notmuch
   notmuch=0                 => "Enable Notmuch support"
   with-notmuch:path         => "Location of Notmuch"
@@ -175,7 +172,7 @@ if {1} {
     debug-email debug-graphviz debug-keymap debug-logging debug-names
     debug-notify debug-queue debug-window doc everything fmemopen full-doc
     fuzzing gdbm gnutls gpgme gsasl gss homespool idn2 inotify kyotocabinet
-    lmdb locales-fix lua lz4 nls notmuch paths-in-cflags pcre2 pgp
+    lmdb locales-fix lz4 nls notmuch paths-in-cflags pcre2 pgp
     qdbm rocksdb sasl smime sqlite ssl tdb
     tokyocabinet ubsan zlib zstd
   } {
@@ -186,7 +183,7 @@ if {1} {
   # relative --enable-opt to true. This allows "--with-opt=/usr" to be used as
   # a shortcut for "--opt --with-opt=/usr".
   foreach opt {
-    bdb gdbm gnutls gpgme gsasl gss homespool idn2 kyotocabinet lmdb lua lz4
+    bdb gdbm gnutls gpgme gsasl gss homespool idn2 kyotocabinet lmdb lz4
     nls notmuch pcre2 qdbm rocksdb sasl sqlite ssl tdb tokyocabinet
     zlib zstd
   } {
@@ -440,7 +437,7 @@ set prefix [opt-val with-sysroot][get-define prefix]
 ###############################################################################
 # Everything
 if {[get-define want-everything]} {
-  foreach opt {bdb gdbm gpgme kyotocabinet lmdb lua lz4 notmuch pgp rocksdb
+  foreach opt {bdb gdbm gpgme kyotocabinet lmdb lz4 notmuch pgp rocksdb
                qdbm sasl smime ssl tokyocabinet tdb zlib zstd} {
     define want-$opt
     append conf_options "--$opt "
@@ -448,6 +445,31 @@ if {[get-define want-everything]} {
 } else {
   set conf_options "$::argv"
 }
+
+###############################################################################
+# Guile
+set guile_config_guess [file join BINDIR guile-config]
+if {[file-isexec $guile_config_guess]} {
+  define GUILE-CONFIG $guile_config_guess
+} else {
+  if {![cc-check-progs guile-config]} {
+    user-error "Unable to find guile-config"
+  }
+}
+
+# Cflags
+set guile_config [get-define GUILE-CONFIG]
+if {[catch {exec-with-stderr $guile_config compile} res err]} {
+  user-error "Could not derive cflags from $guile_config"
+}
+define-append CFLAGS $res
+
+# Libs
+if {[catch {exec-with-stderr $guile_config link} res err]} {
+  user-error "Could not derive libs from $guile_config"
+}
+define-append LDFLAGS $res
+
 
 ###############################################################################
 # Locking
@@ -553,17 +575,6 @@ if {[get-define want-sasl]} {
     user-error "Unable to find SASL"
   }
   define USE_SASL_CYRUS
-}
-
-###############################################################################
-# Lua
-if {[get-define want-lua]} {
-
-  if {![pkgconf false lua] && ![pkgconf false lua-5.4] && ![pkgconf false lua-5.3] && ![pkgconf false lua-5.2] \
-                           && ![pkgconf false lua5.4]  && ![pkgconf false lua5.3]  && ![pkgconf false lua5.2]} {
-    user-error "Unable to find LUA"
-  }
-  define USE_LUA
 }
 
 ###############################################################################
@@ -1257,5 +1268,4 @@ user-notice "Summary of build options:
   Notmuch:               [yesno [get-define USE_NOTMUCH]]
   Header Cache(s):       [get-define HCACHE_BACKENDS {}]
   Header Compression(s): [get-define COMPRESS_BACKENDS {}]
-  Lua:                   [yesno [get-define USE_LUA]]
 "
