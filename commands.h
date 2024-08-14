@@ -50,7 +50,6 @@ bool mailbox_add_simple(const char *mailbox, struct Buffer *err);
 
 int parse_grouplist(struct GroupList *gl, struct Buffer *buf, struct Buffer *s, struct Buffer *err);
 void source_stack_cleanup(void);
-int source_rc(const char *rcfile_path, struct Buffer *err);
 
 enum CommandResult set_dump(ConfigDumpFlags flags, struct Buffer *err);
 

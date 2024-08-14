@@ -197,156 +197,6 @@ char *mutt_get_sourced_cwd(void)
   return ret;
 }
 
-/**
- * source_rc - Read an initialization file
- * @param rcfile_path Path to initialization file
- * @param err         Buffer for error messages
- * @retval <0 NeoMutt should pause to let the user know
- */
-int source_rc(const char *rcfile_path, struct Buffer *err)
-{
-  int lineno = 0, rc = 0, warnings = 0;
-  enum CommandResult line_rc;
-  struct Buffer *token = NULL, *linebuf = NULL;
-  char *line = NULL;
-  char *currentline = NULL;
-  char rcfile[PATH_MAX] = { 0 };
-  size_t linelen = 0;
-  pid_t pid;
-
-  mutt_str_copy(rcfile, rcfile_path, sizeof(rcfile));
-
-  size_t rcfilelen = mutt_str_len(rcfile);
-  if (rcfilelen == 0)
-    return -1;
-
-  bool ispipe = rcfile[rcfilelen - 1] == '|';
-
-  if (!ispipe)
-  {
-    struct ListNode *np = STAILQ_FIRST(&MuttrcStack);
-    if (!mutt_path_to_absolute(rcfile, np ? NONULL(np->data) : ""))
-    {
-      mutt_error(_("Error: Can't build path of '%s'"), rcfile_path);
-      return -1;
-    }
-
-    STAILQ_FOREACH(np, &MuttrcStack, entries)
-    {
-      if (mutt_str_equal(np->data, rcfile))
-      {
-        break;
-      }
-    }
-    if (np)
-    {
-      mutt_error(_("Error: Cyclic sourcing of configuration file '%s'"), rcfile);
-      return -1;
-    }
-
-    mutt_list_insert_head(&MuttrcStack, mutt_str_dup(rcfile));
-  }
-
-  mutt_debug(LL_DEBUG2, "Reading configuration file '%s'\n", rcfile);
-
-  FILE *fp = mutt_open_read(rcfile, &pid);
-  if (!fp)
-  {
-    buf_printf(err, "%s: %s", rcfile, strerror(errno));
-    return -1;
-  }
-
-  token = buf_pool_get();
-  linebuf = buf_pool_get();
-
-  const char *const c_config_charset = cs_subset_string(NeoMutt->sub, "config_charset");
-  const char *const c_charset = cc_charset();
-  while ((line = mutt_file_read_line(line, &linelen, fp, &lineno, MUTT_RL_CONT)) != NULL)
-  {
-    const bool conv = c_config_charset && c_charset;
-    if (conv)
-    {
-      currentline = mutt_str_dup(line);
-      if (!currentline)
-        continue;
-      mutt_ch_convert_string(&currentline, c_config_charset, c_charset, MUTT_ICONV_NO_FLAGS);
-    }
-    else
-    {
-      currentline = line;
-    }
-
-    buf_strcpy(linebuf, currentline);
-
-    buf_reset(err);
-    line_rc = parse_rc_buffer(linebuf, token, err);
-    if (line_rc == MUTT_CMD_ERROR)
-    {
-      mutt_error("%s:%d: %s", rcfile, lineno, buf_string(err));
-      if (--rc < -MAX_ERRS)
-      {
-        if (conv)
-          FREE(&currentline);
-        break;
-      }
-    }
-    else if (line_rc == MUTT_CMD_WARNING)
-    {
-      /* Warning */
-      mutt_warning("%s:%d: %s", rcfile, lineno, buf_string(err));
-      warnings++;
-    }
-    else if (line_rc == MUTT_CMD_FINISH)
-    {
-      if (conv)
-        FREE(&currentline);
-      break; /* Found "finish" command */
-    }
-    else
-    {
-      if (rc < 0)
-        rc = -1;
-    }
-    if (conv)
-      FREE(&currentline);
-  }
-
-  FREE(&line);
-  mutt_file_fclose(&fp);
-  if (pid != -1)
-    filter_wait(pid);
-
-  if (rc)
-  {
-    /* the neomuttrc source keyword */
-    buf_reset(err);
-    buf_printf(err, (rc >= -MAX_ERRS) ? _("source: errors in %s") : _("source: reading aborted due to too many errors in %s"),
-               rcfile);
-    rc = -1;
-  }
-  else
-  {
-    /* Don't alias errors with warnings */
-    if (warnings > 0)
-    {
-      buf_printf(err, ngettext("source: %d warning in %s", "source: %d warnings in %s", warnings),
-                 warnings, rcfile);
-      rc = -2;
-    }
-  }
-
-  if (!ispipe && !STAILQ_EMPTY(&MuttrcStack))
-  {
-    struct ListNode *np = STAILQ_FIRST(&MuttrcStack);
-    STAILQ_REMOVE_HEAD(&MuttrcStack, entries);
-    FREE(&np->data);
-    FREE(&np);
-  }
-
-  buf_pool_release(&token);
-  buf_pool_release(&linebuf);
-  return rc;
-}
 
 /**
  * parse_cd - Parse the 'cd' command - Implements Command::parse() - @ingroup command_parse
@@ -1065,38 +915,6 @@ static enum CommandResult parse_setenv(struct Buffer *buf, struct Buffer *s,
   return MUTT_CMD_SUCCESS;
 }
 
-/**
- * parse_source - Parse the 'source' command - Implements Command::parse() - @ingroup command_parse
- */
-static enum CommandResult parse_source(struct Buffer *buf, struct Buffer *s,
-                                       intptr_t data, struct Buffer *err)
-{
-  struct Buffer *path = buf_pool_get();
-
-  do
-  {
-    if (parse_extract_token(buf, s, TOKEN_NO_FLAGS) != 0)
-    {
-      buf_printf(err, _("source: error at %s"), s->dptr);
-      buf_pool_release(&path);
-      return MUTT_CMD_ERROR;
-    }
-    buf_copy(path, buf);
-    buf_expand_path(path);
-
-    if (source_rc(buf_string(path), err) < 0)
-    {
-      buf_printf(err, _("source: file %s could not be sourced"), buf_string(path));
-      buf_pool_release(&path);
-      return MUTT_CMD_ERROR;
-    }
-
-  } while (MoreArgs(s));
-
-  buf_pool_release(&path);
-
-  return MUTT_CMD_SUCCESS;
-}
 
 /**
  * parse_nospam - Parse the 'nospam' command - Implements Command::parse() - @ingroup command_parse
@@ -1691,7 +1509,6 @@ static const struct Command MuttCommands[] = {
   { "score",               mutt_parse_score,       0 },
   { "set",                 parse_set,              MUTT_SET_SET },
   { "setenv",              parse_setenv,           MUTT_SET_SET },
-  { "source",              parse_source,           0 },
   { "spam",                parse_spam,             0 },
   { "subjectrx",           parse_subjectrx_list,   0 },
   { "subscribe",           parse_subscribe,        0 },
