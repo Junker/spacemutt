@@ -64,9 +64,7 @@
 #ifndef DOMAIN
 #include "conn/lib.h"
 #endif
-#ifdef USE_LUA
-#include "mutt_lua.h"
-#endif
+#include "mutt_guile.h"
 
 /**
  * execute_commands - Execute a set of NeoMutt commands
@@ -109,17 +107,14 @@ static int execute_commands(struct ListHead *p)
 static char *find_cfg(const char *home, const char *xdg_cfg_home)
 {
   const char *names[] = {
-    "neomuttrc",
-    "muttrc",
+    "spacemutt.scm",
+    "init.scm",
     NULL,
   };
 
   const char *locations[][2] = {
-    { xdg_cfg_home, "neomutt/" },
-    { xdg_cfg_home, "mutt/" },
-    { home, ".neomutt/" },
-    { home, ".mutt/" },
-    { home, "." },
+    { xdg_cfg_home, "spacemutt/" },
+    { home, ".spacemutt/" },
     { NULL, NULL },
   };
 
@@ -329,9 +324,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   hooks_init();
   mutt_comp_init();
   imap_init();
-#ifdef USE_LUA
-  mutt_lua_init();
-#endif
+  mutt_guile_init();
   driver_tags_init();
 
   menu_init();
@@ -489,11 +482,6 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
     }
   }
 
-  if (!STAILQ_EMPTY(&Muttrc))
-  {
-    cs_str_string_set(cs, "alias_file", STAILQ_FIRST(&Muttrc)->data, NULL);
-  }
-
   /* Process the global rc file if it exists and the user hasn't explicitly
    * requested not to via "-n".  */
   if (!skip_sys_rc)
@@ -503,27 +491,17 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
       if (mutt_set_xdg_path(XDG_CONFIG_DIRS, buf))
         break;
 
-      buf_printf(buf, "%s/neomuttrc", SYSCONFDIR);
+      buf_printf(buf, "%s/spacemutt.scm", SYSCONFDIR);
       if (access(buf_string(buf), F_OK) == 0)
         break;
-
-      buf_printf(buf, "%s/Muttrc", SYSCONFDIR);
-      if (access(buf_string(buf), F_OK) == 0)
-        break;
-
-      buf_printf(buf, "%s/neomuttrc", PKGDATADIR);
-      if (access(buf_string(buf), F_OK) == 0)
-        break;
-
-      buf_printf(buf, "%s/Muttrc", PKGDATADIR);
     } while (false);
 
     if (access(buf_string(buf), F_OK) == 0)
     {
-      if (source_rc(buf_string(buf), err) != 0)
+      if (mutt_guile_load_config(buf_string(buf)) == false)
       {
-        mutt_error("%s", buf_string(err));
-        need_pause = true; // TEST11: neomutt (error in /etc/neomuttrc)
+        mutt_error("Load %s error", buf_string(buf));
+        need_pause = true; // TEST11: neomutt (error in /etc/spacemutt.scm)
       }
     }
   }
@@ -534,9 +512,9 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   {
     if (np->data)
     {
-      if (source_rc(np->data, err) != 0)
+      if (mutt_guile_load_config(np->data) != true)
       {
-        mutt_error("%s", buf_string(err));
+        mutt_error("load %s error", np->data);
         need_pause = true; // TEST12: neomutt (error in ~/.neomuttrc)
       }
     }
