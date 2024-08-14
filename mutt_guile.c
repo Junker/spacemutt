@@ -32,6 +32,51 @@
 #include "parse/lib.h"
 #include "muttlib.h"
 
+static char* symbol_to_string(SCM symbol) {
+    if (scm_is_symbol(symbol)) {
+        SCM string_part = scm_symbol_to_string(symbol);
+        return scm_to_latin1_string(string_part);
+    }
+    return NULL;
+}
+
+static SCM dt_quad_to_symbol(unsigned char val)
+{
+  switch(val)
+  {
+    case MUTT_NO:
+      return scm_from_latin1_symbol("no");
+    case MUTT_YES:
+      return scm_from_latin1_symbol("yes");
+    case MUTT_ASKNO:
+      return scm_from_latin1_symbol("ask-no");
+    case MUTT_ASKYES:
+      return scm_from_latin1_symbol("ask-yes");
+  }
+}
+
+static char symbol_to_dt_quad(SCM val)
+{
+  char *name = symbol_to_string(val);
+  if (strcmp(name, "no") == 0)
+  {
+      return MUTT_NO;
+  }
+  else if (strcmp(name, "yes") == 0)
+  {
+      return MUTT_YES;
+  }
+  else if (strcmp(name, "ask-no") == 0)
+  {
+      return MUTT_ASKNO;
+  }
+  else if (strcmp(name, "ask-yes") == 0)
+  {
+      return MUTT_ASKYES;
+  }
+
+  return -1;
+}
 
 /**
  * guile_mutt_call - Call a NeoMutt command by name
@@ -60,7 +105,7 @@ static SCM guile_mutt_call(SCM scm_command, SCM scm_args)
 
   if (cmd->parse(token, buf, cmd->data, err))
   {
-    scm_misc_error(__func__, "NeoMutt error: ~S", scm_from_locale_string(buf_string(err)));
+    scm_misc_error(__func__, "SpaceMutt error: ~S", scm_from_locale_string(buf_string(err)));
   }
   else
   {
@@ -98,7 +143,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
     }
     else
     {
-      scm_misc_error(__func__, "NeoMutt parameter not found ~S", scm_list_1(scm_param)); 
+      scm_misc_error(__func__, "SpaceMutt parameter not found ~S", scm_list_1(scm_param));
       return SCM_BOOL_F;
     }
   }
@@ -134,7 +179,13 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
     case DT_NUMBER:
     case DT_QUAD:
     {
-      const char value = scm_to_uchar(scm_value);
+      const char value = symbol_to_dt_quad(scm_value);
+      if (value == -1)
+      {
+        scm_misc_error(__func__, "Wrong value ~S for param ~S quadoption type.", scm_list_2(scm_value, scm_param));
+        rc = SCM_UNDEFINED;
+        break;
+      }
       int rv = cs_subset_he_native_set(NeoMutt->sub, he, value, err);
       if (CSR_RESULT(rv) != CSR_SUCCESS)
         rc = SCM_UNDEFINED;
@@ -149,7 +200,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
       break;
     }
     default:
-      scm_misc_error(__func__, "Unsupported NeoMutt parameter type ~D for ~S", scm_list_2(scm_from_uchar(DTYPE(cdef->type)), scm_param));
+      scm_misc_error(__func__, "Unsupported SpaceMutt parameter type ~D for ~S", scm_list_2(scm_from_uchar(DTYPE(cdef->type)), scm_param));
       rc = SCM_UNDEFINED;
       break;
   }
@@ -172,7 +223,7 @@ static SCM guile_mutt_get(SCM scm_param)
   if (!he)
   {
     mutt_debug(LL_DEBUG2, " * error\n");
-    scm_misc_error(__func__, "NeoMutt parameter not found ~S", scm_list_1(scm_param));
+    scm_misc_error(__func__, "SpaceMutt parameter not found ~S", scm_list_1(scm_param));
     return SCM_UNDEFINED;
   }
 
@@ -205,13 +256,13 @@ static SCM guile_mutt_get(SCM scm_param)
       return scm_str;
     }
     case DT_QUAD:
-      return scm_from_uchar((unsigned char) cdef->var);
+      return dt_quad_to_symbol((unsigned char) cdef->var);
     case DT_NUMBER:
       return scm_from_char((signed char) cdef->var);
     case DT_BOOL:
       return scm_from_bool((bool) cdef->var);
     default:
-      scm_misc_error(__func__, "NeoMutt parameter type ~D unknown for ~S", scm_list_2(scm_from_uchar(DTYPE(cdef->type)), scm_param));
+      scm_misc_error(__func__, "SpaceMutt parameter type ~D unknown for ~S", scm_list_2(scm_from_uchar(DTYPE(cdef->type)), scm_param));
       return SCM_UNDEFINED;
   }
 }
