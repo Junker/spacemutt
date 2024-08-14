@@ -9,7 +9,7 @@ jimsh0
 
 # Binaries
 docs/makedoc
-neomutt
+spacemutt
 pgpewrap
 test/neomutt-test
 fuzz/address-fuzz
@@ -26,16 +26,16 @@ coverage.info
 html
 lib*.a
 po/*.mo
-po/neomutt.pot
+po/spacemutt.pot
 po/POTFILES
 
 # Docs
 docs/*.html
 docs/manual.txt
 docs/manual.xml
-docs/neomutt.1
-docs/neomuttrc
-docs/neomuttrc.5
+docs/spacemutt.1
+docs/spacemuttrc
+docs/spacemuttrc.5
 
 # Generated source
 config.h

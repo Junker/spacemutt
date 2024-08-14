@@ -1,26 +1,12 @@
-# This is the NeoMutt Project
+# This is the SpaceMutt Project
 
-[![Stars](https://img.shields.io/github/stars/neomutt/neomutt.svg?style=social&label=Stars)](https://github.com/neomutt/neomutt "Give us a Star")
-[![Twitter](https://img.shields.io/twitter/follow/NeoMutt_Org.svg?style=social&label=Follow)](https://twitter.com/NeoMutt_Org "Follow us on Twitter")
-[![Contributors](https://img.shields.io/badge/Contributors-279-orange.svg)](https://github.com/neomutt/neomutt/blob/main/AUTHORS.md "All of NeoMutt's Contributors")
-[![Release](https://img.shields.io/github/release/neomutt/neomutt.svg)](https://github.com/neomutt/neomutt/releases/latest "Latest Release Notes")
-[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://github.com/neomutt/neomutt/blob/main/LICENSE.md "Copyright Statement")
-[![Code build](https://github.com/neomutt/neomutt/actions/workflows/build-and-test.yml/badge.svg?branch=main&event=push)](https://github.com/neomutt/neomutt/actions/workflows/build-and-test.yml "Latest Automatic Code Build")
-[![Coverity Scan](https://img.shields.io/coverity/scan/8495.svg)](https://scan.coverity.com/projects/neomutt-neomutt "Latest Code Static Analysis")
-[![Website build](https://github.com/neomutt/neomutt.github.io/actions/workflows/pages/pages-build-deployment/badge.svg)](https://neomutt.org/ "Website Build")
+[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://github.com/Junker/spacemutt/blob/main/LICENSE.md "Copyright Statement")
 
-## What is NeoMutt?
+## What is SpaceMutt?
 
-* NeoMutt is a project of projects.
-* A place to gather all the patches against Mutt.
-* A place for all the developers to gather.
+* SpaceMutt is a fork of NeoMutt.
 
-Hopefully this will build the community and reduce duplicated effort.
-
-NeoMutt was created when Richard Russon (@FlatCap) took all the old Mutt patches,
-sorted through them, fixed them up and documented them.
-
-## What Features does NeoMutt have?
+## What Features does SpaceMutt have?
 
 | Name                     | Description
 | ------------------------ | ------------------------------------------------------
@@ -34,7 +20,7 @@ sorted through them, fixed them up and documented them.
 | Encrypt-to-Self          | Save a self-encrypted copy of emails
 | Fmemopen                 | Replace some temporary files with memory buffers
 | Forgotten Attachment     | Alert user when (s)he forgets to attach a file to an outgoing email.
-| Global Hooks             | Define actions to run globally within NeoMutt
+| Global Hooks             | Define actions to run globally within SpaceMutt
 | Header Cache Compression | Options for compressing the header cache files
 | Ifdef                    | Conditional config options
 | Index Color              | Custom rules for theming the email index
@@ -65,32 +51,20 @@ sorted through them, fixed them up and documented them.
 | ---------------------- | ---------------------------------------------
 | Header Cache Benchmark | Script to test the speed of the header cache
 | Keybase                | Keybase Integration
-| Useful programs        | List of useful programs interacting with NeoMutt
-| Vi Keys                | Easy and clean Vi-keys for NeoMutt
+| Useful programs        | List of useful programs interacting with SpaceMutt
+| Vi Keys                | Easy and clean Vi-keys for SpaceMutt
 | Vim Syntax             | Vim Syntax File
 
-## How to Install NeoMutt?
 
-NeoMutt may be packaged for your distribution, and otherwise it can be
-[built from source](https://neomutt.org/dev/build/build). Please refer to the
-instructions on the [distro page](https://neomutt.org/distro.html).
+## Where is SpaceMutt?
 
-## Where is NeoMutt?
-
-- Source Code:     https://github.com/neomutt/neomutt
-- Releases:        https://github.com/neomutt/neomutt/releases/latest
-- Questions/Bugs:  https://github.com/neomutt/neomutt/issues
-- Website:         https://neomutt.org
-- IRC:             [irc://irc.libera.chat/neomutt](https://web.libera.chat/#neomutt "IRC Web Client") - please be patient.
-  We're a small group, so our answer might take some time.
-- Mailing Lists:   [neomutt-users](mailto:neomutt-users-request@neomutt.org?subject=subscribe)
-  and [neomutt-devel](mailto:neomutt-devel-request@neomutt.org?subject=subscribe)
-- Development:     https://neomutt.org/dev.html
-- Contributors:    [Everyone who has helped NeoMutt](AUTHORS.md)
+- Source Code:     https://github.com/Junker/spacemutt
+- Releases:        https://github.com/Junker/spacemutt/releases/latest
+- Questions/Bugs:  https://github.com/Junker/spacemutt/issues
 
 ## Copyright
 
-NeoMutt is released under the GPL v2+ (GNU General Public License).
+SpaceMutt is released under the GPL v2+ (GNU General Public License).
 See [LICENSE.md](LICENSE.md).
 
 The principal authors of NeoMutt are:

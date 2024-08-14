@@ -1,4 +1,4 @@
-# Installing NeoMutt
+# Installing SpaceMutt
 
 NeoMutt is a command line email client (Mail User Agent).
 It's fast, powerful and flexible.
@@ -16,7 +16,7 @@ It's available as a git repository or a 'tar.gz' archive.
 Clone the NeoMutt repository:
 
 ```
-git clone https://github.com/neomutt/neomutt
+git clone https://github.com/Junker/spacemutt
 ```
 
 It's recommended to use the latest tagged version.

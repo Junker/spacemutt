@@ -15,9 +15,9 @@ use system cc cc-lib mutt-gettext mutt-iconv pkg-config
 
 ###############################################################################
 # Names and versions
-define PACKAGE          "neomutt"
-define PACKAGE_VERSION  "20240425"
-define BUGS_ADDRESS     "neomutt-devel@neomutt.org"
+define PACKAGE          "spacemutt"
+define PACKAGE_VERSION  "20240801"
+define BUGS_ADDRESS     "1144095+Junker@users.noreply.github.com"
 
 # Subdirectories that contain additional Makefile.autosetup files
 set subdirs {po data docs contrib test}

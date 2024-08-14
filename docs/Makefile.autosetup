@@ -11,12 +11,12 @@ docs/makedoc$(EXEEXT): $(SRCDIR)/docs/makedoc.c
 	$(CC_FOR_BUILD) -I. $(CFLAGS_FOR_BUILD) $(LDFLAGS_FOR_BUILD) \
 	    -o $@ $(SRCDIR)/docs/makedoc.c
 
-docs/neomuttrc: docs docs/makedoc$(EXEEXT) $(SRCDIR)/docs/neomuttrc.head \
+docs/spacemuttrc: docs docs/makedoc$(EXEEXT) $(SRCDIR)/docs/spacemuttrc.head \
 		$(SRCDIR)/docs/config.c
-	sed -e 's,@docdir@,$(docdir),' $(SRCDIR)/docs/neomuttrc.head \
-	    > docs/neomuttrc
+	sed -e 's,@docdir@,$(docdir),' $(SRCDIR)/docs/spacemuttrc.head \
+	    > docs/spacemuttrc
 	$(MAKEDOC_CPP) $(SRCDIR)/docs/config.c | docs/makedoc$(EXEEXT) -c \
-	    >> docs/neomuttrc
+	    >> docs/spacemuttrc
 
 .PHONY: docs
 docs:
@@ -33,14 +33,14 @@ HTML_DOCFILES = docs/index.html docs/manual.html $(CHUNKED_DOCFILES)
 
 srcdir_DOCFILES = $(SRCDIR)/docs/smime-notes.txt $(SRCDIR)/ChangeLog.md \
 		  $(SRCDIR)/AUTHORS.md $(SRCDIR)/docs/CODE_OF_CONDUCT.md \
-		  $(SRCDIR)/docs/CONTRIBUTING.md $(SRCDIR)/SECURITY.md \
+		  $(SRCDIR)/docs/CONTRIBUTING.md \
 		  $(SRCDIR)/INSTALL.md $(SRCDIR)/LICENSE.md $(SRCDIR)/README.md
 
 all-docs:	docs $(CHUNKED_DOCFILES) docs/index.html docs/manual.txt \
-		docs/manual.html docs/neomuttrc docs/neomutt.1 docs/neomuttrc.5
+		docs/manual.html docs/spacemuttrc docs/spacemutt.1 docs/spacemuttrc.5
 
 docs/manual.html:	docs docs/manual.xml $(SRCDIR)/docs/html.xsl \
-			$(SRCDIR)/docs/neomutt.css $(SRCDIR)/docs/neomutt.xsl
+			$(SRCDIR)/docs/spacemutt.css $(SRCDIR)/docs/spacemutt.xsl
 	xsltproc --nonet -o $@ $(SRCDIR)/docs/html.xsl docs/manual.xml
 
 docs/manual.txt: docs docs/manual.html
@@ -52,26 +52,26 @@ docs/manual.txt: docs docs/manual.html
 
 $(CHUNKED_DOCFILES): docs/index.html
 
-docs/index.html: docs $(SRCDIR)/docs/chunk.xsl $(SRCDIR)/docs/neomutt.xsl \
-		$(SRCDIR)/docs/neomutt.css docs/manual.xml
+docs/index.html: docs $(SRCDIR)/docs/chunk.xsl $(SRCDIR)/docs/spacemutt.xsl \
+		$(SRCDIR)/docs/spacemutt.css docs/manual.xml
 	xsltproc --nonet -o docs/ $(SRCDIR)/docs/chunk.xsl docs/manual.xml > /dev/null 2>&1
 
-docs/neomuttrc.5:	docs docs/makedoc$(EXEEXT) $(SRCDIR)/docs/config.c \
-		$(SRCDIR)/docs/neomuttrc.man.head $(SRCDIR)/docs/neomuttrc.man.tail
+docs/spacemuttrc.5:	docs docs/makedoc$(EXEEXT) $(SRCDIR)/docs/config.c \
+		$(SRCDIR)/docs/spacemuttrc.man.head $(SRCDIR)/docs/spacemuttrc.man.tail
 	( sed -e "/^\.TH/s|@MAN_DATE@|$(PACKAGE_DATE)|" \
-	    $(SRCDIR)/docs/neomuttrc.man.head && \
+	    $(SRCDIR)/docs/spacemuttrc.man.head && \
 	    $(MAKEDOC_CPP) $(SRCDIR)/docs/config.c | docs/makedoc$(EXEEXT) -m && \
 	    sed -e "s|@MAN_DOCDIR@|$(docdir)|g" \
-	      $(SRCDIR)/docs/neomuttrc.man.tail \
+	      $(SRCDIR)/docs/spacemuttrc.man.tail \
 	) > $@
 
-docs/neomutt.1:
+docs/spacemutt.1:
 	( sed -e "/^\.TH/s|@MAN_DATE@|$(PACKAGE_DATE)|" \
 	      -e "s|@MAN_DATADIR@|$(datadir)|g" \
 	      -e "s|@MAN_DOCDIR@|$(docdir)|g" \
 	      -e "s|@MAN_SYSCONFDIR@|$(sysconfdir)|g" \
 	      -e "s|@MAN_TEXTDOMAINDIR@|$(textdomaindir)|g" \
-	    $(SRCDIR)/docs/neomutt.man \
+	    $(SRCDIR)/docs/spacemutt.man \
 	) > $@
 
 docs/manual.xml:	docs docs/makedoc$(EXEEXT) $(SRCDIR)/docs/gen-map-doc \
@@ -89,8 +89,8 @@ install-docs: all-docs
 	$(INSTALL_DIR) $(DESTDIR)$(mandir)/man1
 	$(INSTALL_DIR) $(DESTDIR)$(mandir)/man5
 	$(INSTALL_DIR) $(DESTDIR)$(sysconfdir)
-	$(INSTALL_DATA) docs/neomutt.1 $(DESTDIR)$(mandir)/man1/neomutt.1
-	$(INSTALL_DATA) docs/neomuttrc.5 $(DESTDIR)$(mandir)/man5/neomuttrc.5
+	$(INSTALL_DATA) docs/spacemutt.1 $(DESTDIR)$(mandir)/man1/spacemutt.1
+	$(INSTALL_DATA) docs/spacemuttrc.5 $(DESTDIR)$(mandir)/man5/spacemuttrc.5
 	$(INSTALL_DATA) $(SRCDIR)/docs/smime_keys.1 $(DESTDIR)$(mandir)/man1/smime_keys_$(PACKAGE).1
 	$(INSTALL_DATA) $(SRCDIR)/docs/pgpewrap.1 $(DESTDIR)$(mandir)/man1/pgpewrap_$(PACKAGE).1
 	$(INSTALL_DATA) $(SRCDIR)/docs/mbox.5 $(DESTDIR)$(mandir)/man5/mbox_$(PACKAGE).5
@@ -103,37 +103,37 @@ install-docs: all-docs
 	for f in $(HTML_DOCFILES); do \
 		$(INSTALL_DATA) $$f $(DESTDIR)$(docdir) || exit 1; \
 	done
-	$(INSTALL_DATA) docs/neomuttrc $(DESTDIR)$(sysconfdir)/neomuttrc
+	$(INSTALL_DATA) docs/spacemuttrc $(DESTDIR)$(sysconfdir)/spacemuttrc
 
 uninstall-docs:
-	for f in neomutt.1 smime_keys_$(PACKAGE).1 pgpewrap_$(PACKAGE).1; do \
+	for f in spacemutt.1 smime_keys_$(PACKAGE).1 pgpewrap_$(PACKAGE).1; do \
 		$(RM) $(DESTDIR)$(mandir)/man1/$$f; \
 	done
-	for f in neomuttrc.5 mbox_$(PACKAGE).5 mmdf_$(PACKAGE).5; do \
+	for f in spacemuttrc.5 mbox_$(PACKAGE).5 mmdf_$(PACKAGE).5; do \
 		$(RM) $(DESTDIR)$(mandir)/man5/$$f; \
 	done
 	for f in $(srcdir_DOCFILES) $(HTML_DOCFILES); do \
 		$(RM) $(DESTDIR)$(docdir)/`basename $$f`; \
 	done
 	$(RM) $(DESTDIR)$(docdir)/manual.txt
-	$(RM) $(DESTDIR)$(sysconfdir)/neomuttrc
+	$(RM) $(DESTDIR)$(sysconfdir)/spacemuttrc
 
 clean-docs:
-	$(RM) docs/*.html docs/neomuttrc.5 docs/neomutt.1 \
+	$(RM) docs/*.html docs/spacemuttrc.5 docs/spacemutt.1 \
 	    docs/makedoc$(EXEEXT) docs/makedoc.o \
 	    docs/makedoc.Po docs/manual.txt docs/manual.xml \
-	    docs/neomuttrc
+	    docs/spacemuttrc
 
 validate-docs: docs docs/manual.xml
 	xmllint --noout --noblanks --postvalid docs/manual.xml
 
 spellcheck-docs:
 	-aspell -d american --mode=sgml --encoding=utf-8 -p \
-	    docs/neomutt.pwl check docs/manual.xml.head
+	    docs/spacemutt.pwl check docs/manual.xml.head
 	-aspell -d american --mode=nroff --encoding=utf-8 -p \
-	    docs/neomutt.pwl check docs/neomuttrc.man.head
+	    docs/spacemutt.pwl check docs/spacemuttrc.man.head
 	-aspell -d american --mode=ccpp --encoding=utf-8 -p \
-	    docs/neomutt.pwl check docs/config.c
+	    docs/spacemutt.pwl check docs/config.c
 
 sortcheck-docs: docs docs/manual.xml
 	sed -n -e '1,/^<sect1 id="variables">/d' \
@@ -145,19 +145,19 @@ sortcheck-docs: docs docs/manual.xml
 	$(RM) docs/vars.tmp.1 docs/vars.tmp.2
 
 @else
-# Let's generate neomuttrc in all cases: it doesn't require any additional 3rd
+# Let's generate spacemuttrc in all cases: it doesn't require any additional 3rd
 # party dependencies and distributions tend to rely on having it.
-all-docs: docs docs/neomuttrc
+all-docs: docs docs/spacemuttrc
 
 clean-docs:
-	$(RM) docs/neomuttrc docs/makedoc$(EXEEXT)
+	$(RM) docs/spacemuttrc docs/makedoc$(EXEEXT)
 
 install-docs: all-docs
 	$(INSTALL_DIR) $(DESTDIR)$(sysconfdir)
-	$(INSTALL_DATA) docs/neomuttrc $(DESTDIR)$(sysconfdir)/neomuttrc
+	$(INSTALL_DATA) docs/spacemuttrc $(DESTDIR)$(sysconfdir)/spacemuttrc
 
 uninstall-docs:
-	$(RM) $(DESTDIR)$(sysconfdir)/neomuttrc
+	$(RM) $(DESTDIR)$(sysconfdir)/spacemuttrc
 @endif
 
 # vim: set ts=8 noexpandtab:

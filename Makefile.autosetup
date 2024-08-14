@@ -63,7 +63,7 @@ default:	all
 
 ###############################################################################
 # neomutt
-NEOMUTT=	neomutt$(EXEEXT)
+NEOMUTT=	spacemutt$(EXEEXT)
 NEOMUTTOBJS=	alternates.o commands.o conststrings.o copy.o editmsg.o \
 		enriched.o external.o flags.o git_ver.o globals.o \
 		handler.o hdrline.o help.o hook.o init.o mailcap.o \

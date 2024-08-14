@@ -20,7 +20,7 @@ IncludeCategories:
   - Regex:      '"private\.h"'
     Priority:   -90
 
-  # NeoMutt library headers
+  # SpaceMutt library headers
   - Regex:      '"mutt/.*\.h"'
     Priority:   -80
   - Regex:      '"address/.*\.h"'
@@ -38,7 +38,7 @@ IncludeCategories:
   - Regex:      '"gui/.*\.h"'
     Priority:   -20
 
-  # NeoMutt general purpose headers
+  # SpaceMutt general purpose headers
   - Regex:      '"mutt\.h"'
     Priority:   -10
   - Regex:      '"debug/.*\.h"'
@@ -54,7 +54,7 @@ IncludeCategories:
   - Regex:      '".*/lib\.h"'
     Priority:   5
 
-  # All other NeoMutt headers
+  # All other SpaceMutt headers
   - Regex:      '".*"'
     Priority:   10
 
