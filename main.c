@@ -654,7 +654,7 @@ main
           mutt_list_insert_tail(&commands, mutt_str_dup(optarg));
           break;
         case 'F':
-          Muttrc = g_list_append(Muttrc, mutt_str_dup(optarg));
+          Muttrc = g_slist_append(Muttrc, mutt_str_dup(optarg));
           break;
         case 'f':
           buf_strcpy(folder, optarg);

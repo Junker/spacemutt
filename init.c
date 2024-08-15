@@ -278,7 +278,7 @@ void mutt_opts_cleanup(void)
   mutt_list_free(&Ignore);
   mutt_list_free(&MailToAllow);
   mutt_list_free(&MimeLookupList);
-  g_list_free_full(Muttrc, g_free);
+  g_slist_free_full(Muttrc, g_free);
   mutt_list_free(&UnIgnore);
   mutt_list_free(&UserHeader);
 
@@ -450,7 +450,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   add_to_stailq(&MailToAllow, "in-reply-to");
   add_to_stailq(&MailToAllow, "references");
 
-  if (g_list_length(Muttrc) == 0)
+  if (!Muttrc)
   {
     const char *xdg_cfg_home = mutt_str_getenv("XDG_CONFIG_HOME");
 
@@ -463,12 +463,12 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
     char *config = find_cfg(HomeDir, xdg_cfg_home);
     if (config)
     {
-      Muttrc = g_list_append(Muttrc, config);
+      Muttrc = g_slist_append(Muttrc, config);
     }
   }
   else
   {
-    for (GList *entry = Muttrc; entry != NULL; entry = entry->next)
+    for (GSList *entry = Muttrc; entry != NULL; entry = entry->next)
     {
       buf_strcpy(buf, (char*)entry->data);
       g_free(entry->data);
@@ -507,7 +507,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   }
 
   /* Read the user's initialization file.  */
-  for (GList *entry = Muttrc; entry != NULL; entry = entry->next)
+  for (GSList *entry = Muttrc; entry != NULL; entry = entry->next)
   {
     if (entry->data)
     {

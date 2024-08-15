@@ -42,8 +42,8 @@ extern char *LastFolder;     ///< Previously selected mailbox
 
 extern const char *GitVer;
 
-extern GList *Muttrc;               ///< List of config files to read
-extern GList *TempAttachmentsList;  ///< List of temporary files for displaying attachments
+extern GSList *Muttrc;               ///< List of config files to read
+extern GSList *TempAttachmentsList;  ///< List of temporary files for displaying attachments
 /* Lists of strings */
 extern struct ListHead AlternativeOrderList; ///< List of preferred mime types to display
 extern struct ListHead AutoViewList;         ///< List of mime types to auto view

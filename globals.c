@@ -45,8 +45,8 @@ char *CurrentFolder = NULL; ///< Currently selected mailbox
 char *LastFolder = NULL;    ///< Previously selected mailbox
 
 
-GList *Muttrc = NULL;              ///< List of config files to read
-GList *TempAttachmentsList = NULL; ///< List of temporary files for displaying attachments
+GSList *Muttrc = NULL;              ///< List of config files to read
+GSList *TempAttachmentsList = NULL; ///< List of temporary files for displaying attachments
 /* Lists of strings */
 // clang-format off
 struct ListHead AlternativeOrderList = STAILQ_HEAD_INITIALIZER(AlternativeOrderList); ///< List of preferred mime types to display
