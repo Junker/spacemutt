@@ -278,7 +278,7 @@ void mutt_opts_cleanup(void)
   mutt_list_free(&Ignore);
   mutt_list_free(&MailToAllow);
   mutt_list_free(&MimeLookupList);
-  mutt_list_free(&Muttrc);
+  g_list_free_full(Muttrc, g_free);
   mutt_list_free(&UnIgnore);
   mutt_list_free(&UserHeader);
 
@@ -450,7 +450,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   add_to_stailq(&MailToAllow, "in-reply-to");
   add_to_stailq(&MailToAllow, "references");
 
-  if (STAILQ_EMPTY(&Muttrc))
+  if (g_list_length(Muttrc) == 0)
   {
     const char *xdg_cfg_home = mutt_str_getenv("XDG_CONFIG_HOME");
 
@@ -463,21 +463,20 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
     char *config = find_cfg(HomeDir, xdg_cfg_home);
     if (config)
     {
-      mutt_list_insert_tail(&Muttrc, config);
+      Muttrc = g_list_append(Muttrc, config);
     }
   }
   else
   {
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, &Muttrc, entries)
+    for (GList *entry = Muttrc; entry != NULL; entry = entry->next)
     {
-      buf_strcpy(buf, np->data);
-      FREE(&np->data);
+      buf_strcpy(buf, (char*)entry->data);
+      g_free(entry->data);
       buf_expand_path(buf);
-      np->data = buf_strdup(buf);
-      if (access(np->data, F_OK))
+      entry->data = buf_strdup(buf);
+      if (access(entry->data, F_OK))
       {
-        mutt_perror("%s", np->data);
+        mutt_perror("%s", (char*)entry->data);
         goto done; // TEST10: neomutt -F missing
       }
     }
@@ -508,14 +507,13 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   }
 
   /* Read the user's initialization file.  */
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &Muttrc, entries)
+  for (GList *entry = Muttrc; entry != NULL; entry = entry->next)
   {
-    if (np->data)
+    if (entry->data)
     {
-      if (mutt_guile_load_config(np->data) != true)
+      if (mutt_guile_load_config((char*)entry->data) != true)
       {
-        mutt_error("load %s error", np->data);
+        mutt_error("load %s error", (char*)entry->data);
         need_pause = true; // TEST12: neomutt (error in ~/.neomuttrc)
       }
     }

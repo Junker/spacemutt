@@ -25,6 +25,7 @@
 
 #include "config.h"
 #include <stdbool.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "menu/lib.h"
 
@@ -41,12 +42,12 @@ extern char *LastFolder;     ///< Previously selected mailbox
 
 extern const char *GitVer;
 
+extern GList *Muttrc;               ///< List of config files to read
 /* Lists of strings */
 extern struct ListHead AlternativeOrderList; ///< List of preferred mime types to display
 extern struct ListHead AutoViewList;         ///< List of mime types to auto view
 extern struct ListHead HeaderOrderList;      ///< List of header fields in the order they should be displayed
 extern struct ListHead MimeLookupList;       ///< List of mime types that that shouldn't use the mailcap entry
-extern struct ListHead Muttrc;               ///< List of config files to read
 extern struct ListHead TempAttachmentsList;  ///< List of temporary files for displaying attachments
 extern struct ListHead UserHeader;           ///< List of custom headers to add to outgoing emails
 
