@@ -38,6 +38,7 @@
 #include <sys/stat.h>
 #include <sys/utsname.h>
 #include <unistd.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "address/lib.h"
 #include "config/lib.h"
@@ -202,7 +203,7 @@ static bool get_hostname(struct ConfigSet *cs)
   /* some systems report the FQDN instead of just the hostname */
   char *dot = strchr(short_host, '.');
   if (dot)
-    ShortHostname = mutt_strn_dup(short_host, dot - short_host);
+    ShortHostname = g_strndup(short_host, dot - short_host);
   else
     ShortHostname = mutt_str_dup(short_host);
 
