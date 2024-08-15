@@ -1300,7 +1300,7 @@ out:
  */
 void mutt_add_temp_attachment(const char *filename)
 {
-  mutt_list_insert_tail(&TempAttachmentsList, mutt_str_dup(filename));
+  TempAttachmentsList = g_list_append(TempAttachmentsList, mutt_str_dup(filename));
 }
 
 /**
@@ -1308,13 +1308,11 @@ void mutt_add_temp_attachment(const char *filename)
  */
 void mutt_temp_attachments_cleanup(void)
 {
-  struct ListNode *np = NULL;
-
-  STAILQ_FOREACH(np, &TempAttachmentsList, entries)
+  for (GList *entry = TempAttachmentsList; entry != NULL; entry = entry->next)
   {
-    (void) mutt_file_chmod_add(np->data, S_IWUSR);
-    mutt_file_unlink(np->data);
+    (void) mutt_file_chmod_add((char*)entry->data, S_IWUSR);
+    mutt_file_unlink((char*)entry->data);
   }
 
-  mutt_list_free(&TempAttachmentsList);
+  g_list_free_full(TempAttachmentsList, g_free);
 }
