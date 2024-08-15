@@ -59,6 +59,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <glib.h>
 #include "private.h"
 #include "mutt/lib.h"
 #include "config/lib.h"
@@ -556,7 +557,7 @@ static int update_message_path(struct Email *e, const char *path)
     for (; (p > path) && (*(p - 1) == '/'); p--)
       ; // do nothing
 
-    edata->folder = mutt_strn_dup(path, p - path);
+    edata->folder = g_strndup(path, p - path);
 
     mutt_debug(LL_DEBUG2, "nm: folder='%s', file='%s'\n", edata->folder, e->path);
     return 0;
@@ -583,7 +584,7 @@ static char *get_folder_from_path(const char *path)
     for (; (p > path) && (*(p - 1) == '/'); p--)
       ; // do nothing
 
-    return mutt_strn_dup(path, p - path);
+    return g_strndup(path, p - path);
   }
 
   return NULL;

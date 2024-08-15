@@ -37,6 +37,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <glib.h>
 #include "charset.h"
 #include "buffer.h"
 #include "list.h"
@@ -346,7 +347,7 @@ int mutt_ch_convert_nonmime_string(const struct Slist *const assumed_charset,
     size_t n = mutt_str_len(c);
     char *fromcode = mutt_mem_malloc(n + 1);
     mutt_str_copy(fromcode, c, n + 1);
-    char *s = mutt_strn_dup(u, ulen);
+    char *s = g_strndup(u, ulen);
     int m = mutt_ch_convert_string(&s, fromcode, charset, MUTT_ICONV_NO_FLAGS);
     FREE(&fromcode);
     if (m == 0)
@@ -1125,7 +1126,7 @@ char *mutt_ch_choose(const char *fromcode, const struct Slist *charsets,
       continue;
 
     size_t n = mutt_str_len(t);
-    char *s = mutt_strn_dup(u, ulen);
+    char *s = g_strndup(u, ulen);
     const int rc = d ? mutt_ch_convert_string(&s, fromcode, t, MUTT_ICONV_NO_FLAGS) :
                        mutt_ch_check(s, ulen, fromcode, t);
     if (rc)

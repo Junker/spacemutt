@@ -36,6 +36,7 @@
 #include <iconv.h>
 #include <stdbool.h>
 #include <string.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "address/lib.h"
 #include "config/lib.h"
@@ -438,7 +439,7 @@ static int encode(const char *d, size_t dlen, int col, const char *fromcode,
   const char *icode = "utf-8";
 
   /* Try to convert to UTF-8. */
-  char *u = mutt_strn_dup(d, dlen);
+  char *u = g_strndup(d, dlen);
   if (mutt_ch_convert_string(&u, fromcode, icode, MUTT_ICONV_NO_FLAGS) != 0)
   {
     rc = 1;
@@ -709,7 +710,7 @@ void rfc2047_decode(char **pd)
       }
       else
       {
-        char *conv = mutt_strn_dup(s, holelen);
+        char *conv = g_strndup(s, holelen);
         mutt_ch_convert_nonmime_string(c_assumed_charset, c_charset, &conv);
         buf_addstr(buf, conv);
         FREE(&conv);

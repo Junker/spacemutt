@@ -40,6 +40,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "address/lib.h"
 #include "config/lib.h"
@@ -351,7 +352,7 @@ static void index_email_date(const struct ExpandoNode *node, const struct Email 
     }
   }
 
-  char *fmt = mutt_strn_dup(format, format_len);
+  char *fmt = g_strndup(format, format_len);
 
   const bool use_c_locale = (*fmt == '!');
 

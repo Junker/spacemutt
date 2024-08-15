@@ -33,6 +33,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <sys/types.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "address/lib.h"
 #include "config/lib.h"
@@ -162,7 +163,7 @@ unsigned char *serial_dump_char_size(const char *c, ssize_t size,
 
   if (convert && !mutt_str_is_ascii(c, size))
   {
-    p = mutt_strn_dup(c, size);
+    p = g_strndup(c, size);
     if (mutt_ch_convert_string(&p, cc_charset(), "utf-8", MUTT_ICONV_NO_FLAGS) == 0)
     {
       size = mutt_str_len(p) + 1;

@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "config/lib.h"
 #include "core/lib.h"
@@ -251,7 +252,7 @@ int parse_extract_token(struct Buffer *dest, struct Buffer *tok, TokenFlags flag
         pc = strchr(tok->dptr, '}');
         if (pc)
         {
-          var = mutt_strn_dup(tok->dptr + 1, pc - (tok->dptr + 1));
+          var = g_strndup(tok->dptr + 1, pc - (tok->dptr + 1));
           tok->dptr = pc + 1;
 
           if ((flags & TOKEN_NOSHELL))
@@ -269,7 +270,7 @@ int parse_extract_token(struct Buffer *dest, struct Buffer *tok, TokenFlags flag
         for (pc = tok->dptr; isalnum((unsigned char) *pc) || (pc[0] == '_'); pc++)
           ; // do nothing
 
-        var = mutt_strn_dup(tok->dptr, pc - tok->dptr);
+        var = g_strndup(tok->dptr, pc - tok->dptr);
         tok->dptr = pc;
       }
       if (var)

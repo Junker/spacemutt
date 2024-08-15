@@ -80,7 +80,6 @@ size_t      mutt_str_startswith(const char *str, const char *prefix);
 
 /* case-sensitive, length-bound flavours */
 char *      mutt_strn_copy(char *dest, const char *src, size_t len, size_t dsize);
-char *      mutt_strn_dup(const char *begin, size_t l);
 bool        mutt_strn_equal(const char *a, const char *b, size_t num);
 
 /* case-insensitive flavours */

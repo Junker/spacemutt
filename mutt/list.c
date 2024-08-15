@@ -29,6 +29,7 @@
 
 #include "config.h"
 #include <stdbool.h>
+#include <glib.h>
 #include "list.h"
 #include "buffer.h"
 #include "memory.h"
@@ -255,7 +256,7 @@ size_t mutt_list_str_split(struct ListHead *head, const char *src, char sep)
     while ((*src != '\0') && (*src != sep))
       src++;
 
-    mutt_list_insert_tail(head, mutt_strn_dup(start, src - start));
+    mutt_list_insert_tail(head, g_strndup(start, src - start));
     count++;
 
     if ((*src == '\0'))

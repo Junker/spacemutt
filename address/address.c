@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "address.h"
 #include "idna2.h"
@@ -965,7 +966,7 @@ static int addr_mbox_to_udomain(const char *mbox, char **user, char **domain)
   if (!ptr || (ptr == mbox) || (ptr[1] == '\0'))
     return -1;
 
-  *user = mutt_strn_dup(mbox, ptr - mbox);
+  *user = g_strndup(mbox, ptr - mbox);
   *domain = mutt_str_dup(ptr + 1);
 
   return 0;

@@ -661,7 +661,7 @@ char *hcache_fetch_raw_str(struct HeaderCache *hc, const char *key, size_t keyle
   void *data = hc->store_ops->fetch(hc->store_handle, rk->key, rk->keylen, &dlen);
   if (data)
   {
-    res = mutt_strn_dup(data, dlen);
+    res = g_strndup(data, dlen);
     free_raw(hc, &data);
   }
   return res;

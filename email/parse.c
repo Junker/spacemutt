@@ -37,6 +37,7 @@
 #include <errno.h>
 #include <string.h>
 #include <time.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "address/lib.h"
 #include "config/lib.h"
@@ -194,7 +195,7 @@ static void parse_parameters(struct ParameterList *pl, const char *s, bool allow
       else
       {
         pnew = mutt_param_new();
-        pnew->attribute = mutt_strn_dup(s, i);
+        pnew->attribute = g_strndup(s, i);
       }
 
       do
@@ -420,7 +421,7 @@ char *mutt_extract_message_id(const char *s, size_t *len)
     {
       if (len)
         *len = p - decoded + 1;
-      res = mutt_strn_dup(beg, (p + 1) - beg);
+      res = g_strndup(beg, (p + 1) - beg);
       break;
     }
   }
@@ -649,7 +650,7 @@ static char *rfc2369_first_mailto(const char *body)
       break;
     }
 
-    char *mlist = mutt_strn_dup(beg, end - beg);
+    char *mlist = g_strndup(beg, end - beg);
     if (url_check_scheme(mlist) == U_MAILTO)
     {
       return mlist;

@@ -663,7 +663,6 @@ void test_fini(void);
   NEOMUTT_TEST_ITEM(test_mutt_str_sysexit)                                     \
   NEOMUTT_TEST_ITEM(test_mutt_str_upper)                                       \
   NEOMUTT_TEST_ITEM(test_mutt_strn_copy)                                       \
-  NEOMUTT_TEST_ITEM(test_mutt_strn_dup)                                        \
   NEOMUTT_TEST_ITEM(test_mutt_strn_equal)                                      \
                                                                                \
   /* tags */                                                                   \

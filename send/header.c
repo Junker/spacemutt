@@ -32,6 +32,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "address/lib.h"
 #include "config/lib.h"
@@ -326,14 +327,14 @@ static int write_one_header(FILE *fp, int pfxw, int max, int wraplen, const char
       }
     }
 
-    valbuf = mutt_strn_dup(start, end - start);
+    valbuf = g_strndup(start, end - start);
     rc = print_val(fp, pfx, valbuf, chflags, mutt_str_len(pfx));
   }
   else
   {
     if (!is_from)
     {
-      tagbuf = mutt_strn_dup(start, t - start);
+      tagbuf = g_strndup(start, t - start);
       /* skip over the colon separating the header field name and value */
       t++;
 
@@ -344,7 +345,7 @@ static int write_one_header(FILE *fp, int pfxw, int max, int wraplen, const char
         t++;
     }
     const char *s = is_from ? start : t;
-    valbuf = mutt_strn_dup(s, end - s);
+    valbuf = g_strndup(s, end - s);
     rc = fold_one_header(fp, tagbuf, valbuf, end - s, pfx, wraplen, chflags);
   }
 

@@ -29,6 +29,7 @@
 #include "config.h"
 #include <stdbool.h>
 #include <stddef.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "core/lib.h"
 #include "quoted.h"
@@ -344,7 +345,7 @@ struct QuoteStyle *qstyle_classify(struct QuoteStyle **quote_list, const char *q
         {
           /* add a node above q_list */
           tmp = qstyle_new();
-          tmp->prefix = mutt_strn_dup(qptr, length);
+          tmp->prefix = g_strndup(qptr, length);
           tmp->prefix_len = length;
 
           /* replace q_list by tmp in the top level list */
@@ -424,7 +425,7 @@ struct QuoteStyle *qstyle_classify(struct QuoteStyle **quote_list, const char *q
               {
                 /* add a node above q_list */
                 tmp = qstyle_new();
-                tmp->prefix = mutt_strn_dup(qptr, length);
+                tmp->prefix = g_strndup(qptr, length);
                 tmp->prefix_len = length;
 
                 /* replace q_list by tmp */
@@ -525,7 +526,7 @@ struct QuoteStyle *qstyle_classify(struct QuoteStyle **quote_list, const char *q
         if (!qc)
         {
           tmp = qstyle_new();
-          tmp->prefix = mutt_strn_dup(qptr, length);
+          tmp->prefix = g_strndup(qptr, length);
           tmp->prefix_len = length;
 
           if (ptr->down)
@@ -562,7 +563,7 @@ struct QuoteStyle *qstyle_classify(struct QuoteStyle **quote_list, const char *q
   {
     /* not found so far: add it as a top level class */
     qc = qstyle_new();
-    qc->prefix = mutt_strn_dup(qptr, length);
+    qc->prefix = g_strndup(qptr, length);
     qc->prefix_len = length;
     qc->quote_n = (*q_level)++;
     qc->attr_color = quoted_colors_get(qc->quote_n);

@@ -37,6 +37,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <time.h>
+#include <glib.h>
 #include "private.h"
 #include "mutt/lib.h"
 #include "address/lib.h"
@@ -1009,7 +1010,7 @@ struct PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu,
           all_addr = false;
           is_alias = false;
           /* compile the sub-expression */
-          buf = mutt_strn_dup(ps->dptr + 1, p - (ps->dptr + 1));
+          buf = g_strndup(ps->dptr + 1, p - (ps->dptr + 1));
           leaf->child = mutt_pattern_comp(mv, menu, buf, flags, err);
           if (!leaf->child)
           {
@@ -1101,7 +1102,7 @@ struct PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu,
           goto cleanup;
         }
         /* compile the sub-expression */
-        buf = mutt_strn_dup(ps->dptr + 1, p - (ps->dptr + 1));
+        buf = g_strndup(ps->dptr + 1, p - (ps->dptr + 1));
         struct PatternList *sub = mutt_pattern_comp(mv, menu, buf, flags, err);
         FREE(&buf);
         if (!sub)

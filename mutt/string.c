@@ -369,24 +369,6 @@ char *mutt_strn_copy(char *dest, const char *src, size_t len, size_t dsize)
   return dest;
 }
 
-/**
- * mutt_strn_dup - Duplicate a sub-string
- * @param begin Start of the string to copy
- * @param len   Length of string to copy
- * @retval ptr New string
- *
- * The caller must free the returned string.
- */
-char *mutt_strn_dup(const char *begin, size_t len)
-{
-  if (!begin)
-    return NULL;
-
-  char *p = mutt_mem_malloc(len + 1);
-  memcpy(p, begin, len);
-  p[len] = '\0';
-  return p;
-}
 
 /**
  * mutt_str_cmp - Compare two strings, safely
