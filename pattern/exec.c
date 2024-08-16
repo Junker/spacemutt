@@ -429,10 +429,9 @@ static int match_addrlist(struct Pattern *pat, bool match_personal, int n, ...)
  * @param refs List of References
  * @retval true One of the references matches
  */
-static bool match_reference(struct Pattern *pat, struct ListHead *refs)
+static bool match_reference(struct Pattern *pat, GQueue *refs)
 {
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, refs, entries)
+  for (GList *np = refs->head; np != NULL; np = np->next)
   {
     if (patmatch(pat, np->data))
       return true;
@@ -939,8 +938,8 @@ static bool pattern_exec(struct Pattern *pat, PatternExecFlags flags,
     case MUTT_PAT_REFERENCE:
       if (!e->env)
         return false;
-      return pat->pat_not ^ (match_reference(pat, &e->env->references) ||
-                             match_reference(pat, &e->env->in_reply_to));
+      return pat->pat_not ^ (match_reference(pat, e->env->references) ||
+                             match_reference(pat, e->env->in_reply_to));
     case MUTT_PAT_ADDRESS:
       if (!e->env)
         return false;

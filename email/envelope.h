@@ -81,8 +81,8 @@ struct Envelope
   char *followup_to;                   ///< List of 'followup-to' fields
   char *x_comment_to;                  ///< List of 'X-comment-to' fields
   struct Buffer spam;                  ///< Spam header
-  struct ListHead references;          ///< message references (in reverse order)
-  struct ListHead in_reply_to;         ///< in-reply-to header content
+  GQueue *references;                  ///< message references (in reverse order)
+  GQueue *in_reply_to;                 ///< in-reply-to header content
   GQueue *userhdrs;                    ///< user defined headers
 #ifdef USE_AUTOCRYPT
   struct AutocryptHeader *autocrypt;        ///< Autocrypt header

@@ -392,7 +392,7 @@ void serial_restore_gqueue(GQueue *l, const unsigned char *d, int *off, bool con
   while (counter)
   {
     g_queue_push_tail(l, NULL);
-    serial_restore_char(&l->tail->data, d, off, convert);
+    serial_restore_char((char**)&l->tail->data, d, off, convert);
     counter--;
   }
 }
@@ -661,8 +661,8 @@ unsigned char *serial_dump_envelope(const struct Envelope *env,
 
   d = serial_dump_buffer(&env->spam, d, off, convert);
 
-  d = serial_dump_stailq(&env->references, d, off, false);
-  d = serial_dump_stailq(&env->in_reply_to, d, off, false);
+  d = serial_dump_gqueue(env->references, d, off, false);
+  d = serial_dump_gqueue(env->in_reply_to, d, off, false);
   d = serial_dump_gqueue(env->userhdrs, d, off, convert);
 
   d = serial_dump_char(env->xref, d, off, false);
@@ -717,8 +717,8 @@ void serial_restore_envelope(struct Envelope *env, const unsigned char *d, int *
 
   serial_restore_buffer(&env->spam, d, off, convert);
 
-  serial_restore_stailq(&env->references, d, off, false);
-  serial_restore_stailq(&env->in_reply_to, d, off, false);
+  serial_restore_gqueue(env->references, d, off, false);
+  serial_restore_gqueue(env->in_reply_to, d, off, false);
   serial_restore_gqueue(env->userhdrs, d, off, convert);
 
   serial_restore_char(&env->xref, d, off, false);

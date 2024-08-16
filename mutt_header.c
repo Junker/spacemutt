@@ -53,6 +53,8 @@
 #include "globals.h"
 #include "muttlib.h"
 #include "mview.h"
+#include "mutt/gqueue.h"
+
 
 /**
  * label_ref_dec - Decrease the refcount of a label
@@ -269,18 +271,18 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
    * multiple Message-Ids in IRT anyways */
   if (!OptNewsSend)
   {
-    if (!STAILQ_EMPTY(&e->env->in_reply_to) &&
-        (STAILQ_EMPTY(&env_new->in_reply_to) ||
-         !mutt_str_equal(STAILQ_FIRST(&env_new->in_reply_to)->data,
-                         STAILQ_FIRST(&e->env->in_reply_to)->data)))
+    if (!g_queue_is_empty(e->env->in_reply_to) &&
+        (g_queue_is_empty(env_new->in_reply_to) ||
+         !mutt_str_equal(env_new->in_reply_to->head->data,
+                         e->env->in_reply_to->head->data)))
     {
-      mutt_list_free(&e->env->references);
+      g_queue_clear_full(e->env->references, g_free);
     }
   }
 
   /* restore old info. */
-  mutt_list_free(&env_new->references);
-  STAILQ_SWAP(&env_new->references, &e->env->references, ListNode);
+  g_queue_clear_full(env_new->references, g_free);
+  GQUEUE_SWAP(env_new->references, e->env->references);
 
   mutt_env_free(&e->env);
   e->env = env_new;

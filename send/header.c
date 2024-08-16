@@ -516,37 +516,17 @@ out:
  * Write the list in reverse because they are stored in reverse order when
  * parsed to speed up threading.
  */
-void mutt_write_references(const struct ListHead *r, FILE *fp, size_t trim)
+void mutt_write_references(const GQueue *r, FILE *fp, size_t trim)
 {
-  struct ListNode *np = NULL;
-  size_t length = 0;
+  size_t length = MIN(r->length, trim);
 
-  STAILQ_FOREACH(np, r, entries)
-  {
-    if (++length == trim)
-      break;
-  }
-
-  struct ListNode **ref = mutt_mem_calloc(length, sizeof(struct ListNode *));
-
-  // store in reverse order
-  size_t tmp = length;
-  STAILQ_FOREACH(np, r, entries)
-  {
-    ref[--tmp] = np;
-    if (tmp == 0)
-      break;
-  }
-
-  for (size_t i = 0; i < length; i++)
+  for (GList *np = g_queue_peek_nth_link(r, length - 1); np != NULL; np = np->prev)
   {
     fputc(' ', fp);
-    fputs(ref[i]->data, fp);
-    if (i != length - 1)
+    fputs(np->data, fp);
+    if (np->prev)
       fputc('\n', fp);
   }
-
-  FREE(&ref);
 }
 
 /**
@@ -701,10 +681,10 @@ int mutt_rfc822_write_header(FILE *fp, struct Envelope *env, struct Body *b,
   if ((mode == MUTT_WRITE_HEADER_NORMAL) || (mode == MUTT_WRITE_HEADER_FCC) ||
       (mode == MUTT_WRITE_HEADER_POSTPONE) || (mode == MUTT_WRITE_HEADER_MIME))
   {
-    if (!STAILQ_EMPTY(&env->references))
+    if (!g_queue_is_empty(env->references))
     {
       fputs("References:", fp);
-      mutt_write_references(&env->references, fp, 10);
+      mutt_write_references(env->references, fp, 10);
       fputc('\n', fp);
     }
 
@@ -716,10 +696,10 @@ int mutt_rfc822_write_header(FILE *fp, struct Envelope *env, struct Body *b,
     }
   }
 
-  if (!STAILQ_EMPTY(&env->in_reply_to))
+  if (!g_queue_is_empty(env->in_reply_to))
   {
     fputs("In-Reply-To:", fp);
-    mutt_write_references(&env->in_reply_to, fp, 0);
+    mutt_write_references(env->in_reply_to, fp, 0);
     fputc('\n', fp);
   }
 

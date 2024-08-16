@@ -1050,7 +1050,7 @@ static int op_main_break_thread(struct IndexSharedData *shared,
   }
 
   struct MailboxView *mv = shared->mailbox_view;
-  if (!STAILQ_EMPTY(&e->env->in_reply_to) || !STAILQ_EMPTY(&e->env->references))
+  if (!g_queue_is_empty(e->env->in_reply_to) || !g_queue_is_empty(e->env->references))
   {
     {
       mutt_break_thread(e);
@@ -2614,7 +2614,7 @@ static int op_get_children(struct IndexSharedData *shared,
   if (op == OP_RECONSTRUCT_THREAD)
   {
     struct ListNode *ref = NULL;
-    STAILQ_FOREACH(ref, &e->env->references, entries)
+    for (GList *ref = e->env->references->head; ref != NULL; ref = ref->next)
     {
       if (!mutt_hash_find(m->id_hash, ref->data))
       {
@@ -2624,7 +2624,7 @@ static int op_get_children(struct IndexSharedData *shared,
       }
 
       /* the last msgid in References is the root message */
-      if (!STAILQ_NEXT(ref, entries))
+      if (!ref->next)
         mutt_str_copy(buf, ref->data, sizeof(buf));
     }
   }
@@ -2706,12 +2706,12 @@ static int op_get_message(struct IndexSharedData *shared,
   else
   {
     struct Email *e = shared->email;
-    if (!e || STAILQ_EMPTY(&e->env->references))
+    if (!e || g_queue_is_empty(e->env->references))
     {
       mutt_error(_("Article has no parent reference"));
       goto done;
     }
-    buf_strcpy(buf, STAILQ_FIRST(&e->env->references)->data);
+    buf_strcpy(buf, e->env->references->head->data);
   }
 
   if (!m->id_hash)

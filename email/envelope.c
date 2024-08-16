@@ -38,6 +38,8 @@
 #include "core/lib.h"
 #include "envelope.h"
 #include "email.h"
+#include "mutt/gqueue.h"
+
 
 /**
  * mutt_env_new - Create a new Envelope
@@ -55,8 +57,8 @@ struct Envelope *mutt_env_new(void)
   TAILQ_INIT(&env->reply_to);
   TAILQ_INIT(&env->mail_followup_to);
   TAILQ_INIT(&env->x_original_to);
-  STAILQ_INIT(&env->references);
-  STAILQ_INIT(&env->in_reply_to);
+  env->references = g_queue_new();
+  env->in_reply_to = g_queue_new();
   env->userhdrs = g_queue_new();
   return env;
 }
@@ -158,8 +160,8 @@ void mutt_env_free(struct Envelope **ptr)
 
   buf_dealloc(&env->spam);
 
-  mutt_list_free(&env->references);
-  mutt_list_free(&env->in_reply_to);
+  g_queue_free_full(env->references, g_free);
+  g_queue_free_full(env->in_reply_to, g_free);
   g_queue_free_full(env->userhdrs, g_free);
 
 #ifdef USE_AUTOCRYPT
@@ -251,11 +253,11 @@ void mutt_env_merge(struct Envelope *base, struct Envelope **extra)
   }
   if (!(base->changed & MUTT_ENV_CHANGED_REFS))
   {
-    MOVE_STAILQ(references);
+    MOVE_GQUEUE(references);
   }
   if (!(base->changed & MUTT_ENV_CHANGED_IRT))
   {
-    MOVE_STAILQ(in_reply_to);
+    MOVE_GQUEUE(in_reply_to);
   }
 
   /* real_subj is subordinate to subject */
@@ -294,7 +296,7 @@ bool mutt_env_cmp_strict(const struct Envelope *e1, const struct Envelope *e2)
   {
     if (!mutt_str_equal(e1->message_id, e2->message_id) ||
         !mutt_str_equal(e1->subject, e2->subject) ||
-        !mutt_list_equal(&e1->references, &e2->references) ||
+        !g_queue_equal(e1->references, e2->references) ||
         !mutt_addrlist_equal(&e1->from, &e2->from) ||
         !mutt_addrlist_equal(&e1->sender, &e2->sender) ||
         !mutt_addrlist_equal(&e1->reply_to, &e2->reply_to) ||

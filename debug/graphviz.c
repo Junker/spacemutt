@@ -1280,8 +1280,8 @@ void dot_envelope(FILE *fp, struct Envelope *env, struct ListHead *links)
 
   if (0)
   {
-    dot_list_head(fp, "references", &env->references);
-    dot_list_head(fp, "in_reply_to", &env->in_reply_to);
+    dot_gqueue(fp, "references", env->references);
+    dot_gqueue(fp, "in_reply_to", env->in_reply_to);
     dot_gqueue(fp, "userhdrs", env->userhdrs);
   }
 

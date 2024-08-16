@@ -176,7 +176,7 @@ struct Email *find_virtual(struct MuttThread *cur, bool reverse)
  */
 void clean_references(struct MuttThread *brk, struct MuttThread *cur)
 {
-  struct ListNode *ref = NULL;
+  GList *ref = NULL;
   bool done = false;
 
   for (; cur; cur = cur->next, done = false)
@@ -192,10 +192,12 @@ void clean_references(struct MuttThread *brk, struct MuttThread *cur)
      * first loop should match immediately for mails respecting RFC2822. */
     for (struct MuttThread *p = brk; !done && p; p = p->parent)
     {
-      for (ref = STAILQ_FIRST(&cur->message->env->references);
-           p->message && ref; ref = STAILQ_NEXT(ref, entries))
+      if (p->message)
       {
-        if (mutt_istr_equal(ref->data, p->message->env->message_id))
+        ref = g_queue_find_custom(cur->message->env->references,
+                                  p->message->env->message_id,
+                                  (GCompareFunc)mutt_istr_cmp);
+        if (ref)
         {
           done = true;
           break;
@@ -208,12 +210,12 @@ void clean_references(struct MuttThread *brk, struct MuttThread *cur)
       struct Email *e = cur->message;
 
       /* clearing the References: header from obsolete Message-ID(s) */
-      struct ListNode *np = NULL;
-      while ((np = STAILQ_NEXT(ref, entries)))
+      GList *np = ref->next;
+      while (np)
       {
-        STAILQ_REMOVE_AFTER(&cur->message->env->references, ref, entries);
-        FREE(&np->data);
-        FREE(&np);
+        GList *next = np->next;
+        g_queue_delete_link(cur->message->env->references, np);
+        np = next;
       }
 
       e->changed = true;
@@ -231,8 +233,8 @@ void mutt_break_thread(struct Email *e)
   if (!e)
     return;
 
-  mutt_list_free(&e->env->in_reply_to);
-  mutt_list_free(&e->env->references);
+  g_queue_clear_full(e->env->in_reply_to, g_free);
+  g_queue_clear_full(e->env->references, g_free);
   e->changed = true;
   e->env->changed |= (MUTT_ENV_CHANGED_IRT | MUTT_ENV_CHANGED_REFS);
 

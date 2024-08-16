@@ -1040,7 +1040,7 @@ void mutt_sort_threads(struct ThreadsContext *tctx, bool init)
   int i, using_refs = 0;
   struct MuttThread *thread = NULL, *tnew = NULL, *tmp = NULL;
   struct MuttThread top = { 0 };
-  struct ListNode *ref = NULL;
+  GList *ref = NULL;
 
   ASSERT(m->msg_count > 0);
   if (!tctx->hash)
@@ -1182,14 +1182,14 @@ void mutt_sort_threads(struct ThreadsContext *tctx, bool init)
       if (using_refs == 0)
       {
         /* look at the beginning of in-reply-to: */
-        ref = STAILQ_FIRST(&e->env->in_reply_to);
+        ref = e->env->in_reply_to->head;
         if (ref)
         {
           using_refs = 1;
         }
         else
         {
-          ref = STAILQ_FIRST(&e->env->references);
+          ref = e->env->references->head;
           using_refs = 2;
         }
       }
@@ -1200,23 +1200,23 @@ void mutt_sort_threads(struct ThreadsContext *tctx, bool init)
          * if it's different than the first in-reply-to, otherwise use
          * the second reference (since at least eudora puts the most
          * recent reference in in-reply-to and the rest in references) */
-        if (STAILQ_EMPTY(&e->env->references))
+        if (g_queue_is_empty(e->env->references))
         {
-          ref = STAILQ_NEXT(ref, entries);
+          ref = ref->next;
         }
         else
         {
-          if (!mutt_str_equal(ref->data, STAILQ_FIRST(&e->env->references)->data))
-            ref = STAILQ_FIRST(&e->env->references);
+          if (!mutt_str_equal(ref->data, e->env->references->head->data))
+            ref = e->env->references->head;
           else
-            ref = STAILQ_NEXT(STAILQ_FIRST(&e->env->references), entries);
+            ref = e->env->references->head->next;
 
           using_refs = 2;
         }
       }
       else
       {
-        ref = STAILQ_NEXT(ref, entries); /* go on with references */
+        ref = ref->next; /* go on with references */
       }
 
       if (!ref)
@@ -1729,7 +1729,7 @@ static bool link_threads(struct Email *parent, struct Email *child, struct Mailb
     return false;
 
   mutt_break_thread(child);
-  mutt_list_insert_head(&child->env->in_reply_to, mutt_str_dup(parent->env->message_id));
+  g_queue_push_head(child->env->in_reply_to, mutt_str_dup(parent->env->message_id));
   mutt_set_flag(m, child, MUTT_TAG, false, true);
 
   child->changed = true;

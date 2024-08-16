@@ -147,8 +147,8 @@ void dump_envelope(const struct Envelope *env)
   OPT_STRING(x_comment_to);
 #undef OPT_STRING
 
-  dump_list_head(&env->references, "references");
-  dump_list_head(&env->in_reply_to, "in_reply_to");
+  dump_gqueue(env->references, "references");
+  dump_gqueue(env->in_reply_to, "in_reply_to");
   dump_gqueue(env->userhdrs, "userhdrs");
 
   if (!buf_is_empty(&env->spam))

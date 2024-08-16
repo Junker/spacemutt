@@ -452,11 +452,10 @@ int mutt_copy_header(FILE *fp_in, struct Email *e, FILE *fp_out,
     fputc('\n', fp_out);
   }
 
-  if ((chflags & CH_UPDATE_IRT) && !STAILQ_EMPTY(&e->env->in_reply_to))
+  if ((chflags & CH_UPDATE_IRT) && !g_queue_is_empty(e->env->in_reply_to))
   {
     fputs("In-Reply-To:", fp_out);
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, &e->env->in_reply_to, entries)
+    for (GList *np = e->env->in_reply_to->head; np != NULL; np = np->next)
     {
       fputc(' ', fp_out);
       fputs(np->data, fp_out);
@@ -464,10 +463,10 @@ int mutt_copy_header(FILE *fp_in, struct Email *e, FILE *fp_out,
     fputc('\n', fp_out);
   }
 
-  if ((chflags & CH_UPDATE_REFS) && !STAILQ_EMPTY(&e->env->references))
+  if ((chflags & CH_UPDATE_REFS) && !g_queue_is_empty(e->env->references))
   {
     fputs("References:", fp_out);
-    mutt_write_references(&e->env->references, fp_out, 0);
+    mutt_write_references(e->env->references, fp_out, 0);
     fputc('\n', fp_out);
   }
 

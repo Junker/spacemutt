@@ -91,6 +91,7 @@
 #include "sendmail.h"
 #include "smtp.h"
 #include "sort.h"
+#include "mutt/gqueue.h"
 #ifdef USE_NOTMUCH
 #include "notmuch/lib.h"
 #endif
@@ -989,10 +990,10 @@ int mutt_fetch_recips(struct Envelope *out, struct Envelope *in,
  * @param head List of references
  * @param env    Envelope of message
  */
-static void add_references(struct ListHead *head, struct Envelope *env)
+static void add_references(GQueue *head, struct Envelope *env)
 {
-  struct ListHead *src = STAILQ_EMPTY(&env->references) ? &env->in_reply_to : &env->references;
-  mutt_list_copy_tail(head, src);
+  GQueue *src = g_queue_is_empty(env->references) ? env->in_reply_to : env->references;
+  g_queue_copy_tail(head, src);
 }
 
 /**
@@ -1000,11 +1001,11 @@ static void add_references(struct ListHead *head, struct Envelope *env)
  * @param head List of message IDs
  * @param env  Envelope of message
  */
-static void add_message_id(struct ListHead *head, struct Envelope *env)
+static void add_message_id(GQueue *head, struct Envelope *env)
 {
   if (env->message_id)
   {
-    mutt_list_insert_head(head, mutt_str_dup(env->message_id));
+    g_queue_push_tail(head, mutt_str_dup(env->message_id));
   }
 }
 
@@ -1094,9 +1095,9 @@ void mutt_make_misc_reply_headers(struct Envelope *env, struct Envelope *env_cur
 void mutt_add_to_reference_headers(struct Envelope *env, struct Envelope *env_cur,
                                    struct ConfigSubset *sub)
 {
-  add_references(&env->references, env_cur);
-  add_message_id(&env->references, env_cur);
-  add_message_id(&env->in_reply_to, env_cur);
+  add_references(env->references, env_cur);
+  add_message_id(env->references, env_cur);
+  add_message_id(env->in_reply_to, env_cur);
 
   const bool c_x_comment_to = cs_subset_bool(sub, "x_comment_to");
   if (OptNewsSend && c_x_comment_to && !TAILQ_EMPTY(&env_cur->from))
@@ -1125,10 +1126,10 @@ static void make_reference_headers(struct EmailArray *ea, struct Envelope *env,
   /* if there's more than entry in In-Reply-To (i.e. message has multiple
    * parents), don't generate a References: header as it's discouraged by
    * RFC2822, sect. 3.6.4 */
-  if ((ARRAY_SIZE(ea) > 1) && !STAILQ_EMPTY(&env->in_reply_to) &&
-      STAILQ_NEXT(STAILQ_FIRST(&env->in_reply_to), entries))
+  if ((ARRAY_SIZE(ea) > 1) && !g_queue_is_empty(env->in_reply_to) &&
+      env->in_reply_to->head->next)
   {
-    mutt_list_free(&env->references);
+    g_queue_clear_full(env->references, g_free);
   }
 }
 
@@ -1661,8 +1662,8 @@ static bool is_reply(struct Email *reply, struct Email *orig)
 {
   if (!reply || !reply->env || !orig || !orig->env)
     return false;
-  return mutt_list_find(&orig->env->references, reply->env->message_id) ||
-         mutt_list_find(&orig->env->in_reply_to, reply->env->message_id);
+  return g_queue_find_custom(orig->env->references, reply->env->message_id, (GCompareFunc)mutt_str_cmp) ||
+         g_queue_find_custom(orig->env->in_reply_to, reply->env->message_id, (GCompareFunc)mutt_str_cmp);
 }
 
 /**

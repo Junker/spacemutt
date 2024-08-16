@@ -321,7 +321,7 @@ static void parse_content_disposition(const char *s, struct Body *b)
  * @param head List to receive the references
  * @param s    String to parse
  */
-static void parse_references(struct ListHead *head, const char *s)
+static void parse_references(GQueue *head, const char *s)
 {
   if (!head)
     return;
@@ -329,7 +329,7 @@ static void parse_references(struct ListHead *head, const char *s)
   char *m = NULL;
   for (size_t off = 0; (m = mutt_extract_message_id(s, &off)); s += off)
   {
-    mutt_list_insert_head(head, m);
+    g_queue_push_tail(head, m);
   }
 }
 
@@ -836,10 +836,10 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
       if ((name_len != 11) || !eqi10(name + 1, "n-reply-to"))
         break;
 
-      mutt_list_free(&env->in_reply_to);
+      g_queue_clear_full(env->in_reply_to, g_free);
       char *body2 = mutt_str_dup(body); // Create a mutable copy
       mutt_filter_commandline_header_value(body2);
-      parse_references(&env->in_reply_to, body2);
+      parse_references(env->in_reply_to, body2);
       FREE(&body2);
       matched = true;
       break;
@@ -953,8 +953,8 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
     case 'r':
       if ((name_len == 10) && eqi9(name + 1, "eferences"))
       {
-        mutt_list_free(&env->references);
-        parse_references(&env->references, body);
+        g_queue_clear_full(env->references, g_free);
+        parse_references(env->references, body);
         matched = true;
       }
       else if ((name_len == 8) && eqi8(name, "reply-to"))

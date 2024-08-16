@@ -51,6 +51,7 @@
 #include "globals.h"
 #include "handler.h"
 #include "mx.h"
+#include "mutt/gqueue.h"
 #ifdef USE_AUTOCRYPT
 #include "autocrypt/lib.h"
 #endif
@@ -283,8 +284,8 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
       mutt_addrlist_copy(&protected_headers->mail_followup_to,
                          &e->env->mail_followup_to, false);
       mutt_addrlist_copy(&protected_headers->x_original_to, &e->env->x_original_to, false);
-      mutt_list_copy_tail(&protected_headers->references, &e->env->references);
-      mutt_list_copy_tail(&protected_headers->in_reply_to, &e->env->in_reply_to);
+      g_queue_copy_tail(protected_headers->references, e->env->references);
+      g_queue_copy_tail(protected_headers->in_reply_to, e->env->in_reply_to);
       mutt_env_to_intl(protected_headers, NULL, NULL);
     }
     mutt_prepare_envelope(protected_headers, 0, NeoMutt->sub);
@@ -1212,14 +1213,14 @@ int mutt_protected_headers_handler(struct Body *b_email, struct State *state)
     if (!weed || !mutt_matches_ignore("references"))
     {
       buf_reset(buf);
-      mutt_list_write(&b_email->mime_headers->references, buf);
+      g_queue_write(b_email->mime_headers->references, buf);
       mutt_write_one_header(state->fp_out, "References", buf_string(buf),
                             state->prefix, wraplen, chflags, NeoMutt->sub);
     }
     if (!weed || !mutt_matches_ignore("in-reply-to"))
     {
       buf_reset(buf);
-      mutt_list_write(&b_email->mime_headers->in_reply_to, buf);
+      g_queue_write(b_email->mime_headers->in_reply_to, buf);
       mutt_write_one_header(state->fp_out, "In-Reply-To", buf_string(buf),
                             state->prefix, wraplen, chflags, NeoMutt->sub);
     }
