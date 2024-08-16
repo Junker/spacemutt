@@ -342,11 +342,10 @@ bailout:
  */
 void mutt_check_lookup_list(struct Body *b, char *type, size_t len)
 {
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &MimeLookupList, entries)
+  for (GSList *np = MimeLookupList; np != NULL; np = np->next)
   {
     const int i = mutt_str_len(np->data) - 1;
-    if (((i > 0) && (np->data[i - 1] == '/') && (np->data[i] == '*') &&
+    if (((i > 0) && (((char*)np->data)[i - 1] == '/') && (((char*)np->data)[i] == '*') &&
          mutt_istrn_equal(type, np->data, i)) ||
         mutt_istr_equal(type, np->data))
     {

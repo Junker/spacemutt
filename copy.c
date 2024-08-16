@@ -202,10 +202,9 @@ int mutt_copy_hdr(FILE *fp_in, FILE *fp_out, LOFF_T off_start, LOFF_T off_end,
    * First count the number of entries in the array */
   if (chflags & CH_REORDER)
   {
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, &HeaderOrderList, entries)
+    for (GSList *np = HeaderOrderList; np != NULL; np = np->next)
     {
-      mutt_debug(LL_DEBUG3, "Reorder list: %s\n", np->data);
+      mutt_debug(LL_DEBUG3, "Reorder list: %s\n", (char*)np->data);
       hdr_count++;
     }
   }
@@ -313,12 +312,11 @@ int mutt_copy_hdr(FILE *fp_in, FILE *fp_out, LOFF_T off_start, LOFF_T off_end,
       /* Find x -- the array entry where this header is to be saved */
       if (chflags & CH_REORDER)
       {
-        struct ListNode *np = NULL;
         x = 0;
         int match = -1;
         size_t match_len = 0;
 
-        STAILQ_FOREACH(np, &HeaderOrderList, entries)
+        for (GSList *np = HeaderOrderList; np != NULL; np = np->next)
         {
           size_t hdr_order_len = mutt_str_len(np->data);
           if (mutt_istrn_equal(buf, np->data, hdr_order_len))
@@ -328,7 +326,7 @@ int mutt_copy_hdr(FILE *fp_in, FILE *fp_out, LOFF_T off_start, LOFF_T off_end,
               match = x;
               match_len = hdr_order_len;
             }
-            mutt_debug(LL_DEBUG2, "Reorder: %s matches %s", np->data, buf);
+            mutt_debug(LL_DEBUG2, "Reorder: %s matches %s", (char*)np->data, buf);
           }
           x++;
         }

@@ -274,10 +274,10 @@ void mutt_opts_cleanup(void)
   /* Lists of strings */
   g_slist_free_full(AlternativeOrderList, g_free);
   g_slist_free_full(AutoViewList, g_free);
-  mutt_list_free(&HeaderOrderList);
+  g_slist_free_full(HeaderOrderList, g_free);
   mutt_list_free(&Ignore);
   mutt_list_free(&MailToAllow);
-  mutt_list_free(&MimeLookupList);
+  g_slist_free_full(MimeLookupList, g_free);
   g_slist_free_full(Muttrc, g_free);
   mutt_list_free(&UnIgnore);
   g_queue_clear_full(UserHeader, g_free);

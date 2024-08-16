@@ -51,9 +51,9 @@ GSList *Muttrc = NULL;              ///< List of config files to read
 GSList *TempAttachmentsList = NULL; ///< List of temporary files for displaying attachments
 GSList *AlternativeOrderList = NULL;///< List of preferred mime types to display
 GSList *AutoViewList = NULL;        ///< List of mime types to auto view
+GSList *HeaderOrderList = NULL;     ///< List of header fields in the order they should be displayed
+GSList *MimeLookupList = NULL;      ///< List of mime types that that shouldn't use the mailcap entry
 GQueue *UserHeader = NULL;
-struct ListHead HeaderOrderList      = STAILQ_HEAD_INITIALIZER(HeaderOrderList);      ///< List of header fields in the order they should be displayed
-struct ListHead MimeLookupList       = STAILQ_HEAD_INITIALIZER(MimeLookupList);       ///< List of mime types that that shouldn't use the mailcap entry
 // clang-format on
 
 /* pseudo options */

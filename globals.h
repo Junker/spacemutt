@@ -47,8 +47,8 @@ extern GSList *Muttrc;               ///< List of config files to read
 extern GSList *TempAttachmentsList;  ///< List of temporary files for displaying attachments
 extern GSList *AlternativeOrderList; ///< List of preferred mime types to display
 extern GSList *AutoViewList;         ///< List of mime types to auto view
-extern struct ListHead HeaderOrderList;      ///< List of header fields in the order they should be displayed
-extern struct ListHead MimeLookupList;       ///< List of mime types that that shouldn't use the mailcap entry
+extern GSList *HeaderOrderList;      ///< List of header fields in the order they should be displayed
+extern GSList *MimeLookupList;       ///< List of mime types that that shouldn't use the mailcap entry
 extern GQueue *UserHeader;                   ///< List of custom headers to add to outgoing emails
 
 /* pseudo options */
