@@ -27,13 +27,13 @@
 #include "mutt/lib.h"
 
 extern struct HashTable  *AutoSubscribeCache;
-extern struct ListHead    Ignore;
+extern GSList *Ignore;
 extern struct RegexList   MailLists;
 extern GSList *MailToAllow;
 extern struct RegexList   NoSpamList;
 extern struct ReplaceList SpamList;
 extern struct RegexList   SubscribedLists;
-extern struct ListHead    UnIgnore;
+extern GSList *UnIgnore;
 extern struct RegexList   UnMailLists;
 extern struct RegexList   UnSubscribedLists;
 

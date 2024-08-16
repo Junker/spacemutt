@@ -36,7 +36,7 @@
 ///< Hash Table: "mailto:" -> AutoSubscribeCache
 struct HashTable *AutoSubscribeCache = NULL;
 ///< List of header patterns to ignore
-struct ListHead Ignore = STAILQ_HEAD_INITIALIZER(Ignore);
+GSList *Ignore = NULL;
 ///< List of regexes to match mailing lists
 struct RegexList MailLists = STAILQ_HEAD_INITIALIZER(MailLists);
 ///< List of permitted fields in a mailto: url
@@ -48,7 +48,7 @@ struct ReplaceList SpamList = STAILQ_HEAD_INITIALIZER(SpamList);
 ///< List of regexes to match subscribed mailing lists
 struct RegexList SubscribedLists = STAILQ_HEAD_INITIALIZER(SubscribedLists);
 ///< List of header patterns to unignore (see)
-struct ListHead UnIgnore = STAILQ_HEAD_INITIALIZER(UnIgnore);
+GSList *UnIgnore = NULL;
 ///< List of regexes to exclude false matches in MailLists
 struct RegexList UnMailLists = STAILQ_HEAD_INITIALIZER(UnMailLists);
 ///< List of regexes to exclude false matches in SubscribedLists

@@ -421,8 +421,8 @@ static enum CommandResult parse_ignore(struct Buffer *buf, struct Buffer *s,
   do
   {
     parse_extract_token(buf, s, TOKEN_NO_FLAGS);
-    remove_from_stailq(&UnIgnore, buf->data);
-    add_to_stailq(&Ignore, buf->data);
+    UnIgnore = remove_from_gslist(UnIgnore, buf->data);
+    Ignore = add_to_gslist(Ignore, buf->data);
   } while (MoreArgs(s));
 
   return MUTT_CMD_SUCCESS;
@@ -1204,9 +1204,9 @@ static enum CommandResult parse_unignore(struct Buffer *buf, struct Buffer *s,
 
     /* don't add "*" to the unignore list */
     if (!mutt_str_equal(buf->data, "*"))
-      add_to_stailq(&UnIgnore, buf->data);
+      UnIgnore = add_to_gslist(UnIgnore, buf->data);
 
-    remove_from_stailq(&Ignore, buf->data);
+    Ignore = remove_from_gslist(Ignore, buf->data);
   } while (MoreArgs(s));
 
   return MUTT_CMD_SUCCESS;

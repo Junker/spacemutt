@@ -54,6 +54,7 @@
 #include "rfc2047.h"
 #include "rfc2231.h"
 #include "url.h"
+#include "mutt/gslist.h"
 #ifdef USE_AUTOCRYPT
 #include "autocrypt/lib.h"
 #endif
@@ -356,7 +357,7 @@ static void parse_content_language(const char *s, struct Body *b)
  */
 bool mutt_matches_ignore(const char *s)
 {
-  return mutt_list_match(s, &Ignore) && !mutt_list_match(s, &UnIgnore);
+  return g_slist_match(Ignore, s) && !g_slist_match(UnIgnore, s);
 }
 
 /**
