@@ -62,5 +62,6 @@ void        mutt_str_pretty_size(char *buf, size_t buflen, size_t num);
 void add_to_stailq     (struct ListHead *head, const char *str);
 void remove_from_stailq(struct ListHead *head, const char *str);
 GSList *add_to_gslist(GSList *head, const char *str);
+GSList *remove_from_gslist(GSList *head, const char *str);
 
 #endif /* MUTT_MUTTLIB_H */

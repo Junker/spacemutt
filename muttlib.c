@@ -1113,3 +1113,31 @@ GSList *add_to_gslist(GSList *head, const char *str)
 
   return head;
 }
+
+/**
+ * remove_from_gslist - Remove an item, matching a string, from a List
+ * @param head Head of the List
+ * @param str  String to match
+ *
+ * @note The string comparison is case-insensitive
+ */
+GSList *remove_from_gslist(GSList *head, const char *str)
+{
+  if (mutt_str_equal("*", str))
+  {
+    g_slist_free_full(head, g_free); /* "unCMD *" means delete all current entries */
+    return head;
+  }
+  else
+  {
+    for (GSList *np = head; np != NULL; np = np->next)
+    {
+      if (mutt_istr_equal(str, np->data))
+      {
+        g_free(np->data);
+        return g_slist_delete_link(head, np);
+      }
+    }
+  }
+  return head;
+}
