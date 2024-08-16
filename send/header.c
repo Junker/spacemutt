@@ -516,7 +516,7 @@ out:
  * Write the list in reverse because they are stored in reverse order when
  * parsed to speed up threading.
  */
-void mutt_write_references(const GQueue *r, FILE *fp, size_t trim)
+void mutt_write_references(GQueue *r, FILE *fp, size_t trim)
 {
   size_t length = MIN(r->length, trim);
 

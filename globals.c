@@ -45,11 +45,11 @@ char *CurrentFolder = NULL; ///< Currently selected mailbox
 char *LastFolder = NULL;    ///< Previously selected mailbox
 
 
+/* Lists of strings */
+// clang-format off
 GSList *Muttrc = NULL;              ///< List of config files to read
 GSList *TempAttachmentsList = NULL; ///< List of temporary files for displaying attachments
 GQueue *UserHeader = NULL;
-/* Lists of strings */
-// clang-format off
 struct ListHead AlternativeOrderList = STAILQ_HEAD_INITIALIZER(AlternativeOrderList); ///< List of preferred mime types to display
 struct ListHead AutoViewList         = STAILQ_HEAD_INITIALIZER(AutoViewList);         ///< List of mime types to auto view
 struct ListHead HeaderOrderList      = STAILQ_HEAD_INITIALIZER(HeaderOrderList);      ///< List of header fields in the order they should be displayed

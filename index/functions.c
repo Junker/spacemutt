@@ -2613,7 +2613,6 @@ static int op_get_children(struct IndexSharedData *shared,
   /* trying to find msgid of the root message */
   if (op == OP_RECONSTRUCT_THREAD)
   {
-    struct ListNode *ref = NULL;
     for (GList *ref = e->env->references->head; ref != NULL; ref = ref->next)
     {
       if (!mutt_hash_find(m->id_hash, ref->data))
