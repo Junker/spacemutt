@@ -34,20 +34,20 @@ void test_email_header_set(void)
   const char *starting_value = "X-TestHeader: 0.57";
   const char *updated_value = "X-TestHeader: 6.28";
 
-  struct ListHead hdrlist = STAILQ_HEAD_INITIALIZER(hdrlist);
+  GQueue *hdrlist = g_queue_new();
 
   {
     /* Set value for first time */
-    struct ListNode *got = header_set(&hdrlist, starting_value);
+    GList *got = header_set(hdrlist, starting_value);
     TEST_CHECK_STR_EQ(got->data, starting_value); /* value set */
-    TEST_CHECK(got == STAILQ_FIRST(&hdrlist));    /* header was added to list */
+    TEST_CHECK(got == hdrlist->head);    /* header was added to list */
   }
 
   {
     /* Update value */
-    struct ListNode *got = header_set(&hdrlist, updated_value);
+    GList *got = header_set(hdrlist, updated_value);
     TEST_CHECK_STR_EQ(got->data, updated_value); /* value set*/
-    TEST_CHECK(got == STAILQ_FIRST(&hdrlist));   /* no new header added*/
+    TEST_CHECK(got == hdrlist->head);   /* no new header added*/
   }
-  mutt_list_free(&hdrlist);
+  g_queue_free_full(hdrlist, g_free);
 }

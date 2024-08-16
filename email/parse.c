@@ -1099,10 +1099,10 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
 
     if (!weed || !c_weed || !mutt_matches_ignore(dup))
     {
-      struct ListNode *np = mutt_list_insert_tail(&env->userhdrs, dup);
+      g_queue_push_tail(env->userhdrs, dup);
       if (do_2047)
       {
-        rfc2047_decode(&np->data);
+        rfc2047_decode((char**)&env->userhdrs->tail->data);
       }
     }
     else

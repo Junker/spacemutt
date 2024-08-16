@@ -134,7 +134,7 @@ size_t email_size(const struct Email *e)
  *
  * The header should either of the form "X-Header:" or "X-Header: value"
  */
-struct ListNode *header_find(const struct ListHead *hdrlist, const char *header)
+GList *header_find(GQueue *hdrlist, const char *header)
 {
   const char *key_end = strchr(header, ':');
   if (!key_end)
@@ -142,13 +142,12 @@ struct ListNode *header_find(const struct ListHead *hdrlist, const char *header)
 
   const int keylen = key_end - header + 1;
 
-  struct ListNode *n = NULL;
-  STAILQ_FOREACH(n, hdrlist, entries)
+  for (GList *n = hdrlist->head; n != NULL; n = n->next)
   {
     if (mutt_istrn_equal(n->data, header, keylen))
       return n;
   }
-  return n;
+  return NULL;
 }
 
 /**
@@ -157,12 +156,11 @@ struct ListNode *header_find(const struct ListHead *hdrlist, const char *header)
  * @param header  String to set as the header
  * @retval ptr    The created header
  */
-struct ListNode *header_add(struct ListHead *hdrlist, const char *header)
+GList *header_add(GQueue *hdrlist, const char *header)
 {
-  struct ListNode *n = mutt_list_insert_tail(hdrlist, NULL);
-  n->data = mutt_str_dup(header);
+  g_queue_push_tail(hdrlist, mutt_str_dup(header));
 
-  return n;
+  return hdrlist->tail;
 }
 
 /**
@@ -171,9 +169,9 @@ struct ListNode *header_add(struct ListHead *hdrlist, const char *header)
  * @param header  String to update the header with
  * @retval ptr    The updated header
  */
-struct ListNode *header_update(struct ListNode *hdr, const char *header)
+GList *header_update(GList *hdr, const char *header)
 {
-  FREE(&hdr->data);
+  g_free(hdr->data);
   hdr->data = mutt_str_dup(header);
 
   return hdr;
@@ -187,9 +185,9 @@ struct ListNode *header_update(struct ListNode *hdr, const char *header)
  *
  * If a header exists with the same field, update it, otherwise add a new header.
  */
-struct ListNode *header_set(struct ListHead *hdrlist, const char *header)
+GList *header_set(GQueue *hdrlist, const char *header)
 {
-  struct ListNode *n = header_find(hdrlist, header);
+  GList *n = header_find(hdrlist, header);
 
   return n ? header_update(n, header) : header_add(hdrlist, header);
 }
@@ -199,9 +197,8 @@ struct ListNode *header_set(struct ListHead *hdrlist, const char *header)
  * @param hdrlist List to free the header from
  * @param target  The header to free
  */
-void header_free(struct ListHead *hdrlist, struct ListNode *target)
+void header_free(GQueue *hdrlist, GList *target)
 {
-  STAILQ_REMOVE(hdrlist, target, ListNode, entries);
-  FREE(&target->data);
-  FREE(&target);
+  g_free(target->data);
+  g_queue_delete_link(hdrlist, target);
 }

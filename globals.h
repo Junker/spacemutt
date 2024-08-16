@@ -49,7 +49,7 @@ extern struct ListHead AlternativeOrderList; ///< List of preferred mime types t
 extern struct ListHead AutoViewList;         ///< List of mime types to auto view
 extern struct ListHead HeaderOrderList;      ///< List of header fields in the order they should be displayed
 extern struct ListHead MimeLookupList;       ///< List of mime types that that shouldn't use the mailcap entry
-extern struct ListHead UserHeader;           ///< List of custom headers to add to outgoing emails
+extern GQueue *UserHeader;                   ///< List of custom headers to add to outgoing emails
 
 /* pseudo options */
 #ifdef USE_AUTOCRYPT
@@ -69,5 +69,7 @@ extern bool OptResortInit;          ///< (pseudo) used to force the next resort 
 extern bool OptSortSubthreads;      ///< (pseudo) used when $sort_aux changes
 
 extern char **EnvList;              ///< Private copy of the environment variables
+
+void globals_init();
 
 #endif /* MUTT_GLOBALS_H */

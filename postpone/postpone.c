@@ -720,9 +720,9 @@ int mutt_get_postponed(struct Mailbox *m_cur, struct Email *hdr,
   /* update the count for the status display */
   PostCount = m->msg_count - m->msg_deleted;
 
-  struct ListNode *np = NULL, *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, &hdr->env->userhdrs, entries, tmp)
+  for (GList *np = hdr->env->userhdrs->head; np != NULL;)
   {
+    GList *next = np->next;
     size_t plen = 0;
     // Check for header names: most specific first
     if ((plen = mutt_istr_startswith(np->data, "X-Mutt-References:")) ||
@@ -778,9 +778,10 @@ int mutt_get_postponed(struct Mailbox *m_cur, struct Email *hdr,
     }
 
     // remove the header
-    STAILQ_REMOVE(&hdr->env->userhdrs, np, ListNode, entries);
-    FREE(&np->data);
-    FREE(&np);
+    g_free(np->data);
+    g_queue_delete_link(hdr->env->userhdrs, np);
+
+    np = next;
   }
 
   const bool c_crypt_opportunistic_encrypt = cs_subset_bool(NeoMutt->sub, "crypt_opportunistic_encrypt");

@@ -329,8 +329,7 @@ static int edit_envelope(struct Envelope *en, SendFlags flags, struct ConfigSubs
     const char *p = NULL;
 
     buf_reset(buf);
-    struct ListNode *uh = NULL;
-    STAILQ_FOREACH(uh, &UserHeader, entries)
+    for (GList *uh = UserHeader->head; uh != NULL; uh = uh->next)
     {
       size_t plen = mutt_istr_startswith(uh->data, "subject:");
       if (plen)
@@ -375,8 +374,7 @@ static char *nntp_get_header(const char *s)
  */
 static void process_user_recips(struct Envelope *env)
 {
-  struct ListNode *uh = NULL;
-  STAILQ_FOREACH(uh, &UserHeader, entries)
+  for (GList *uh = UserHeader->head; uh != NULL; uh = uh->next)
   {
     size_t plen;
     if ((plen = mutt_istr_startswith(uh->data, "to:")))
@@ -400,8 +398,7 @@ static void process_user_recips(struct Envelope *env)
  */
 static void process_user_header(struct Envelope *env)
 {
-  struct ListNode *uh = NULL;
-  STAILQ_FOREACH(uh, &UserHeader, entries)
+  for (GList *uh = UserHeader->head; uh != NULL; uh = uh->next)
   {
     size_t plen;
     if ((plen = mutt_istr_startswith(uh->data, "from:")))
@@ -438,7 +435,7 @@ static void process_user_header(struct Envelope *env)
              !mutt_istr_startswith(uh->data, "subject:") &&
              !mutt_istr_startswith(uh->data, "return-path:"))
     {
-      mutt_list_insert_tail(&env->userhdrs, mutt_str_dup(uh->data));
+      g_queue_push_tail(env->userhdrs, mutt_str_dup(uh->data));
     }
   }
 }

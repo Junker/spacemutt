@@ -282,17 +282,9 @@ static int calc_security(struct Email *e, short *rows, const struct ConfigSubset
  * @param hdrs Header List
  * @retval num Rows needed, limited to #MAX_USER_HDR_ROWS
  */
-static int calc_user_hdrs(const struct ListHead *hdrs)
+static int calc_user_hdrs(const GQueue *hdrs)
 {
-  int rows = 0; /* Don't print at all if no custom headers*/
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, hdrs, entries)
-  {
-    if (rows == MAX_USER_HDR_ROWS)
-      break;
-    rows++;
-  }
-  return rows;
+  return MIN(hdrs->length, MAX_USER_HDR_ROWS);
 }
 
 /**
@@ -325,7 +317,7 @@ static int calc_envelope(struct MuttWindow *win, struct EnvelopeWindowData *wdat
   rows += calc_security(e, &wdata->sec_rows, wdata->sub);
   const bool c_compose_show_user_headers = cs_subset_bool(wdata->sub, "compose_show_user_headers");
   if (c_compose_show_user_headers)
-    rows += calc_user_hdrs(&env->userhdrs);
+    rows += calc_user_hdrs(env->userhdrs);
 
   return rows;
 }
@@ -629,7 +621,7 @@ static int draw_envelope_user_hdrs(struct MuttWindow *win,
   const char *overflow_text = "...";
   int rows_used = 0;
 
-  struct ListNode *first = STAILQ_FIRST(&wdata->email->env->userhdrs);
+  GList *first = wdata->email->env->userhdrs->head;
   if (!first)
     return rows_used;
 
@@ -642,13 +634,13 @@ static int draw_envelope_user_hdrs(struct MuttWindow *win,
   rows_used++;
 
   /* Draw any following entries on their own line */
-  struct ListNode *np = STAILQ_NEXT(first, entries);
+  GList *np = first->next;
   if (!np)
     return rows_used;
 
-  STAILQ_FOREACH_FROM(np, &wdata->email->env->userhdrs, entries)
+  for (GList *np = wdata->email->env->userhdrs->head; np != NULL; np = np->next)
   {
-    if ((rows_used == (MAX_USER_HDR_ROWS - 1)) && STAILQ_NEXT(np, entries))
+    if ((rows_used == (MAX_USER_HDR_ROWS - 1)) && np->next)
     {
       draw_header_content(win, row + rows_used, HDR_CUSTOM_HEADERS, overflow_text);
       rows_used++;
@@ -878,7 +870,7 @@ static int env_header_observer(struct NotifyCallback *nc)
 
   if ((nc->event_subtype == NT_HEADER_ADD) || (nc->event_subtype == NT_HEADER_CHANGE))
   {
-    header_set(&env->userhdrs, ev_h->header);
+    header_set(env->userhdrs, ev_h->header);
     mutt_debug(LL_DEBUG5, "header done, request reflow\n");
     win_env->actions |= WA_RECALC;
     return 0;
@@ -886,10 +878,10 @@ static int env_header_observer(struct NotifyCallback *nc)
 
   if (nc->event_subtype == NT_HEADER_DELETE)
   {
-    struct ListNode *removed = header_find(&env->userhdrs, ev_h->header);
+    GList *removed = header_find(env->userhdrs, ev_h->header);
     if (removed)
     {
-      header_free(&env->userhdrs, removed);
+      header_free(env->userhdrs, removed);
       mutt_debug(LL_DEBUG5, "header done, request reflow\n");
       win_env->actions |= WA_RECALC;
     }

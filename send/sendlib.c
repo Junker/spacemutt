@@ -664,7 +664,7 @@ struct Body *mutt_make_file_attach(const char *path, struct ConfigSubset *sub)
  *
  * The strings are encoded in-place.
  */
-static void encode_headers(struct ListHead *h, struct ConfigSubset *sub)
+static void encode_headers(GQueue *h, struct ConfigSubset *sub)
 {
   char *tmp = NULL;
   char *p = NULL;
@@ -672,14 +672,13 @@ static void encode_headers(struct ListHead *h, struct ConfigSubset *sub)
 
   const struct Slist *const c_send_charset = cs_subset_slist(sub, "send_charset");
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, h, entries)
+  for (GList *np = h->head; np != NULL; np = np->next)
   {
     p = strchr(NONULL(np->data), ':');
     if (!p)
       continue;
 
-    i = p - np->data;
+    i = p - (char*)np->data;
     p = mutt_str_skip_email_wsp(p + 1);
     tmp = mutt_str_dup(p);
 
@@ -806,7 +805,7 @@ void mutt_prepare_envelope(struct Envelope *env, bool final, struct ConfigSubset
 
   /* Take care of 8-bit => 7-bit conversion. */
   rfc2047_encode_envelope(env);
-  encode_headers(&env->userhdrs, sub);
+  encode_headers(env->userhdrs, sub);
 }
 
 /**
@@ -818,10 +817,9 @@ void mutt_prepare_envelope(struct Envelope *env, bool final, struct ConfigSubset
  */
 void mutt_unprepare_envelope(struct Envelope *env)
 {
-  struct ListNode *item = NULL;
-  STAILQ_FOREACH(item, &env->userhdrs, entries)
+  for (GList *item = env->userhdrs->head; item != NULL; item = item->next)
   {
-    rfc2047_decode(&item->data);
+    rfc2047_decode((char**)&item->data);
   }
 
   mutt_addrlist_clear(&env->mail_followup_to);

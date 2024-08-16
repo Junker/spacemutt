@@ -28,6 +28,7 @@
 #include "config.h"
 #include <stdbool.h>
 #include <time.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "ncrypt/lib.h"
 #include "tags.h"
@@ -223,10 +224,10 @@ void          email_free      (struct Email **ptr);
 struct Email *email_new       (void);
 size_t        email_size      (const struct Email *e);
 
-struct ListNode *header_add   (struct ListHead *hdrlist, const char *header);
-struct ListNode *header_find  (const struct ListHead *hdrlist, const char *header);
-void             header_free  (struct ListHead *hdrlist, struct ListNode *target);
-struct ListNode *header_set   (struct ListHead *hdrlist, const char *header);
-struct ListNode *header_update(struct ListNode *hdrnode, const char *header);
+GList *header_add   (GQueue *hdrlist, const char *header);
+GList *header_find  (GQueue *hdrlist, const char *header);
+void   header_free  (GQueue *hdrlist, GList *target);
+GList *header_set   (GQueue *hdrlist, const char *header);
+GList *header_update(GList *hdrnode, const char *header);
 
 #endif /* MUTT_EMAIL_EMAIL_H */

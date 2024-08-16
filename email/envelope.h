@@ -26,6 +26,7 @@
 
 #include "config.h"
 #include <stdbool.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "address/lib.h"
 
@@ -82,7 +83,7 @@ struct Envelope
   struct Buffer spam;                  ///< Spam header
   struct ListHead references;          ///< message references (in reverse order)
   struct ListHead in_reply_to;         ///< in-reply-to header content
-  struct ListHead userhdrs;            ///< user defined headers
+  GQueue *userhdrs;                    ///< user defined headers
 #ifdef USE_AUTOCRYPT
   struct AutocryptHeader *autocrypt;        ///< Autocrypt header
   struct AutocryptHeader *autocrypt_gossip; ///< Autocrypt Gossip header

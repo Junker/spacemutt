@@ -280,7 +280,7 @@ void mutt_opts_cleanup(void)
   mutt_list_free(&MimeLookupList);
   g_slist_free_full(Muttrc, g_free);
   mutt_list_free(&UnIgnore);
-  mutt_list_free(&UserHeader);
+  g_queue_clear_full(UserHeader, g_free);
 
   mutt_colors_cleanup();
 
@@ -319,6 +319,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   struct Buffer *err = buf_pool_get();
   struct Buffer *buf = buf_pool_get();
 
+  globals_init();
   mutt_grouplist_init();
   alias_init();
   commands_init();

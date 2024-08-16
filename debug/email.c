@@ -74,6 +74,26 @@ void dump_list_head(const struct ListHead *list, const char *name)
   buf_pool_release(&buf);
 }
 
+void dump_gqueue(const GQueue *list, const char *name)
+{
+  if (!list || !name)
+    return;
+  if (g_queue_is_empty(list))
+    return;
+
+  struct Buffer *buf = buf_pool_get();
+
+  for (GList *np = list->head; np != NULL; np = np->next)
+  {
+    if (!buf_is_empty(buf))
+      buf_addch(buf, ',');
+    buf_addstr(buf, np->data);
+  }
+
+  mutt_debug(LL_DEBUG1, "\t%s: %s\n", name, buf_string(buf));
+  buf_pool_release(&buf);
+}
+
 void dump_envelope(const struct Envelope *env)
 {
   mutt_debug(LL_DEBUG1, "Envelope\n");
@@ -129,7 +149,7 @@ void dump_envelope(const struct Envelope *env)
 
   dump_list_head(&env->references, "references");
   dump_list_head(&env->in_reply_to, "in_reply_to");
-  dump_list_head(&env->userhdrs, "userhdrs");
+  dump_gqueue(env->userhdrs, "userhdrs");
 
   if (!buf_is_empty(&env->spam))
     mutt_debug(LL_DEBUG1, "\tspam: %s\n", buf_string(&env->spam));

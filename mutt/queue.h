@@ -438,6 +438,22 @@ struct {								\
 		(head2)->stqh_last = &STAILQ_FIRST(head2);		\
 } while (0)
 
+#define GQUEUE_SWAP(q1, q2) do {				\
+	GList *swap_head = (q1)->head;		\
+	GList *swap_tail = (q1)->tail;		\
+	guint swap_length = (q1)->length;		\
+  (q1)->head = (q2)->head;			\
+  (q1)->tail = (q2)->tail;			\
+  (q1)->length = (q2)->length;    \
+  (q2)->head = swap_head;				\
+  (q2)->tail = swap_tail;					\
+  (q2)->length = swap_length;					\
+if (g_queue_is_empty((q1)))					\
+		(q1)->tail = (q1)->head;		\
+if (g_queue_is_empty((q2)))					\
+		(q2)->tail = (q2)->head;		\
+} while (0)
+
 #define	STAILQ_END(head)	NULL
 
 

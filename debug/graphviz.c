@@ -1201,6 +1201,26 @@ void dot_list_head(FILE *fp, const char *name, const struct ListHead *list)
   buf_pool_release(&buf);
 }
 
+void dot_gqueue(FILE *fp, const char *name, const GQueue *list)
+{
+  if (!list || !name)
+    return;
+  if (g_queue_is_empty(list))
+    return;
+
+  struct Buffer *buf = buf_pool_get();
+
+  for (GList *np = list->head; np != NULL; np = np->next)
+  {
+    if (!buf_is_empty(buf))
+      buf_addch(buf, ',');
+    buf_addstr(buf, np->data);
+  }
+
+  dot_type_string(fp, name, buf_string(buf), false);
+  buf_pool_release(&buf);
+}
+
 void dot_addr_list(FILE *fp, const char *name, const struct AddressList *al,
                    struct ListHead *links)
 {
@@ -1262,7 +1282,7 @@ void dot_envelope(FILE *fp, struct Envelope *env, struct ListHead *links)
   {
     dot_list_head(fp, "references", &env->references);
     dot_list_head(fp, "in_reply_to", &env->in_reply_to);
-    dot_list_head(fp, "userhdrs", &env->userhdrs);
+    dot_gqueue(fp, "userhdrs", env->userhdrs);
   }
 
 #ifdef USE_AUTOCRYPT

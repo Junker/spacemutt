@@ -362,13 +362,12 @@ static int write_one_header(FILE *fp, int pfxw, int max, int wraplen, const char
  * @param sub      Config Subset
  * @retval obj UserHdrsOverride struct containing a bitmask of which unique headers were written
  */
-static struct UserHdrsOverride write_userhdrs(FILE *fp, const struct ListHead *userhdrs,
+static struct UserHdrsOverride write_userhdrs(FILE *fp, GQueue *userhdrs,
                                               bool privacy, struct ConfigSubset *sub)
 {
   struct UserHdrsOverride overrides = { { 0 } };
 
-  struct ListNode *tmp = NULL;
-  STAILQ_FOREACH(tmp, userhdrs, entries)
+  for (GList *tmp = userhdrs->head; tmp != NULL; tmp = tmp->next)
   {
     char *const colon = strchr(NONULL(tmp->data), ':');
     if (!colon)
@@ -696,7 +695,7 @@ int mutt_rfc822_write_header(FILE *fp, struct Envelope *env, struct Body *b,
   }
 
   /* Add any user defined headers */
-  struct UserHdrsOverride userhdrs_overrides = write_userhdrs(fp, &env->userhdrs,
+  struct UserHdrsOverride userhdrs_overrides = write_userhdrs(fp, env->userhdrs,
                                                               privacy, sub);
 
   if ((mode == MUTT_WRITE_HEADER_NORMAL) || (mode == MUTT_WRITE_HEADER_FCC) ||

@@ -33,12 +33,12 @@ void test_email_header_add(void)
   // struct ListNode *header_add(struct ListHead *hdrlist, const struct Buffer *buf)
   const char *header = "X-TestHeader: 123";
 
-  struct ListHead hdrlist = STAILQ_HEAD_INITIALIZER(hdrlist);
+  GQueue *hdrlist = g_queue_new();
 
   {
-    struct ListNode *n = header_add(&hdrlist, header);
+    GList *n = header_add(hdrlist, header);
     TEST_CHECK_STR_EQ(n->data, header);             /* header stored in node */
-    TEST_CHECK(n == header_find(&hdrlist, header)); /* node added to list */
+    TEST_CHECK(n == header_find(hdrlist, header)); /* node added to list */
   }
-  mutt_list_free(&hdrlist);
+  g_queue_free_full(hdrlist, g_free);
 }

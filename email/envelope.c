@@ -57,7 +57,7 @@ struct Envelope *mutt_env_new(void)
   TAILQ_INIT(&env->x_original_to);
   STAILQ_INIT(&env->references);
   STAILQ_INIT(&env->in_reply_to);
-  STAILQ_INIT(&env->userhdrs);
+  env->userhdrs = g_queue_new();
   return env;
 }
 
@@ -160,7 +160,7 @@ void mutt_env_free(struct Envelope **ptr)
 
   mutt_list_free(&env->references);
   mutt_list_free(&env->in_reply_to);
-  mutt_list_free(&env->userhdrs);
+  g_queue_free_full(env->userhdrs, g_free);
 
 #ifdef USE_AUTOCRYPT
   mutt_autocrypthdr_free(&env->autocrypt);
@@ -211,6 +211,12 @@ void mutt_env_merge(struct Envelope *base, struct Envelope **extra)
     STAILQ_SWAP(&base->member, &(*extra)->member, ListNode);                   \
   }
 
+#define MOVE_GQUEUE(member)                                                    \
+  if (g_queue_is_empty(base->member))                                         \
+  {                                                                            \
+    GQUEUE_SWAP(base->member, (*extra)->member);                             \
+  }
+  
 #define MOVE_ADDRESSLIST(member)                                               \
   if (TAILQ_EMPTY(&base->member))                                              \
   {                                                                            \
@@ -265,9 +271,9 @@ void mutt_env_merge(struct Envelope *base, struct Envelope **extra)
   /* spam and user headers should never be hashed, and the new envelope may
    * have better values. Use new versions regardless. */
   buf_dealloc(&base->spam);
-  mutt_list_free(&base->userhdrs);
+  g_queue_clear_full(base->userhdrs, g_free);
   MOVE_BUFFER(spam);
-  MOVE_STAILQ(userhdrs);
+  MOVE_GQUEUE(userhdrs);
 #undef MOVE_ELEM
 #undef MOVE_STAILQ
 #undef MOVE_ADDRESSLIST

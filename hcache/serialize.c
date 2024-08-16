@@ -328,6 +328,33 @@ unsigned char *serial_dump_stailq(const struct ListHead *l, unsigned char *d,
 }
 
 /**
+ * serial_dump_gqueue - Pack a STAILQ into a binary blob
+ * @param[in]     l       List to read from
+ * @param[in]     d       Binary blob to add to
+ * @param[in,out] off     Offset into the blob
+ * @param[in]     convert If true, the strings will be converted to utf-8
+ * @retval ptr End of the newly packed binary
+ */
+unsigned char *serial_dump_gqueue(const GQueue *l, unsigned char *d,
+                                  int *off, bool convert)
+{
+  unsigned int counter = 0;
+  unsigned int start_off = *off;
+
+  d = serial_dump_int(0xdeadbeef, d, off);
+
+  for (GList *np = l->head; np != NULL; np = np->next)
+  {
+    d = serial_dump_char(np->data, d, off, convert);
+    counter++;
+  }
+
+  memcpy(d + start_off, &counter, sizeof(int));
+
+  return d;
+}
+
+/**
  * serial_restore_stailq - Unpack a STAILQ from a binary blob
  * @param[in]     l       List to add to
  * @param[in]     d       Binary blob to read from
@@ -348,6 +375,28 @@ void serial_restore_stailq(struct ListHead *l, const unsigned char *d, int *off,
     counter--;
   }
 }
+
+/**
+ * serial_restore_gqueue - Unpack a STAILQ from a binary blob
+ * @param[in]     l       List to add to
+ * @param[in]     d       Binary blob to read from
+ * @param[in,out] off     Offset into the blob
+ * @param[in]     convert If true, the strings will be converted from utf-8
+ */
+void serial_restore_gqueue(GQueue *l, const unsigned char *d, int *off, bool convert)
+{
+  unsigned int counter = 0;
+
+  serial_restore_int(&counter, d, off);
+
+  while (counter)
+  {
+    g_queue_push_tail(l, NULL);
+    serial_restore_char(&l->tail->data, d, off, convert);
+    counter--;
+  }
+}
+
 
 /**
  * serial_dump_buffer - Pack a Buffer into a binary blob
@@ -614,7 +663,7 @@ unsigned char *serial_dump_envelope(const struct Envelope *env,
 
   d = serial_dump_stailq(&env->references, d, off, false);
   d = serial_dump_stailq(&env->in_reply_to, d, off, false);
-  d = serial_dump_stailq(&env->userhdrs, d, off, convert);
+  d = serial_dump_gqueue(env->userhdrs, d, off, convert);
 
   d = serial_dump_char(env->xref, d, off, false);
   d = serial_dump_char(env->followup_to, d, off, false);
@@ -670,7 +719,7 @@ void serial_restore_envelope(struct Envelope *env, const unsigned char *d, int *
 
   serial_restore_stailq(&env->references, d, off, false);
   serial_restore_stailq(&env->in_reply_to, d, off, false);
-  serial_restore_stailq(&env->userhdrs, d, off, convert);
+  serial_restore_gqueue(env->userhdrs, d, off, convert);
 
   serial_restore_char(&env->xref, d, off, false);
   serial_restore_char(&env->followup_to, d, off, false);

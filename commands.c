@@ -694,7 +694,7 @@ enum CommandResult parse_my_hdr(struct Buffer *buf, struct Buffer *s,
   }
 
   struct EventHeader ev_h = { buf->data };
-  struct ListNode *n = header_find(&UserHeader, buf->data);
+  GList *n = header_find(UserHeader, buf->data);
 
   if (n)
   {
@@ -704,7 +704,7 @@ enum CommandResult parse_my_hdr(struct Buffer *buf, struct Buffer *s,
   }
   else
   {
-    header_add(&UserHeader, buf->data);
+    header_add(UserHeader, buf->data);
     mutt_debug(LL_NOTIFY, "NT_HEADER_ADD: %s\n", buf->data);
     notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_ADD, &ev_h);
   }
@@ -1307,13 +1307,13 @@ static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
     if (mutt_str_equal("*", buf->data))
     {
       /* Clear all headers, send a notification for each header */
-      STAILQ_FOREACH(np, &UserHeader, entries)
+      for (GList *np = UserHeader->head; np != NULL; np = np->next)
       {
-        mutt_debug(LL_NOTIFY, "NT_HEADER_DELETE: %s\n", np->data);
+        mutt_debug(LL_NOTIFY, "NT_HEADER_DELETE: %s\n", (char*)np->data);
         struct EventHeader ev_h = { np->data };
         notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_DELETE, &ev_h);
       }
-      mutt_list_free(&UserHeader);
+      g_queue_clear_full(UserHeader, g_free);
       continue;
     }
 
@@ -1321,15 +1321,15 @@ static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
     if (buf->data[l - 1] == ':')
       l--;
 
-    STAILQ_FOREACH_SAFE(np, &UserHeader, entries, tmp)
+    for (GList *np = UserHeader->head; np != NULL; np = np->next)
     {
-      if (mutt_istrn_equal(buf->data, np->data, l) && (np->data[l] == ':'))
+      if (mutt_istrn_equal(buf->data, np->data, l) && (((char*)np->data)[l] == ':'))
       {
-        mutt_debug(LL_NOTIFY, "NT_HEADER_DELETE: %s\n", np->data);
+        mutt_debug(LL_NOTIFY, "NT_HEADER_DELETE: %s\n", (char*)np->data);
         struct EventHeader ev_h = { np->data };
         notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_DELETE, &ev_h);
 
-        header_free(&UserHeader, np);
+        header_free(UserHeader, np);
       }
     }
   } while (MoreArgs(s));

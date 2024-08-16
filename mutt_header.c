@@ -234,7 +234,7 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
   }
 
   mutt_file_unlink(body);
-  mutt_list_free(&e->env->userhdrs);
+  g_queue_clear_full(e->env->userhdrs, g_free);
 
   /* Read the temp file back in */
   fp_in = mutt_file_fopen(buf_string(path), "r");
@@ -291,11 +291,12 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
   /* search through the user defined headers added to see if
    * fcc: or attach: or pgp: or smime: was specified */
 
-  struct ListNode *np = NULL, *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, &e->env->userhdrs, entries, tmp)
+  for (GList *np = e->env->userhdrs->head; np != NULL;)
   {
     bool keep = true;
     size_t plen = 0;
+
+    GList *next = np->next;
 
     // Check for header names: most specific first
     if (fcc && ((plen = mutt_istr_startswith(np->data, "X-Mutt-Fcc:")) ||
@@ -387,10 +388,10 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
 
     if (!keep)
     {
-      STAILQ_REMOVE(&e->env->userhdrs, np, ListNode, entries);
-      FREE(&np->data);
-      FREE(&np);
+      g_free(np->data);
+      g_queue_delete_link(e->env->userhdrs, np);
     }
+    np = next;
   }
 
 cleanup:

@@ -1175,19 +1175,19 @@ main
         }
 
         /* Scan for neomutt header to set `$resume_draft_files` */
-        struct ListNode *np = NULL, *tmp = NULL;
         const bool c_resume_edited_draft_files = cs_subset_bool(NeoMutt->sub, "resume_edited_draft_files");
-        STAILQ_FOREACH_SAFE(np, &e->env->userhdrs, entries, tmp)
+        for (GList *np = e->env->userhdrs->head; np != NULL;)
         {
+          GList *next = np->next;
           if (mutt_istr_startswith(np->data, "X-Mutt-Resume-Draft:"))
           {
             if (c_resume_edited_draft_files)
               cs_str_native_set(cs, "resume_draft_files", true, NULL);
 
-            STAILQ_REMOVE(&e->env->userhdrs, np, ListNode, entries);
-            FREE(&np->data);
-            FREE(&np);
+            g_free(np->data);
+            g_queue_delete_link(e->env->userhdrs, np);
           }
+          np = next;
         }
 
         mutt_addrlist_copy(&e->env->to, &opts_env->to, false);
