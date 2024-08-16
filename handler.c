@@ -499,11 +499,10 @@ static bool is_autoview(struct Body *b)
   {
     /* determine if this type is on the user's auto_view list */
     mutt_check_lookup_list(b, type, sizeof(type));
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, &AutoViewList, entries)
+    for (GSList *np = AutoViewList; np != NULL; np = np->next)
     {
       int i = mutt_str_len(np->data) - 1;
-      if (((i > 0) && (np->data[i - 1] == '/') && (np->data[i] == '*') &&
+      if (((i > 0) && (((char*)np->data)[i - 1] == '/') && (((char*)np->data)[i] == '*') &&
            mutt_istrn_equal(type, np->data, i)) ||
           mutt_istr_equal(type, np->data))
       {
@@ -965,8 +964,7 @@ static int alternative_handler(struct Body *b_email, struct State *state)
   b_email = b;
 
   /* First, search list of preferred types */
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &AlternativeOrderList, entries)
+  for (GSList *np = AlternativeOrderList; np != NULL; np = np->next)
   {
     int btlen; /* length of basetype */
     bool wild; /* do we have a wildcard to match all subtypes? */
@@ -975,7 +973,7 @@ static int alternative_handler(struct Body *b_email, struct State *state)
     if (c)
     {
       wild = ((c[1] == '*') && (c[2] == '\0'));
-      btlen = c - np->data;
+      btlen = c - (char*)np->data;
     }
     else
     {

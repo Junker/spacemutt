@@ -1010,6 +1010,24 @@ static enum CommandResult parse_stailq(struct Buffer *buf, struct Buffer *s,
 }
 
 /**
+ * parse_gslist - Parse a list command - Implements Command::parse() - @ingroup command_parse
+ *
+ * This is used by 'alternative_order', 'auto_view' and several others.
+ */
+static enum CommandResult parse_gslist(struct Buffer *buf, struct Buffer *s,
+                                       intptr_t data, struct Buffer *err)
+{
+  do
+  {
+    GSList **list = (GSList **)data;
+    parse_extract_token(buf, s, TOKEN_NO_FLAGS);
+    *list = g_slist_append(*list, buf->data);
+  } while (MoreArgs(s));
+
+  return MUTT_CMD_SUCCESS;
+}
+
+/**
  * parse_subscribe - Parse the 'subscribe' command - Implements Command::parse() - @ingroup command_parse
  */
 static enum CommandResult parse_subscribe(struct Buffer *buf, struct Buffer *s,
@@ -1298,7 +1316,6 @@ enum CommandResult parse_unmailboxes(struct Buffer *buf, struct Buffer *s,
 static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
                                          intptr_t data, struct Buffer *err)
 {
-  struct ListNode *np = NULL, *tmp = NULL;
   size_t l;
 
   do
@@ -1354,6 +1371,31 @@ static enum CommandResult parse_unstailq(struct Buffer *buf, struct Buffer *s,
       break;
     }
     remove_from_stailq((struct ListHead *) data, buf->data);
+  } while (MoreArgs(s));
+
+  return MUTT_CMD_SUCCESS;
+}
+
+/**
+ * parse_ungslist - Parse an unlist command - Implements Command::parse() - @ingroup command_parse
+ *
+ * This is used by 'unalternative_order', 'unauto_view' and several others.
+ */
+static enum CommandResult parse_ungslist(struct Buffer *buf, struct Buffer *s,
+                                         intptr_t data, struct Buffer *err)
+{
+  GSList **list = (GSList**)data;
+
+  do
+  {
+    parse_extract_token(buf, s, TOKEN_NO_FLAGS);
+    /* Check for deletion of entire list */
+    if (mutt_str_equal(buf->data, "*"))
+    {
+      g_slist_free_full(*list, g_free);
+      break;
+    }
+    *list = g_slist_remove(*list, buf->data);
   } while (MoreArgs(s));
 
   return MUTT_CMD_SUCCESS;
@@ -1481,9 +1523,9 @@ static const struct Command MuttCommands[] = {
   // clang-format off
   { "alias",               parse_alias,            0 },
   { "alternates",          parse_alternates,       0 },
-  { "alternative_order",   parse_stailq,           IP &AlternativeOrderList },
+  { "alternative_order",   parse_gslist,           IP &AlternativeOrderList },
   { "attachments",         parse_attachments,      0 },
-  { "auto_view",           parse_stailq,           IP &AutoViewList },
+  { "auto_view",           parse_gslist,           IP &AutoViewList },
   { "bind",                mutt_parse_bind,        0 },
   { "cd",                  parse_cd,               0 },
   { "color",               mutt_parse_color,       0 },
@@ -1517,9 +1559,9 @@ static const struct Command MuttCommands[] = {
   { "toggle",              parse_set,              MUTT_SET_INV },
   { "unalias",             parse_unalias,          0 },
   { "unalternates",        parse_unalternates,     0 },
-  { "unalternative_order", parse_unstailq,         IP &AlternativeOrderList },
+  { "unalternative_order", parse_ungslist,         IP &AlternativeOrderList },
   { "unattachments",       parse_unattachments,    0 },
-  { "unauto_view",         parse_unstailq,         IP &AutoViewList },
+  { "unauto_view",         parse_ungslist,         IP &AutoViewList },
   { "unbind",              mutt_parse_unbind,      MUTT_UNBIND },
   { "uncolor",             mutt_parse_uncolor,     0 },
   { "ungroup",             parse_group,            MUTT_UNGROUP },

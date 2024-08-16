@@ -272,8 +272,8 @@ void mutt_opts_cleanup(void)
   driver_tags_cleanup();
 
   /* Lists of strings */
-  mutt_list_free(&AlternativeOrderList);
-  mutt_list_free(&AutoViewList);
+  g_slist_free_full(AlternativeOrderList, g_free);
+  g_slist_free_full(AutoViewList, g_free);
   mutt_list_free(&HeaderOrderList);
   mutt_list_free(&Ignore);
   mutt_list_free(&MailToAllow);
