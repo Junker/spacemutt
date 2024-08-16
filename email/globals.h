@@ -29,7 +29,7 @@
 extern struct HashTable  *AutoSubscribeCache;
 extern struct ListHead    Ignore;
 extern struct RegexList   MailLists;
-extern struct ListHead    MailToAllow;
+extern GSList *MailToAllow;
 extern struct RegexList   NoSpamList;
 extern struct ReplaceList SpamList;
 extern struct RegexList   SubscribedLists;

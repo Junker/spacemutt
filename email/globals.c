@@ -29,6 +29,7 @@
 
 #include "config.h"
 #include <stddef.h>
+#include <glib.h>
 #include "mutt/lib.h"
 
 /* Global variables */
@@ -39,7 +40,7 @@ struct ListHead Ignore = STAILQ_HEAD_INITIALIZER(Ignore);
 ///< List of regexes to match mailing lists
 struct RegexList MailLists = STAILQ_HEAD_INITIALIZER(MailLists);
 ///< List of permitted fields in a mailto: url
-struct ListHead MailToAllow = STAILQ_HEAD_INITIALIZER(MailToAllow);
+GSList *MailToAllow = NULL;
 ///< List of regexes to identify non-spam emails
 struct RegexList NoSpamList = STAILQ_HEAD_INITIALIZER(NoSpamList);
 ///< List of regexes and patterns to match spam emails

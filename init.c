@@ -276,7 +276,7 @@ void mutt_opts_cleanup(void)
   g_slist_free_full(AutoViewList, g_free);
   g_slist_free_full(HeaderOrderList, g_free);
   mutt_list_free(&Ignore);
-  mutt_list_free(&MailToAllow);
+  g_slist_free_full(MailToAllow, g_free);
   g_slist_free_full(MimeLookupList, g_free);
   g_slist_free_full(Muttrc, g_free);
   mutt_list_free(&UnIgnore);
@@ -443,13 +443,13 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
    * resolve mailto URLs into mail messages should be able to correctly
    * create RFC822-compliant mail messages using the "subject" and "body"
    * headers.  */
-  add_to_stailq(&MailToAllow, "body");
-  add_to_stailq(&MailToAllow, "subject");
+  MailToAllow = add_to_gslist(MailToAllow, "body");
+  MailToAllow = add_to_gslist(MailToAllow, "subject");
   /* Cc, In-Reply-To, and References help with not breaking threading on
    * mailing lists, see https://github.com/neomutt/neomutt/issues/115 */
-  add_to_stailq(&MailToAllow, "cc");
-  add_to_stailq(&MailToAllow, "in-reply-to");
-  add_to_stailq(&MailToAllow, "references");
+  MailToAllow = add_to_gslist(MailToAllow, "cc");
+  MailToAllow = add_to_gslist(MailToAllow, "in-reply-to");
+  MailToAllow = add_to_gslist(MailToAllow, "references");
 
   if (!Muttrc)
   {

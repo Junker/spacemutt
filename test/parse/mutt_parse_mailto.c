@@ -57,8 +57,8 @@ void test_mutt_parse_mailto(void)
 {
   // int mutt_parse_mailto(struct Envelope *e, char **body, const char *src);
 
-  mutt_list_insert_head(&MailToAllow, "cc");
-  mutt_list_insert_head(&MailToAllow, "body");
+  MailToAllow = g_slist_prepend(MailToAllow, "cc");
+  MailToAllow = g_slist_prepend(MailToAllow, "body");
 
   {
     char *body = NULL;

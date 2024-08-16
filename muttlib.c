@@ -1093,3 +1093,23 @@ void remove_from_stailq(struct ListHead *head, const char *str)
     }
   }
 }
+
+/**
+ * add_to_gslist - Add a string to a list
+ * @param head String list
+ * @param str  String to add
+ *
+ * @note Duplicate or empty strings will not be added
+ */
+GSList *add_to_gslist(GSList *head, const char *str)
+{
+  /* don't add a NULL or empty string to the list */
+  if (!str || (*str == '\0'))
+    return head;
+
+  /* check to make sure the item is not already on this list */
+  if (!g_slist_find_custom(head, str, (GCompareFunc)mutt_istr_cmp))
+    return g_slist_append(head, mutt_str_dup(str));
+
+  return head;
+}

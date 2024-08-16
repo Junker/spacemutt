@@ -1730,15 +1730,14 @@ static struct Body *rfc822_parse_message(FILE *fp, struct Body *parent, int *cou
  *
  * @note The case of the strings is ignored.
  */
-static bool mailto_header_allowed(const char *s, struct ListHead *h)
+static bool mailto_header_allowed(const char *s, GSList *h)
 {
   if (!h)
     return false;
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, h, entries)
+  for (GSList *np = h; np != NULL; np = np->next)
   {
-    if ((*np->data == '*') || mutt_istr_equal(s, np->data))
+    if ((((char*)np->data)[0] == '*') || mutt_istr_equal(s, np->data))
       return true;
   }
   return false;
@@ -1786,7 +1785,7 @@ bool mutt_parse_mailto(struct Envelope *env, char **body, const char *src)
      * a message if any of the headers are considered dangerous; it may also
      * choose to create a message with only a subset of the headers given in
      * the URL.  */
-    if (mailto_header_allowed(tag, &MailToAllow))
+    if (mailto_header_allowed(tag, MailToAllow))
     {
       if (mutt_istr_equal(tag, "body"))
       {
