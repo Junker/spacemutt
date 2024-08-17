@@ -327,27 +327,6 @@ unsigned char *serial_dump_gqueue(const GQueue *l, unsigned char *d,
   return d;
 }
 
-/**
- * serial_restore_stailq - Unpack a STAILQ from a binary blob
- * @param[in]     l       List to add to
- * @param[in]     d       Binary blob to read from
- * @param[in,out] off     Offset into the blob
- * @param[in]     convert If true, the strings will be converted from utf-8
- */
-void serial_restore_stailq(struct ListHead *l, const unsigned char *d, int *off, bool convert)
-{
-  unsigned int counter = 0;
-
-  serial_restore_int(&counter, d, off);
-
-  struct ListNode *np = NULL;
-  while (counter)
-  {
-    np = mutt_list_insert_tail(l, NULL);
-    serial_restore_char(&np->data, d, off, convert);
-    counter--;
-  }
-}
 
 /**
  * serial_restore_gqueue - Unpack a STAILQ from a binary blob

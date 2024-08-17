@@ -33,7 +33,6 @@ struct AddressList;
 struct Body;
 struct Buffer;
 struct Envelope;
-struct ListHead;
 struct ParameterList;
 struct TagList;
 
@@ -59,7 +58,6 @@ void serial_restore_int      (unsigned int *i,          const unsigned char *d, 
 void serial_restore_uint32_t (uint32_t *s,              const unsigned char *d, int *off);
 void serial_restore_uint64_t (uint64_t *s,              const unsigned char *d, int *off);
 void serial_restore_parameter(struct ParameterList *pl, const unsigned char *d, int *off, bool convert);
-void serial_restore_stailq   (struct ListHead *l,       const unsigned char *d, int *off, bool convert);
 
 void lazy_realloc(void *ptr, size_t size);
 
