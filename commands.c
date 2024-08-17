@@ -1319,8 +1319,9 @@ static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
     if (buf->data[l - 1] == ':')
       l--;
 
-    for (GList *np = UserHeader->head; np != NULL; np = np->next)
+    for (GList *np = UserHeader->head; np != NULL;)
     {
+      GList *next = np->next;
       if (mutt_istrn_equal(buf->data, np->data, l) && (((char*)np->data)[l] == ':'))
       {
         mutt_debug(LL_NOTIFY, "NT_HEADER_DELETE: %s\n", (char*)np->data);
@@ -1329,6 +1330,7 @@ static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
 
         header_free(UserHeader, np);
       }
+      np = next;
     }
   } while (MoreArgs(s));
   return MUTT_CMD_SUCCESS;
