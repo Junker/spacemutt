@@ -993,23 +993,6 @@ static enum CommandResult parse_spam(struct Buffer *buf, struct Buffer *s,
 }
 
 /**
- * parse_stailq - Parse a list command - Implements Command::parse() - @ingroup command_parse
- *
- * This is used by 'alternative_order', 'auto_view' and several others.
- */
-static enum CommandResult parse_stailq(struct Buffer *buf, struct Buffer *s,
-                                       intptr_t data, struct Buffer *err)
-{
-  do
-  {
-    parse_extract_token(buf, s, TOKEN_NO_FLAGS);
-    add_to_stailq((struct ListHead *) data, buf->data);
-  } while (MoreArgs(s));
-
-  return MUTT_CMD_SUCCESS;
-}
-
-/**
  * parse_gslist - Parse a list command - Implements Command::parse() - @ingroup command_parse
  *
  * This is used by 'alternative_order', 'auto_view' and several others.
@@ -1350,29 +1333,6 @@ static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
       }
     }
   } while (MoreArgs(s));
-  return MUTT_CMD_SUCCESS;
-}
-
-/**
- * parse_unstailq - Parse an unlist command - Implements Command::parse() - @ingroup command_parse
- *
- * This is used by 'unalternative_order', 'unauto_view' and several others.
- */
-static enum CommandResult parse_unstailq(struct Buffer *buf, struct Buffer *s,
-                                         intptr_t data, struct Buffer *err)
-{
-  do
-  {
-    parse_extract_token(buf, s, TOKEN_NO_FLAGS);
-    /* Check for deletion of entire list */
-    if (mutt_str_equal(buf->data, "*"))
-    {
-      mutt_list_free((struct ListHead *) data);
-      break;
-    }
-    remove_from_stailq((struct ListHead *) data, buf->data);
-  } while (MoreArgs(s));
-
   return MUTT_CMD_SUCCESS;
 }
 
