@@ -37,7 +37,6 @@ struct ConnAccount;
 struct Email;
 struct ImapAccountData;
 struct ImapMboxData;
-struct ListHead;
 struct Mailbox;
 struct Message;
 struct Progress;

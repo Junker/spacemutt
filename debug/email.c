@@ -53,27 +53,6 @@ void dump_addr_list(char *buf, size_t buflen, const struct AddressList *al, cons
   mutt_debug(LL_DEBUG1, "\t%s: %s\n", name, buf);
 }
 
-void dump_list_head(const struct ListHead *list, const char *name)
-{
-  if (!list || !name)
-    return;
-  if (STAILQ_EMPTY(list))
-    return;
-
-  struct Buffer *buf = buf_pool_get();
-
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, list, entries)
-  {
-    if (!buf_is_empty(buf))
-      buf_addch(buf, ',');
-    buf_addstr(buf, np->data);
-  }
-
-  mutt_debug(LL_DEBUG1, "\t%s: %s\n", name, buf_string(buf));
-  buf_pool_release(&buf);
-}
-
 void dump_gqueue(const GQueue *list, const char *name)
 {
   if (!list || !name)

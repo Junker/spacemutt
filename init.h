@@ -29,7 +29,6 @@
 #include <glib.h>
 
 struct ConfigSet;
-struct ListHead;
 
 void init_config         (struct ConfigSet *cs);
 int  mutt_init           (struct ConfigSet *cs, const char *dlevel, const char *dfile, bool skip_sys_rc, GSList *commands);

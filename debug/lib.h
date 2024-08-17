@@ -72,7 +72,6 @@ void        dump_body_next         (struct Buffer *buf, const struct Body *b);
 void        dump_body_one_line     (const struct Body *b);
 void        dump_email             (const struct Email *e);
 void        dump_envelope          (const struct Envelope *env);
-void        dump_list_head         (const struct ListHead *list, const char *name);
 void        dump_param_list        (const struct ParameterList *pl);
 
 // Expando
