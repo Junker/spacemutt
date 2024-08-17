@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "config/lib.h"
 #include "email/lib.h"
@@ -53,10 +54,10 @@ struct AttachMatch
   regex_t minor_regex;        ///< Minor mime type regex
 };
 
-static struct ListHead AttachAllow = STAILQ_HEAD_INITIALIZER(AttachAllow); ///< List of attachment types to be counted
-static struct ListHead AttachExclude = STAILQ_HEAD_INITIALIZER(AttachExclude); ///< List of attachment types to be ignored
-static struct ListHead InlineAllow = STAILQ_HEAD_INITIALIZER(InlineAllow); ///< List of inline types to counted
-static struct ListHead InlineExclude = STAILQ_HEAD_INITIALIZER(InlineExclude); ///< List of inline types to ignore
+static GSList *AttachAllow = NULL; ///< List of attachment types to be counted
+static GSList *AttachExclude = NULL; ///< List of attachment types to be ignored
+static GSList *InlineAllow = NULL; ///< List of inline types to counted
+static GSList *InlineExclude = NULL; ///< List of inline types to ignore
 static struct Notify *AttachmentsNotify = NULL; ///< Notifications: #NotifyAttach
 
 /**
@@ -66,15 +67,14 @@ static struct Notify *AttachmentsNotify = NULL; ///< Notifications: #NotifyAttac
  * @note We don't free minor because it is either a pointer into major,
  *       or a static string.
  */
-static void attachmatch_free(struct AttachMatch **ptr)
+static void attachmatch_free(struct AttachMatch *am)
 {
-  if (!ptr || !*ptr)
+  if (!am)
     return;
 
-  struct AttachMatch *am = *ptr;
   regfree(&am->minor_regex);
-  FREE(&am->major);
-  FREE(ptr);
+  g_free((char*)am->major);
+  g_free(am);
 }
 
 /**
@@ -94,10 +94,10 @@ void attach_cleanup(void)
   notify_free(&AttachmentsNotify);
 
   /* Lists of AttachMatch */
-  mutt_list_free_type(&AttachAllow, (list_free_t) attachmatch_free);
-  mutt_list_free_type(&AttachExclude, (list_free_t) attachmatch_free);
-  mutt_list_free_type(&InlineAllow, (list_free_t) attachmatch_free);
-  mutt_list_free_type(&InlineExclude, (list_free_t) attachmatch_free);
+  g_slist_free_full(g_steal_pointer(&AttachAllow), (GDestroyNotify)attachmatch_free);
+  g_slist_free_full(g_steal_pointer(&AttachExclude), (GDestroyNotify)attachmatch_free);
+  g_slist_free_full(g_steal_pointer(&InlineAllow), (GDestroyNotify)attachmatch_free);
+  g_slist_free_full(g_steal_pointer(&InlineExclude), (GDestroyNotify)attachmatch_free);
 }
 
 /**
@@ -119,17 +119,16 @@ void attach_init(void)
  * @param dflt      Log whether the matches are OK, or Excluded
  * @retval true Attachment should be counted
  */
-static bool count_body_parts_check(struct ListHead *checklist, struct Body *b, bool dflt)
+static bool count_body_parts_check(GSList *checklist, struct Body *b, bool dflt)
 {
   /* If list is null, use default behavior. */
-  if (!checklist || STAILQ_EMPTY(checklist))
+  if (!checklist)
   {
     return false;
   }
 
   struct AttachMatch *a = NULL;
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, checklist, entries)
+  for (GSList *np = checklist; np != NULL; np = np->next)
   {
     a = (struct AttachMatch *) np->data;
     mutt_debug(LL_DEBUG3, "%s %d/%s ?? %s/%s [%d]... ", dflt ? "[OK]   " : "[EXCL] ",
@@ -209,16 +208,16 @@ static int count_body_parts(struct Body *b)
 
       if (bp->disposition == DISP_ATTACH)
       {
-        if (!count_body_parts_check(&AttachAllow, bp, true))
+        if (!count_body_parts_check(AttachAllow, bp, true))
           shallcount = false; /* attach not allowed */
-        if (count_body_parts_check(&AttachExclude, bp, false))
+        if (count_body_parts_check(AttachExclude, bp, false))
           shallcount = false; /* attach excluded */
       }
       else
       {
-        if (!count_body_parts_check(&InlineAllow, bp, true))
+        if (!count_body_parts_check(InlineAllow, bp, true))
           shallcount = false; /* inline not allowed */
-        if (count_body_parts_check(&InlineExclude, bp, false))
+        if (count_body_parts_check(InlineExclude, bp, false))
           shallcount = false; /* excluded */
       }
     }
@@ -264,8 +263,7 @@ int mutt_count_body_parts(const struct Mailbox *m, struct Email *e, FILE *fp)
   else
     mutt_parse_mime_message(e, fp);
 
-  if (!STAILQ_EMPTY(&AttachAllow) || !STAILQ_EMPTY(&AttachExclude) ||
-      !STAILQ_EMPTY(&InlineAllow) || !STAILQ_EMPTY(&InlineExclude))
+  if (AttachAllow || AttachExclude || InlineAllow || InlineExclude)
   {
     e->attach_total = count_body_parts(e->body);
   }
@@ -312,7 +310,7 @@ void mutt_attachments_reset(struct MailboxView *mv)
  * @retval #CommandResult Result e.g. #MUTT_CMD_SUCCESS
  */
 static enum CommandResult parse_attach_list(struct Buffer *buf, struct Buffer *s,
-                                            struct ListHead *head, struct Buffer *err)
+                                            GSList **head, struct Buffer *err)
 {
   struct AttachMatch *a = NULL;
   char *p = NULL;
@@ -371,7 +369,7 @@ static enum CommandResult parse_attach_list(struct Buffer *buf, struct Buffer *s
 
     mutt_debug(LL_DEBUG3, "added %s/%s [%d]\n", a->major, a->minor, a->major_int);
 
-    mutt_list_insert_tail(head, (char *) a);
+    *head = g_slist_append(*head, a);
   } while (MoreArgs(s));
 
   if (!a)
@@ -392,7 +390,7 @@ static enum CommandResult parse_attach_list(struct Buffer *buf, struct Buffer *s
  * @retval #MUTT_CMD_SUCCESS Always
  */
 static enum CommandResult parse_unattach_list(struct Buffer *buf, struct Buffer *s,
-                                              struct ListHead *head, struct Buffer *err)
+                                              GSList **head, struct Buffer *err)
 {
   struct AttachMatch *a = NULL;
   char *tmp = NULL;
@@ -422,9 +420,10 @@ static enum CommandResult parse_unattach_list(struct Buffer *buf, struct Buffer 
     }
     const enum ContentType major = mutt_check_mime_type(tmp);
 
-    struct ListNode *np = NULL, *tmp2 = NULL;
-    STAILQ_FOREACH_SAFE(np, head, entries, tmp2)
+    GSList *np = *head;
+    while (np)
     {
+      GSList *next = np->next;
       a = (struct AttachMatch *) np->data;
       mutt_debug(LL_DEBUG3, "check %s/%s [%d] : %s/%s [%d]\n", a->major,
                  a->minor, a->major_int, tmp, minor, major);
@@ -435,12 +434,11 @@ static enum CommandResult parse_unattach_list(struct Buffer *buf, struct Buffer 
 
         regfree(&a->minor_regex);
         FREE(&a->major);
-        STAILQ_REMOVE(head, np, ListNode, entries);
+        *head = g_slist_delete_link(*head, np);
         FREE(&np->data);
-        FREE(&np);
       }
+      np = next;
     }
-
   } while (MoreArgs(s));
 
   FREE(&tmp);
@@ -457,10 +455,9 @@ static enum CommandResult parse_unattach_list(struct Buffer *buf, struct Buffer 
  * @param name Attached/Inline, 'A', 'I'
  * @retval 0 Always
  */
-static int print_attach_list(struct ListHead *h, const char op, const char *name)
+static int print_attach_list(GSList *h, const char op, const char *name)
 {
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, h, entries)
+  for (GSList *np = h; np != NULL; np = np->next)
   {
     printf("attachments %c%s %s/%s\n", op, name,
            ((struct AttachMatch *) np->data)->major,
@@ -491,10 +488,10 @@ enum CommandResult parse_attachments(struct Buffer *buf, struct Buffer *s,
     mutt_endwin();
     fflush(stdout);
     printf("\n%s\n\n", _("Current attachments settings:"));
-    print_attach_list(&AttachAllow, '+', "A");
-    print_attach_list(&AttachExclude, '-', "A");
-    print_attach_list(&InlineAllow, '+', "I");
-    print_attach_list(&InlineExclude, '-', "I");
+    print_attach_list(AttachAllow, '+', "A");
+    print_attach_list(AttachExclude, '-', "A");
+    print_attach_list(InlineAllow, '+', "I");
+    print_attach_list(InlineExclude, '-', "I");
     mutt_any_key_to_continue(NULL);
     return MUTT_CMD_SUCCESS;
   }
@@ -505,7 +502,7 @@ enum CommandResult parse_attachments(struct Buffer *buf, struct Buffer *s,
     category--;
   }
 
-  struct ListHead *head = NULL;
+  GSList **head = NULL;
   if (mutt_istr_startswith("attachment", category))
   {
     if (op == '+')
@@ -537,7 +534,7 @@ enum CommandResult parse_unattachments(struct Buffer *buf, struct Buffer *s,
 {
   char op;
   char *p = NULL;
-  struct ListHead *head = NULL;
+  GSList **head = NULL;
 
   parse_extract_token(buf, s, TOKEN_NO_FLAGS);
   if (!buf->data || (*buf->data == '\0'))
@@ -551,10 +548,10 @@ enum CommandResult parse_unattachments(struct Buffer *buf, struct Buffer *s,
 
   if (op == '*')
   {
-    mutt_list_free_type(&AttachAllow, (list_free_t) attachmatch_free);
-    mutt_list_free_type(&AttachExclude, (list_free_t) attachmatch_free);
-    mutt_list_free_type(&InlineAllow, (list_free_t) attachmatch_free);
-    mutt_list_free_type(&InlineExclude, (list_free_t) attachmatch_free);
+    g_slist_free_full(g_steal_pointer(&AttachAllow), (GDestroyNotify)attachmatch_free);
+    g_slist_free_full(g_steal_pointer(&AttachExclude), (GDestroyNotify)attachmatch_free);
+    g_slist_free_full(g_steal_pointer(&InlineAllow), (GDestroyNotify)attachmatch_free);
+    g_slist_free_full(g_steal_pointer(&InlineExclude), (GDestroyNotify)attachmatch_free);
 
     mutt_debug(LL_NOTIFY, "NT_ATTACH_DELETE_ALL\n");
     notify_send(AttachmentsNotify, NT_ATTACH, NT_ATTACH_DELETE_ALL, NULL);
