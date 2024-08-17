@@ -50,3 +50,18 @@ bool g_slist_match(GSList *h, const char *s)
   }
   return false;
 }
+
+/**
+ * g_slist_find_str - Find a string in a GSList
+ * @param list    Head of the List
+ * @param data String to find
+ * @retval GSList containing the string
+ * @retval NULL The string isn't found
+ */
+GSList *g_slist_find_str(GSList *list, const char *data, bool ignore_case)
+{
+  if (!data)
+    return NULL;
+
+  return g_slist_find_custom(list, data, (GCompareFunc)(ignore_case ? mutt_istr_cmp : mutt_str_cmp));
+}

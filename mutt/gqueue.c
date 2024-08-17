@@ -76,3 +76,18 @@ bool g_queue_equal_custom(GQueue *queue1, GQueue *queue2, GCompareFunc cmp_func)
 
     return true;
 }
+
+/**
+ * g_queue_find_str - Find a string in a GQueue
+ * @param list    Head of the List
+ * @param data String to find
+ * @retval GList containing the string
+ * @retval NULL The string isn't found
+ */
+GList *g_queue_find_str(GQueue *queue, const char *data, bool ignore_case)
+{
+  if (!data)
+    return NULL;
+  
+  return g_queue_find_custom(queue, data, (GCompareFunc)(ignore_case ? mutt_istr_cmp : mutt_str_cmp));
+}

@@ -79,6 +79,8 @@
 #include "color/lib.h"
 #include "expando/lib.h"
 #include "index/lib.h"
+#include "mutt/gslist.h"
+
 
 const struct ExpandoRenderData SidebarRenderData[];
 
@@ -654,8 +656,8 @@ static void update_entries_visibility(struct SidebarWindowData *wdata)
       continue;
     }
 
-    if (g_slist_find_custom(SidebarPinned, mailbox_path(sbe->mailbox), (GCompareFunc)mutt_str_cmp) ||
-        g_slist_find_custom(SidebarPinned, sbe->mailbox->name, (GCompareFunc)mutt_str_cmp))
+    if (g_slist_find_str(SidebarPinned, mailbox_path(sbe->mailbox), false) ||
+        g_slist_find_str(SidebarPinned, sbe->mailbox->name, false))
     {
       /* Explicitly asked to be visible */
       continue;

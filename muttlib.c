@@ -60,6 +60,8 @@
 #include "hook.h"
 #include "mx.h"
 #include "protos.h"
+#include "mutt/gslist.h"
+
 
 /// Accepted XDG environment variables
 static const char *XdgEnvVars[] = {
@@ -1055,7 +1057,7 @@ GSList *add_to_gslist(GSList *head, const char *str)
     return head;
 
   /* check to make sure the item is not already on this list */
-  if (!g_slist_find_custom(head, str, (GCompareFunc)mutt_istr_cmp))
+  if (!g_slist_find_str(head, str, true))
     return g_slist_append(head, mutt_str_dup(str));
 
   return head;

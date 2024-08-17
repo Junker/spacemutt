@@ -1662,8 +1662,8 @@ static bool is_reply(struct Email *reply, struct Email *orig)
 {
   if (!reply || !reply->env || !orig || !orig->env)
     return false;
-  return g_queue_find_custom(orig->env->references, reply->env->message_id, (GCompareFunc)mutt_str_cmp) ||
-         g_queue_find_custom(orig->env->in_reply_to, reply->env->message_id, (GCompareFunc)mutt_str_cmp);
+  return g_queue_find_str(orig->env->references, reply->env->message_id, false) ||
+         g_queue_find_str(orig->env->in_reply_to, reply->env->message_id, false);
 }
 
 /**
