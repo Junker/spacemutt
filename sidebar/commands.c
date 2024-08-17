@@ -68,7 +68,7 @@ enum CommandResult sb_parse_sidebar_unpin(struct Buffer *buf, struct Buffer *s,
     /* Check for deletion of entire list */
     if (mutt_str_equal(buf_string(path), "*"))
     {
-      g_slist_free_full(SidebarPinned, g_free);
+      g_slist_free_full(g_steal_pointer(&SidebarPinned), g_free);
       break;
     }
     buf_expand_path(path);

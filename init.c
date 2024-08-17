@@ -271,15 +271,15 @@ void mutt_opts_cleanup(void)
   driver_tags_cleanup();
 
   /* Lists of strings */
-  g_slist_free_full(AlternativeOrderList, g_free);
-  g_slist_free_full(AutoViewList, g_free);
-  g_slist_free_full(HeaderOrderList, g_free);
-  g_slist_free_full(Ignore, g_free);
-  g_slist_free_full(MailToAllow, g_free);
-  g_slist_free_full(MimeLookupList, g_free);
-  g_slist_free_full(Muttrc, g_free);
-  g_slist_free_full(UnIgnore, g_free);
-  g_queue_clear_full(UserHeader, g_free);
+  g_slist_free_full(g_steal_pointer(&AlternativeOrderList), g_free);
+  g_slist_free_full(g_steal_pointer(&AutoViewList), g_free);
+  g_slist_free_full(g_steal_pointer(&HeaderOrderList), g_free);
+  g_slist_free_full(g_steal_pointer(&Ignore), g_free);
+  g_slist_free_full(g_steal_pointer(&MailToAllow), g_free);
+  g_slist_free_full(g_steal_pointer(&MimeLookupList), g_free);
+  g_slist_free_full(g_steal_pointer(&Muttrc), g_free);
+  g_slist_free_full(g_steal_pointer(&UnIgnore), g_free);
+  g_queue_clear_full(g_steal_pointer(&UserHeader), g_free);
 
   mutt_colors_cleanup();
 

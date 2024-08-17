@@ -1313,5 +1313,5 @@ void mutt_temp_attachments_cleanup(void)
     mutt_file_unlink(entry->data);
   }
 
-  g_slist_free_full(TempAttachmentsList, g_free);
+  g_slist_free_full(g_steal_pointer(&TempAttachmentsList), g_free);
 }

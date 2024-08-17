@@ -1392,7 +1392,7 @@ static enum CommandResult parse_ungslist(struct Buffer *buf, struct Buffer *s,
     /* Check for deletion of entire list */
     if (mutt_str_equal(buf->data, "*"))
     {
-      g_slist_free_full(*list, g_free);
+      g_slist_free_full(g_steal_pointer(list), g_free);
       break;
     }
     *list = g_slist_remove(*list, buf->data);

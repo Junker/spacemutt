@@ -1126,7 +1126,7 @@ GSList *remove_from_gslist(GSList *head, const char *str)
   if (mutt_str_equal("*", str))
   {
     g_slist_free_full(head, g_free); /* "unCMD *" means delete all current entries */
-    return head;
+    return NULL;
   }
   else
   {

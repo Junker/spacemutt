@@ -810,8 +810,8 @@ main
       mutt_addrlist_parse(&e->env->cc, np->data);
     }
 
-    g_slist_free_full(bcc_list, g_free);
-    g_slist_free_full(cc_list, g_free);
+    g_slist_free_full(g_steal_pointer(&bcc_list), g_free);
+    g_slist_free_full(g_steal_pointer(&cc_list), g_free);
   }
 
   /* Check for a batch send. */
@@ -931,7 +931,7 @@ main
         printf("%s\n", (char*)np->data); // TEST19: neomutt -A unknown
       }
     }
-    g_slist_free_full(alias_queries, g_free);
+    g_slist_free_full(g_steal_pointer(&alias_queries), g_free);
     goto main_curses; // TEST20: neomutt -A alias
   }
 
@@ -1231,12 +1231,12 @@ main
         if (!b)
         {
           mutt_error(_("%s: unable to attach file"), (char*)np->data);
-          g_slist_free_full(attach, g_free);
+          g_slist_free_full(g_steal_pointer(&attach), g_free);
           email_free(&e);
           goto main_curses; // TEST32: neomutt john@example.com -a missing
         }
       }
-      g_slist_free_full(attach, g_free);
+      g_slist_free_full(g_steal_pointer(&attach), g_free);
     }
 
     rv = mutt_send_message(sendflags, e, bodyfile, NULL, NULL, NeoMutt->sub);
@@ -1463,12 +1463,12 @@ main_exit:
     notify_observer_remove(NeoMutt->sub->notify, main_config_observer, NULL);
     notify_observer_remove(NeoMutt->notify, main_timeout_observer, NULL);
   }
-  g_slist_free_full(commands, g_free);
+  g_slist_free_full(g_steal_pointer(&commands), g_free);
   MuttLogger = log_disp_queue;
   buf_pool_release(&folder);
   buf_pool_release(&expanded_infile);
   buf_pool_release(&tempfile);
-  g_slist_free_full(queries, g_free);
+  g_slist_free_full(g_steal_pointer(&queries), g_free);
   crypto_module_cleanup();
   rootwin_cleanup();
   buf_pool_cleanup();

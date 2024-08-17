@@ -214,5 +214,5 @@ void sb_cleanup(void)
 {
   if (AllDialogsWindow)
     notify_observer_remove(AllDialogsWindow->notify, sb_insertion_window_observer, NULL);
-  g_slist_free_full(SidebarPinned, g_free);
+  g_slist_free_full(g_steal_pointer(&SidebarPinned), g_free);
 }
