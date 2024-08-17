@@ -34,7 +34,6 @@
 struct Address;
 struct Body;
 struct Buffer;
-struct ListHead;
 struct passwd;
 struct stat;
 

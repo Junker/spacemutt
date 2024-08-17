@@ -30,7 +30,6 @@
 struct Body;
 struct ConfigSubset;
 struct Envelope;
-struct ListHead;
 
 /**
  * enum MuttWriteHeaderMode - Modes for mutt_rfc822_write_header()
