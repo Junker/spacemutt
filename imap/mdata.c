@@ -28,6 +28,7 @@
 
 #include "config.h"
 #include <stdbool.h>
+#include <glib.h>
 #include "private.h"
 #include "core/lib.h"
 #include "mdata.h"
@@ -45,7 +46,7 @@ void imap_mdata_free(void **ptr)
   struct ImapMboxData *mdata = *ptr;
 
   imap_mdata_cache_reset(mdata);
-  mutt_list_free(&mdata->flags);
+  g_slist_free_full(g_steal_pointer(&mdata->flags), g_free);
   FREE(&mdata->name);
   FREE(&mdata->real_name);
   FREE(&mdata->munge_name);
@@ -87,8 +88,6 @@ struct ImapMboxData *imap_mdata_new(struct ImapAccountData *adata, const char *n
   mdata->munge_name = mutt_str_dup(buf);
 
   mdata->reopen &= IMAP_REOPEN_ALLOW;
-
-  STAILQ_INIT(&mdata->flags);
 
 #ifdef USE_HCACHE
   imap_hcache_open(adata, mdata, false);

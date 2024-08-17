@@ -130,7 +130,7 @@ static int check_capabilities(struct ImapAccountData *adata)
  *
  * return stream following FLAGS response
  */
-static char *get_flags(struct ListHead *hflags, char *s)
+static char *get_flags(GSList **hflags, char *s)
 {
   /* sanity-check string */
   const size_t plen = mutt_istr_startswith(s, "FLAGS");
@@ -158,7 +158,7 @@ static char *get_flags(struct ListHead *hflags, char *s)
     const char ctmp = *s;
     *s = '\0';
     if (*flag_word)
-      mutt_list_insert_tail(hflags, mutt_str_dup(flag_word));
+      *hflags = g_slist_append(*hflags, mutt_str_dup(flag_word));
     *s = ctmp;
   }
 
@@ -166,7 +166,7 @@ static char *get_flags(struct ListHead *hflags, char *s)
   if (*s != ')')
   {
     mutt_debug(LL_DEBUG1, "Unterminated FLAGS response: %s\n", s);
-    mutt_list_free(hflags);
+    g_slist_free_full(g_steal_pointer(hflags), g_free);
 
     return NULL;
   }
@@ -188,7 +188,7 @@ static void set_flag(struct Mailbox *m, AclFlags aclflag, bool flag,
                      const char *str, struct Buffer *flags)
 {
   if (m->rights & aclflag)
-    if (flag && imap_has_flag(&imap_mdata_get(m)->flags, str))
+    if (flag && imap_has_flag(imap_mdata_get(m)->flags, str))
       buf_addstr(flags, str);
 }
 
@@ -307,7 +307,7 @@ static int sync_helper(struct Mailbox *m, struct Email **emails, int num_emails,
   if ((m->rights & right) == 0)
     return 0;
 
-  if ((right == MUTT_ACL_WRITE) && !imap_has_flag(&imap_mdata_get(m)->flags, name))
+  if ((right == MUTT_ACL_WRITE) && !imap_has_flag(imap_mdata_get(m)->flags, name))
     return 0;
 
   int count = 0;
@@ -871,14 +871,13 @@ void imap_close_connection(struct ImapAccountData *adata)
  * whitespace at the end, so we really need to compare up to the length of each
  * element in "flag_list".
  */
-bool imap_has_flag(struct ListHead *flag_list, const char *flag)
+bool imap_has_flag(GSList *flag_list, const char *flag)
 {
-  if (STAILQ_EMPTY(flag_list))
+  if (!flag_list)
     return false;
 
   const size_t flaglen = mutt_str_len(flag);
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, flag_list, entries)
+  for (GSList *np = flag_list; np != NULL; np = np->next)
   {
     const size_t nplen = strlen(np->data);
     if ((flaglen >= nplen) && ((flag[nplen] == '\0') || (flag[nplen] == ' ')) &&
@@ -1935,7 +1934,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
     if (mutt_istr_startswith(pc, "FLAGS"))
     {
       /* don't override PERMANENTFLAGS */
-      if (STAILQ_EMPTY(&mdata->flags))
+      if (!mdata->flags)
       {
         mutt_debug(LL_DEBUG3, "Getting mailbox FLAGS\n");
         pc = get_flags(&mdata->flags, pc);
@@ -1948,10 +1947,10 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
       /* PERMANENTFLAGS are massaged to look like FLAGS, then override FLAGS */
       mutt_debug(LL_DEBUG3, "Getting mailbox PERMANENTFLAGS\n");
       /* safe to call on NULL */
-      mutt_list_free(&mdata->flags);
+      g_slist_free_full(g_steal_pointer(&mdata->flags), g_free);
       /* skip "OK [PERMANENT" so syntax is the same as FLAGS */
       pc += 13;
-      pc = get_flags(&(mdata->flags), pc);
+      pc = get_flags(&mdata->flags, pc);
       if (!pc)
         goto fail;
     }
@@ -2019,18 +2018,17 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
   const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
   if (c_debug_level > LL_DEBUG2)
   {
-    if (STAILQ_EMPTY(&mdata->flags))
+    if (!mdata->flags)
     {
       mutt_debug(LL_DEBUG3, "No folder flags found\n");
     }
     else
     {
-      struct ListNode *np = NULL;
       struct Buffer *flag_buffer = buf_pool_get();
       buf_printf(flag_buffer, "Mailbox flags: ");
-      STAILQ_FOREACH(np, &mdata->flags, entries)
+      for (GSList *np = mdata->flags; np != NULL; np = np->next)
       {
-        buf_add_printf(flag_buffer, "[%s] ", np->data);
+        buf_add_printf(flag_buffer, "[%s] ", (char*)np->data);
       }
       mutt_debug(LL_DEBUG3, "%s\n", buf_string(flag_buffer));
       buf_pool_release(&flag_buffer);
@@ -2197,7 +2195,7 @@ static int imap_tags_edit(struct Mailbox *m, const char *tags, struct Buffer *bu
   char *checker = NULL;
 
   /* Check for \* flags capability */
-  if (!imap_has_flag(&mdata->flags, NULL))
+  if (!imap_has_flag(mdata->flags, NULL))
   {
     mutt_error(_("IMAP server doesn't support custom flags"));
     return -1;

@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include <time.h>
+#include <glib.h>
 #include "private.h"
 #include "mutt/lib.h"
 
@@ -47,7 +48,7 @@ struct ImapMboxData
   unsigned int new_mail_count; ///< Set when EXISTS notifies of new mail
 
   // IMAP STATUS information
-  struct ListHead flags;
+  GSList *flags;
   uint32_t uidvalidity;
   unsigned int uid_next;
   unsigned long long modseq;
