@@ -48,7 +48,6 @@ unsigned char *serial_dump_int      (const unsigned int i,           unsigned ch
 unsigned char *serial_dump_uint32_t (const uint32_t s,               unsigned char *d, int *off);
 unsigned char *serial_dump_uint64_t (const uint64_t s,               unsigned char *d, int *off);
 unsigned char *serial_dump_parameter(const struct ParameterList *pl, unsigned char *d, int *off, bool convert);
-unsigned char *serial_dump_stailq   (const struct ListHead *l,       unsigned char *d, int *off, bool convert);
 
 void serial_restore_address  (struct AddressList *al,   const unsigned char *d, int *off, bool convert);
 void serial_restore_body     (struct Body *b,           const unsigned char *d, int *off, bool convert);

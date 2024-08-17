@@ -299,33 +299,6 @@ void serial_restore_address(struct AddressList *al, const unsigned char *d,
   }
 }
 
-/**
- * serial_dump_stailq - Pack a STAILQ into a binary blob
- * @param[in]     l       List to read from
- * @param[in]     d       Binary blob to add to
- * @param[in,out] off     Offset into the blob
- * @param[in]     convert If true, the strings will be converted to utf-8
- * @retval ptr End of the newly packed binary
- */
-unsigned char *serial_dump_stailq(const struct ListHead *l, unsigned char *d,
-                                  int *off, bool convert)
-{
-  unsigned int counter = 0;
-  unsigned int start_off = *off;
-
-  d = serial_dump_int(0xdeadbeef, d, off);
-
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, l, entries)
-  {
-    d = serial_dump_char(np->data, d, off, convert);
-    counter++;
-  }
-
-  memcpy(d + start_off, &counter, sizeof(int));
-
-  return d;
-}
 
 /**
  * serial_dump_gqueue - Pack a STAILQ into a binary blob
