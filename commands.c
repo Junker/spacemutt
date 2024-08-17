@@ -74,7 +74,7 @@
 
 /// LIFO designed to contain the list of config files that have been sourced and
 /// avoid cyclic sourcing.
-static struct ListHead MuttrcStack = STAILQ_HEAD_INITIALIZER(MuttrcStack);
+static GSList *MuttrcStack = NULL;
 
 #define MAX_ERRS 128
 
@@ -164,14 +164,12 @@ int parse_grouplist(struct GroupList *gl, struct Buffer *buf, struct Buffer *s,
  */
 enum CommandResult parse_rc_line_cwd(const char *line, char *cwd, struct Buffer *err)
 {
-  mutt_list_insert_head(&MuttrcStack, mutt_str_dup(NONULL(cwd)));
+  MuttrcStack = g_slist_prepend(MuttrcStack, mutt_str_dup(NONULL(cwd)));
 
   enum CommandResult ret = parse_rc_line(line, err);
 
-  struct ListNode *np = STAILQ_FIRST(&MuttrcStack);
-  STAILQ_REMOVE_HEAD(&MuttrcStack, entries);
-  FREE(&np->data);
-  FREE(&np);
+  g_free(MuttrcStack->data);
+  MuttrcStack = g_slist_remove_link(MuttrcStack, MuttrcStack);
 
   return ret;
 }
@@ -184,7 +182,7 @@ enum CommandResult parse_rc_line_cwd(const char *line, char *cwd, struct Buffer 
  */
 char *mutt_get_sourced_cwd(void)
 {
-  struct ListNode *np = STAILQ_FIRST(&MuttrcStack);
+  GSList *np = MuttrcStack;
   if (np && np->data)
     return mutt_str_dup(np->data);
 
@@ -1473,7 +1471,7 @@ static enum CommandResult parse_version(struct Buffer *buf, struct Buffer *s,
  */
 void source_stack_cleanup(void)
 {
-  mutt_list_free(&MuttrcStack);
+  g_slist_free_full(g_steal_pointer(&MuttrcStack), g_free);
 }
 
 /**
