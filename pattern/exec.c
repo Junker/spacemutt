@@ -54,6 +54,7 @@
 #include "handler.h"
 #include "maillist.h"
 #include "mx.h"
+#include "mutt/gslist.h"
 #ifndef USE_FMEMOPEN
 #include <sys/stat.h>
 #endif
@@ -72,7 +73,7 @@ static bool pattern_exec(struct Pattern *pat, PatternExecFlags flags,
 static bool patmatch(const struct Pattern *pat, const char *buf)
 {
   if (pat->is_multi)
-    return (mutt_list_find(&pat->p.multi_cases, buf) != NULL);
+    return (g_slist_find_str(pat->p.multi_cases, buf, false) != NULL);
   if (pat->string_match)
     return pat->ign_case ? mutt_istr_find(buf, pat->p.str) : strstr(buf, pat->p.str);
   if (pat->group_match)

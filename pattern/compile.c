@@ -123,12 +123,12 @@ out:
  */
 static bool add_query_msgid(char *line, int line_num, void *user_data)
 {
-  struct ListHead *msgid_list = (struct ListHead *) (user_data);
+  GSList **msgid_list = (GSList**) (user_data);
   char *nows = mutt_str_skip_whitespace(line);
   if (*nows == '\0')
     return true;
   mutt_str_remove_trailing_ws(nows);
-  mutt_list_insert_tail(msgid_list, mutt_str_dup(nows));
+  *msgid_list = g_slist_append(*msgid_list, mutt_str_dup(nows));
   return true;
 }
 
@@ -190,7 +190,7 @@ static bool eat_query(struct Pattern *pat, PatternCompFlags flags,
 
   mutt_message(_("Running search command: %s ..."), cmd_buf->data);
   pat->is_multi = true;
-  mutt_list_clear(&pat->p.multi_cases);
+  g_slist_free(g_steal_pointer(&pat->p.multi_cases));
   pid_t pid = filter_create(cmd_buf->data, NULL, &fp, NULL, EnvList);
   if (pid < 0)
   {
@@ -789,7 +789,7 @@ void mutt_pattern_free(struct PatternList **pat)
 
     if (np->is_multi)
     {
-      mutt_list_free(&np->p.multi_cases);
+      g_slist_free_full(g_steal_pointer(&np->p.multi_cases), g_free);
     }
     else if (np->string_match || np->dynamic)
     {

@@ -47,6 +47,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "mutt.h"
 #include "complete/lib.h"
@@ -92,7 +93,7 @@ struct Pattern
     regex_t *regex;              ///< Compiled regex, for non-pattern matching
     struct Group *group;         ///< Address group if group_match is set
     char *str;                   ///< String, if string_match is set
-    struct ListHead multi_cases; ///< Multiple strings for ~I pattern
+    GSList *multi_cases;         ///< Multiple strings for ~I pattern
   } p;
 #ifdef USE_DEBUG_GRAPHVIZ
   const char *raw_pattern;
