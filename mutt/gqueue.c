@@ -58,22 +58,21 @@ size_t g_queue_write(const GQueue *h, struct Buffer *buf)
   return buf_len(buf);
 }
 
-bool g_queue_equal(const GQueue *ah, const GQueue *bh)
-{
-  if (!ah || !bh || (ah->length != bh->length))
-    return false;
+bool g_queue_equal_custom(GQueue *queue1, GQueue *queue2, GCompareFunc cmp_func) {
+    if (g_queue_get_length(queue1) != g_queue_get_length(queue2)) {
+        return false;
+    }
 
-  GList *a = ah->head;
-  GList *b = bh->head;
+    GList *iter1 = queue1->head;
+    GList *iter2 = queue2->head;
 
-  while (a && b)
-  {
-    if (!mutt_str_equal(a->data, b->data))
-      return false;
+    while (iter1 != NULL && iter2 != NULL) {
+        if (cmp_func(iter1->data, iter2->data) != 0) {
+            return false;
+        }
+        iter1 = iter1->next;
+        iter2 = iter2->next;
+    }
 
-    a = a->next;
-    b = b->next;
-  }
-
-  return true;
+    return true;
 }
