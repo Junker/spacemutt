@@ -560,12 +560,12 @@ main
   char *dfile = NULL;
   const char *cli_nntp = NULL;
   struct Email *e = NULL;
-  struct ListHead attach = STAILQ_HEAD_INITIALIZER(attach);
-  struct ListHead commands = STAILQ_HEAD_INITIALIZER(commands);
-  struct ListHead queries = STAILQ_HEAD_INITIALIZER(queries);
-  struct ListHead alias_queries = STAILQ_HEAD_INITIALIZER(alias_queries);
-  struct ListHead cc_list = STAILQ_HEAD_INITIALIZER(cc_list);
-  struct ListHead bcc_list = STAILQ_HEAD_INITIALIZER(bcc_list);
+  GSList *attach = NULL;
+  GSList *commands = NULL;
+  GSList *queries = NULL;
+  GSList *alias_queries = NULL;
+  GSList *cc_list = NULL;
+  GSList *bcc_list = NULL;
   SendFlags sendflags = SEND_NO_FLAGS;
   CliFlags flags = MUTT_CLI_NO_FLAGS;
   int version = 0;
@@ -612,8 +612,8 @@ main
       }
 
       /* non-option, either an attachment or address */
-      if (!STAILQ_EMPTY(&attach))
-        mutt_list_insert_tail(&attach, mutt_str_dup(argv[optind]));
+      if (attach)
+        attach = g_slist_append(attach, mutt_str_dup(argv[optind]));
       else
         argv[nargc++] = argv[optind];
     }
@@ -624,22 +624,22 @@ main
       switch (i)
       {
         case 'A':
-          mutt_list_insert_tail(&alias_queries, mutt_str_dup(optarg));
+          alias_queries = g_slist_append(alias_queries, mutt_str_dup(optarg));
           break;
         case 'a':
-          mutt_list_insert_tail(&attach, mutt_str_dup(optarg));
+          attach = g_slist_append(attach, mutt_str_dup(optarg));
           break;
         case 'B':
           batch_mode = true;
           break;
         case 'b':
-          mutt_list_insert_tail(&bcc_list, mutt_str_dup(optarg));
+          bcc_list = g_slist_append(bcc_list, mutt_str_dup(optarg));
           break;
         case 'C':
           sendflags |= SEND_CLI_CRYPTO;
           break;
         case 'c':
-          mutt_list_insert_tail(&cc_list, mutt_str_dup(optarg));
+          cc_list = g_slist_append(cc_list, mutt_str_dup(optarg));
           break;
         case 'D':
           dump_variables = true;
@@ -651,7 +651,7 @@ main
           edit_infile = true;
           break;
         case 'e':
-          mutt_list_insert_tail(&commands, mutt_str_dup(optarg));
+          commands = g_slist_append(commands, mutt_str_dup(optarg));
           break;
         case 'F':
           Muttrc = g_slist_append(Muttrc, mutt_str_dup(optarg));
@@ -689,7 +689,7 @@ main
           sendflags |= SEND_POSTPONED;
           break;
         case 'Q':
-          mutt_list_insert_tail(&queries, mutt_str_dup(optarg));
+          queries = g_slist_append(queries, mutt_str_dup(optarg));
           break;
         case 'R':
           flags |= MUTT_CLI_RO; /* read-only mode */
@@ -795,28 +795,27 @@ main
   mutt_debug(LL_DEBUG1, "user's umask %03o\n", NeoMutt->user_default_umask);
   mutt_debug(LL_DEBUG3, "umask set to 077\n");
 
-  if (!STAILQ_EMPTY(&cc_list) || !STAILQ_EMPTY(&bcc_list))
+  if (cc_list || bcc_list)
   {
     e = email_new();
     e->env = mutt_env_new();
 
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, &bcc_list, entries)
+    for (GSList *np = bcc_list; np != NULL; np = np->next)
     {
       mutt_addrlist_parse(&e->env->bcc, np->data);
     }
 
-    STAILQ_FOREACH(np, &cc_list, entries)
+    for (GSList *np = cc_list; np != NULL; np = np->next)
     {
       mutt_addrlist_parse(&e->env->cc, np->data);
     }
 
-    mutt_list_free(&bcc_list);
-    mutt_list_free(&cc_list);
+    g_slist_free_full(bcc_list, g_free);
+    g_slist_free_full(cc_list, g_free);
   }
 
   /* Check for a batch send. */
-  if (!isatty(0) || !STAILQ_EMPTY(&queries) || !STAILQ_EMPTY(&alias_queries) ||
+  if (!isatty(0) || queries || alias_queries ||
       dump_variables || batch_mode)
   {
     OptNoCurses = true;
@@ -851,7 +850,7 @@ main
   }
 
   /* set defaults and read init files */
-  int rc2 = mutt_init(cs, dlevel, dfile, flags & MUTT_CLI_NOSYSRC, &commands);
+  int rc2 = mutt_init(cs, dlevel, dfile, flags & MUTT_CLI_NOSYSRC, commands);
   if (rc2 != 0)
     goto main_curses;
 
@@ -892,9 +891,9 @@ main
     cs_str_reset(cs, "mbox_type", NULL);
   }
 
-  if (!STAILQ_EMPTY(&queries))
+  if (queries)
   {
-    rc = mutt_query_variables(&queries, one_liner);
+    rc = mutt_query_variables(queries, one_liner);
     goto main_curses;
   }
 
@@ -909,13 +908,12 @@ main
     goto main_ok; // TEST18: neomutt -D
   }
 
-  if (!STAILQ_EMPTY(&alias_queries))
+  if (alias_queries)
   {
     rc = 0;
     for (; optind < argc; optind++)
-      mutt_list_insert_tail(&alias_queries, mutt_str_dup(argv[optind]));
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, &alias_queries, entries)
+    alias_queries = g_slist_append(alias_queries, mutt_str_dup(argv[optind]));
+    for (GSList *np = alias_queries; np != NULL; np = np->next)
     {
       struct AddressList *al = alias_lookup(np->data);
       if (al)
@@ -930,10 +928,10 @@ main
       else
       {
         rc = 1;
-        printf("%s\n", np->data); // TEST19: neomutt -A unknown
+        printf("%s\n", (char*)np->data); // TEST19: neomutt -A unknown
       }
     }
-    mutt_list_free(&alias_queries);
+    g_slist_free_full(alias_queries, g_free);
     goto main_curses; // TEST20: neomutt -A alias
   }
 
@@ -1004,8 +1002,7 @@ main
     repeat_error = true;
     goto main_curses;
   }
-  else if (subject || e || draft_file || include_file ||
-           !STAILQ_EMPTY(&attach) || (optind < argc))
+  else if (subject || e || draft_file || include_file || attach || (optind < argc))
   {
     FILE *fp_in = NULL;
     FILE *fp_out = NULL;
@@ -1212,15 +1209,14 @@ main
 
     FREE(&bodytext);
 
-    if (!STAILQ_EMPTY(&attach))
+    if (attach)
     {
       struct Body *b = e->body;
 
       while (b && b->next)
         b = b->next;
 
-      struct ListNode *np = NULL;
-      STAILQ_FOREACH(np, &attach, entries)
+      for (GSList *np = attach; np != NULL; np = np->next)
       {
         if (b)
         {
@@ -1234,13 +1230,13 @@ main
         }
         if (!b)
         {
-          mutt_error(_("%s: unable to attach file"), np->data);
-          mutt_list_free(&attach);
+          mutt_error(_("%s: unable to attach file"), (char*)np->data);
+          g_slist_free_full(attach, g_free);
           email_free(&e);
           goto main_curses; // TEST32: neomutt john@example.com -a missing
         }
       }
-      mutt_list_free(&attach);
+      g_slist_free_full(attach, g_free);
     }
 
     rv = mutt_send_message(sendflags, e, bodyfile, NULL, NULL, NeoMutt->sub);
@@ -1467,12 +1463,12 @@ main_exit:
     notify_observer_remove(NeoMutt->sub->notify, main_config_observer, NULL);
     notify_observer_remove(NeoMutt->notify, main_timeout_observer, NULL);
   }
-  mutt_list_free(&commands);
+  g_slist_free_full(commands, g_free);
   MuttLogger = log_disp_queue;
   buf_pool_release(&folder);
   buf_pool_release(&expanded_infile);
   buf_pool_release(&tempfile);
-  mutt_list_free(&queries);
+  g_slist_free_full(queries, g_free);
   crypto_module_cleanup();
   rootwin_cleanup();
   buf_pool_cleanup();

@@ -73,13 +73,12 @@
  * @retval  0 Success, all the commands succeeded
  * @retval -1 Error
  */
-static int execute_commands(struct ListHead *p)
+static int execute_commands(GSList *p)
 {
   int rc = 0;
   struct Buffer *err = buf_pool_get();
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, p, entries)
+  for (GSList *np = p; np != NULL; np = np->next)
   {
     enum CommandResult rc2 = parse_rc_line(np->data, err);
     if (rc2 == MUTT_CMD_ERROR)
@@ -312,7 +311,7 @@ void mutt_opts_cleanup(void)
  * @retval 1 Error
  */
 int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
-              bool skip_sys_rc, struct ListHead *commands)
+              bool skip_sys_rc, GSList *commands)
 {
   bool need_pause = false;
   int rc = 1;
@@ -596,14 +595,13 @@ done:
  * @retval 0 Success, all queries exist
  * @retval 1 Error
  */
-int mutt_query_variables(struct ListHead *queries, bool show_docs)
+int mutt_query_variables(GSList *queries, bool show_docs)
 {
   struct Buffer *value = buf_pool_get();
   struct Buffer *tmp = buf_pool_get();
   int rc = 0;
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, queries, entries)
+  for (GSList *np = queries; np != NULL; np = np->next)
   {
     buf_reset(value);
 
@@ -612,7 +610,7 @@ int mutt_query_variables(struct ListHead *queries, bool show_docs)
     {
       if (he->type & D_INTERNAL_DEPRECATED)
       {
-        mutt_warning(_("Option %s is deprecated"), np->data);
+        mutt_warning(_("Option %s is deprecated"), (char*)np->data);
         rc = 1;
         continue;
       }
@@ -640,7 +638,7 @@ int mutt_query_variables(struct ListHead *queries, bool show_docs)
       continue;
     }
 
-    mutt_warning(_("Unknown option %s"), np->data);
+    mutt_warning(_("Unknown option %s"), (char*)np->data);
     rc = 1;
   }
 
