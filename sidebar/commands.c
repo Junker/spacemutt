@@ -47,7 +47,7 @@ enum CommandResult sb_parse_sidebar_pin(struct Buffer *buf, struct Buffer *s,
   {
     parse_extract_token(path, s, TOKEN_BACKTICK_VARS);
     buf_expand_path(path);
-    add_to_stailq(&SidebarPinned, buf_string(path));
+    SidebarPinned = add_to_gslist(SidebarPinned, buf_string(path));
   } while (MoreArgs(s));
   buf_pool_release(&path);
 
@@ -68,11 +68,11 @@ enum CommandResult sb_parse_sidebar_unpin(struct Buffer *buf, struct Buffer *s,
     /* Check for deletion of entire list */
     if (mutt_str_equal(buf_string(path), "*"))
     {
-      mutt_list_free(&SidebarPinned);
+      g_slist_free_full(SidebarPinned, g_free);
       break;
     }
     buf_expand_path(path);
-    remove_from_stailq(&SidebarPinned, buf_string(path));
+    SidebarPinned = remove_from_gslist(SidebarPinned, buf_string(path));
   } while (MoreArgs(s));
   buf_pool_release(&path);
 

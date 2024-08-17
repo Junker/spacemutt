@@ -654,8 +654,8 @@ static void update_entries_visibility(struct SidebarWindowData *wdata)
       continue;
     }
 
-    if (mutt_list_find(&SidebarPinned, mailbox_path(sbe->mailbox)) ||
-        mutt_list_find(&SidebarPinned, sbe->mailbox->name))
+    if (g_slist_find_custom(SidebarPinned, mailbox_path(sbe->mailbox), (GCompareFunc)mutt_str_cmp) ||
+        g_slist_find_custom(SidebarPinned, sbe->mailbox->name, (GCompareFunc)mutt_str_cmp))
     {
       /* Explicitly asked to be visible */
       continue;

@@ -25,6 +25,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "config/lib.h"
 #include "core/lib.h"
@@ -32,7 +33,7 @@
 struct IndexSharedData;
 struct MuttWindow;
 
-extern struct ListHead SidebarPinned;
+extern GSList *SidebarPinned;
 
 /**
  * struct SbEntry - Info about folders in the sidebar

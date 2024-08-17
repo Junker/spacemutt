@@ -40,7 +40,7 @@
 #include "lib.h"
 #include "index/lib.h"
 
-struct ListHead SidebarPinned = STAILQ_HEAD_INITIALIZER(SidebarPinned); ///< List of mailboxes to always display in the sidebar
+GSList *SidebarPinned = NULL; ///< List of mailboxes to always display in the sidebar
 
 /**
  * SbCommands - Sidebar Commands
@@ -214,5 +214,5 @@ void sb_cleanup(void)
 {
   if (AllDialogsWindow)
     notify_observer_remove(AllDialogsWindow->notify, sb_insertion_window_observer, NULL);
-  mutt_list_free(&SidebarPinned);
+  g_slist_free_full(SidebarPinned, g_free);
 }
