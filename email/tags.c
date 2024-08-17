@@ -33,6 +33,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "config/lib.h"
 #include "core/lib.h"
@@ -207,14 +208,11 @@ bool driver_tags_replace(struct TagList *tl, const char *tags)
 
   if (tags)
   {
-    struct ListHead hsplit = STAILQ_HEAD_INITIALIZER(hsplit);
-    mutt_list_str_split(&hsplit, tags, ' ');
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, &hsplit, entries)
-    {
-      driver_tags_add(tl, np->data);
+    char **tagsarr = g_strsplit(tags, " ", -1);
+    for (gchar **tag = tagsarr; *tag != NULL; tag++) {
+      driver_tags_add(tl, *tag);
     }
-    mutt_list_clear(&hsplit);
+    g_strfreev(tagsarr);
   }
   return true;
 }
