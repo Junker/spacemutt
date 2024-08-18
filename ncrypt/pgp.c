@@ -1462,8 +1462,8 @@ cleanup:
  */
 char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
 {
-  struct ListHead crypt_hook_list = STAILQ_HEAD_INITIALIZER(crypt_hook_list);
-  struct ListNode *crypt_hook = NULL;
+  GSList *crypt_hook_list = NULL;
+  GSList *crypt_hook = NULL;
   const char *keyid = NULL;
   char *keylist = NULL;
   size_t keylist_size = 0;
@@ -1481,7 +1481,7 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
   {
     key_selected = false;
     mutt_crypt_hook(&crypt_hook_list, a);
-    crypt_hook = STAILQ_FIRST(&crypt_hook_list);
+    crypt_hook = crypt_hook_list;
     do
     {
       p = a;
@@ -1520,9 +1520,9 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
         }
         else if (ans == MUTT_NO)
         {
-          if (key_selected || STAILQ_NEXT(crypt_hook, entries))
+          if (key_selected || crypt_hook->next)
           {
-            crypt_hook = STAILQ_NEXT(crypt_hook, entries);
+            crypt_hook = crypt_hook->next;
             continue;
           }
         }
@@ -1530,7 +1530,7 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
         {
           FREE(&keylist);
           mutt_addrlist_clear(&hookal);
-          mutt_list_free(&crypt_hook_list);
+          g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
           return NULL;
         }
       }
@@ -1551,7 +1551,7 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
       {
         FREE(&keylist);
         mutt_addrlist_clear(&hookal);
-        mutt_list_free(&crypt_hook_list);
+        g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
         return NULL;
       }
 
@@ -1569,11 +1569,11 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
       mutt_addrlist_clear(&hookal);
 
       if (crypt_hook)
-        crypt_hook = STAILQ_NEXT(crypt_hook, entries);
+        crypt_hook = crypt_hook->next;
 
     } while (crypt_hook);
 
-    mutt_list_free(&crypt_hook_list);
+    g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
   }
   return keylist;
 }

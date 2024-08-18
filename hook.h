@@ -25,12 +25,12 @@
 
 #include "config.h"
 #include <stdint.h>
+#include <glib.h>
 #include "core/lib.h"
 
 struct Address;
 struct Buffer;
 struct Email;
-struct ListHead;
 
 typedef uint32_t HookFlags;          ///< Flags for mutt_parse_hook(), e.g. #MUTT_FOLDER_HOOK
 #define MUTT_HOOK_NO_FLAGS       0   ///< No flags are set
@@ -59,7 +59,7 @@ void hooks_init(void);
 enum CommandResult mutt_parse_hook(struct Buffer *buf, struct Buffer *s, intptr_t data, struct Buffer *err);
 
 void                  mutt_account_hook            (const char *url);
-void                  mutt_crypt_hook              (struct ListHead *list, struct Address *addr);
+void                  mutt_crypt_hook              (GSList **list, struct Address *addr);
 void                  mutt_default_save            (struct Buffer *path, struct Email *e);
 void                  mutt_delete_hooks            (HookFlags type);
 char *                mutt_find_hook               (HookFlags type, const char *pat);

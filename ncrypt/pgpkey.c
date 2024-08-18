@@ -332,11 +332,10 @@ cleanup:
  * pgp_add_string_to_hints - Split a string and add the parts to a List
  * @param[in]  str   String to parse
  * @param[out] hints List of string parts
- *
  * The string str is split by whitespace and punctuation and the parts added to
  * hints.
  */
-static void pgp_add_string_to_hints(const char *str, struct ListHead *hints)
+static void pgp_add_string_to_hints(const char *str, GSList **hints)
 {
   char *scratch = mutt_str_dup(str);
   if (!scratch)
@@ -345,7 +344,7 @@ static void pgp_add_string_to_hints(const char *str, struct ListHead *hints)
   for (char *t = strtok(scratch, " ,.:\"()<>\n"); t; t = strtok(NULL, " ,.:\"()<>\n"))
   {
     if (strlen(t) > 3)
-      mutt_list_insert_tail(hints, mutt_str_dup(t));
+      *hints = g_slist_append(*hints, mutt_str_dup(t));
   }
 
   FREE(&scratch);
@@ -379,7 +378,7 @@ struct PgpKeyInfo *pgp_getkeybyaddr(struct Address *a, KeyFlags abilities,
   if (!a)
     return NULL;
 
-  struct ListHead hints = STAILQ_HEAD_INITIALIZER(hints);
+  GSList *hints = NULL;
 
   bool multi = false;
 
@@ -391,15 +390,15 @@ struct PgpKeyInfo *pgp_getkeybyaddr(struct Address *a, KeyFlags abilities,
   struct PgpUid *q = NULL;
 
   if (a->mailbox)
-    mutt_list_insert_tail(&hints, buf_strdup(a->mailbox));
+    hints = g_slist_append(hints, buf_strdup(a->mailbox));
   if (a->personal)
     pgp_add_string_to_hints(buf_string(a->personal), &hints);
 
   if (!oppenc_mode)
     mutt_message(_("Looking for keys matching \"%s\"..."), buf_string(a->mailbox));
-  keys = pgp_get_candidates(keyring, &hints);
+  keys = pgp_get_candidates(keyring, hints);
 
-  mutt_list_free(&hints);
+  g_slist_free_full(g_steal_pointer(&hints), g_free);
 
   if (!keys)
     return NULL;
@@ -514,7 +513,7 @@ struct PgpKeyInfo *pgp_getkeybyaddr(struct Address *a, KeyFlags abilities,
  */
 struct PgpKeyInfo *pgp_getkeybystr(const char *cp, KeyFlags abilities, enum PgpRing keyring)
 {
-  struct ListHead hints = STAILQ_HEAD_INITIALIZER(hints);
+  GSList *hints = NULL;
   struct PgpKeyInfo *keys = NULL;
   struct PgpKeyInfo *matches = NULL;
   struct PgpKeyInfo **last = &matches;
@@ -532,8 +531,8 @@ struct PgpKeyInfo *pgp_getkeybystr(const char *cp, KeyFlags abilities, enum PgpR
 
   pfcopy = crypt_get_fingerprint_or_id(p, &phint, &pl, &ps);
   pgp_add_string_to_hints(phint, &hints);
-  keys = pgp_get_candidates(keyring, &hints);
-  mutt_list_free(&hints);
+  keys = pgp_get_candidates(keyring, hints);
+  g_slist_free_full(g_steal_pointer(&hints), g_free);
 
   for (k = keys; k; k = kn)
   {

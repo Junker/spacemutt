@@ -3001,15 +3001,14 @@ unsigned int key_check_cap(gpgme_key_t key, enum KeyCap cap)
  *
  * @note The caller must free the returned pattern
  */
-static char *list_to_pattern(struct ListHead *list)
+static char *list_to_pattern(GSList *list)
 {
   char *pattern = NULL, *p = NULL;
   const char *s = NULL;
   size_t n;
 
   n = 0;
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, list, entries)
+  for (GSList *np = list; np != NULL; np = np->next)
   {
     for (s = np->data; *s; s++)
     {
@@ -3022,12 +3021,12 @@ static char *list_to_pattern(struct ListHead *list)
   n++; /* make sure to allocate at least one byte */
   p = mutt_mem_calloc(1, n);
   pattern = p;
-  STAILQ_FOREACH(np, list, entries)
+  for (GSList *np = list; np != NULL; np = np->next)
   {
     s = np->data;
     if (*s)
     {
-      if (np != STAILQ_FIRST(list))
+      if (np != list)
         *p++ = ' ';
       for (s = np->data; *s; s++)
       {
@@ -3068,7 +3067,7 @@ static char *list_to_pattern(struct ListHead *list)
  *
  * Select by looking at the HINTS list.
  */
-static struct CryptKeyInfo *get_candidates(struct ListHead *hints, SecurityFlags app, int secret)
+static struct CryptKeyInfo *get_candidates(GSList *hints, SecurityFlags app, int secret)
 {
   struct CryptKeyInfo *db = NULL, *k = NULL, **kend = NULL;
   gpgme_error_t err = GPG_ERR_NO_ERROR;
@@ -3091,10 +3090,9 @@ static struct CryptKeyInfo *get_candidates(struct ListHead *hints, SecurityFlags
      * the protocol.  For gpg we don't need percent escaped pappert but simple
      * strings passed in an array to the keylist_ext_start function. */
     size_t n = 0;
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, hints, entries)
+    for (GSList *np = hints; np != NULL; np = np->next)
     {
-      if (np->data && *np->data)
+      if (np->data && *((char*)np->data))
         n++;
     }
     if (n == 0)
@@ -3102,9 +3100,9 @@ static struct CryptKeyInfo *get_candidates(struct ListHead *hints, SecurityFlags
 
     char **patarr = mutt_mem_calloc(n + 1, sizeof(*patarr));
     n = 0;
-    STAILQ_FOREACH(np, hints, entries)
+    for (GSList *np = hints; np != NULL; np = np->next)
     {
-      if (np->data && *np->data)
+      if (np->data && *((char*)np->data))
         patarr[n++] = mutt_str_dup(np->data);
     }
     patarr[n] = NULL;
@@ -3221,7 +3219,7 @@ static struct CryptKeyInfo *get_candidates(struct ListHead *hints, SecurityFlags
  * The string str is split by whitespace and punctuation and the parts added to
  * hints.  This list is later used to match addresses.
  */
-static void crypt_add_string_to_hints(const char *str, struct ListHead *hints)
+static void crypt_add_string_to_hints(const char *str, GSList **hints)
 {
   char *scratch = mutt_str_dup(str);
   if (!scratch)
@@ -3230,7 +3228,7 @@ static void crypt_add_string_to_hints(const char *str, struct ListHead *hints)
   for (char *t = strtok(scratch, " ,.:\"()<>\n"); t; t = strtok(NULL, " ,.:\"()<>\n"))
   {
     if (strlen(t) > 3)
-      mutt_list_insert_tail(hints, mutt_str_dup(t));
+      *hints = g_slist_append(*hints, mutt_str_dup(t));
   }
 
   FREE(&scratch);
@@ -3249,7 +3247,7 @@ static struct CryptKeyInfo *crypt_getkeybyaddr(struct Address *a,
                                                KeyFlags abilities, unsigned int app,
                                                bool *forced_valid, bool oppenc_mode)
 {
-  struct ListHead hints = STAILQ_HEAD_INITIALIZER(hints);
+  GSList *hints = NULL;
 
   int multi = false;
   int this_key_has_strong = false;
@@ -3263,15 +3261,15 @@ static struct CryptKeyInfo *crypt_getkeybyaddr(struct Address *a,
   struct CryptKeyInfo **matches_endp = &matches;
 
   if (a && a->mailbox)
-    mutt_list_insert_tail(&hints, buf_strdup(a->mailbox));
+    hints = g_slist_append(hints, buf_strdup(a->mailbox));
   if (a && a->personal)
     crypt_add_string_to_hints(buf_string(a->personal), &hints);
 
   if (!oppenc_mode)
     mutt_message(_("Looking for keys matching \"%s\"..."), a ? buf_string(a->mailbox) : "");
-  keys = get_candidates(&hints, app, (abilities & KEYFLAG_CANSIGN));
+  keys = get_candidates(hints, app, (abilities & KEYFLAG_CANSIGN));
 
-  mutt_list_free(&hints);
+  g_slist_free_full(g_steal_pointer(&hints), g_free);
 
   if (!keys)
     return NULL;
@@ -3382,7 +3380,7 @@ static struct CryptKeyInfo *crypt_getkeybyaddr(struct Address *a,
 static struct CryptKeyInfo *crypt_getkeybystr(const char *p, KeyFlags abilities,
                                               unsigned int app, bool *forced_valid)
 {
-  struct ListHead hints = STAILQ_HEAD_INITIALIZER(hints);
+  GSList *hints = NULL;
   struct CryptKeyInfo *matches = NULL;
   struct CryptKeyInfo **matches_endp = &matches;
   struct CryptKeyInfo *k = NULL;
@@ -3392,8 +3390,8 @@ static struct CryptKeyInfo *crypt_getkeybystr(const char *p, KeyFlags abilities,
 
   const char *pfcopy = crypt_get_fingerprint_or_id(p, &phint, &pl, &ps);
   crypt_add_string_to_hints(phint, &hints);
-  struct CryptKeyInfo *keys = get_candidates(&hints, app, (abilities & KEYFLAG_CANSIGN));
-  mutt_list_free(&hints);
+  struct CryptKeyInfo *keys = get_candidates(hints, app, (abilities & KEYFLAG_CANSIGN));
+  g_slist_free_full(g_steal_pointer(&hints), g_free);
 
   if (!keys)
   {
@@ -3533,8 +3531,8 @@ done:
  */
 static char *find_keys(const struct AddressList *addrlist, unsigned int app, bool oppenc_mode)
 {
-  struct ListHead crypt_hook_list = STAILQ_HEAD_INITIALIZER(crypt_hook_list);
-  struct ListNode *crypt_hook = NULL;
+  GSList *crypt_hook_list = NULL;
+  GSList *crypt_hook = NULL;
   const char *keyid = NULL;
   char *keylist = NULL;
   size_t keylist_size = 0;
@@ -3553,7 +3551,7 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
   {
     key_selected = false;
     mutt_crypt_hook(&crypt_hook_list, a);
-    crypt_hook = STAILQ_FIRST(&crypt_hook_list);
+    crypt_hook = crypt_hook_list;
     do
     {
       p = a;
@@ -3593,9 +3591,9 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
         }
         else if (ans == MUTT_NO)
         {
-          if (key_selected || STAILQ_NEXT(crypt_hook, entries))
+          if (key_selected || crypt_hook->next)
           {
-            crypt_hook = STAILQ_NEXT(crypt_hook, entries);
+            crypt_hook = crypt_hook->next;
             continue;
           }
         }
@@ -3603,7 +3601,7 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
         {
           FREE(&keylist);
           mutt_addrlist_clear(&hookal);
-          mutt_list_free(&crypt_hook_list);
+          g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
           return NULL;
         }
       }
@@ -3625,7 +3623,7 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
       {
         FREE(&keylist);
         mutt_addrlist_clear(&hookal);
-        mutt_list_free(&crypt_hook_list);
+        g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
         return NULL;
       }
 
@@ -3644,11 +3642,11 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
       mutt_addrlist_clear(&hookal);
 
       if (crypt_hook)
-        crypt_hook = STAILQ_NEXT(crypt_hook, entries);
+        crypt_hook = crypt_hook->next;
 
     } while (crypt_hook);
 
-    mutt_list_free(&crypt_hook_list);
+    g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
   }
   return keylist;
 }

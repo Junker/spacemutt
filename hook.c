@@ -847,15 +847,15 @@ void mutt_select_fcc(struct Buffer *path, struct Email *e)
  * @param[in]  match   String to match
  * @param[in]  type    Hook type, see #HookFlags
  */
-static void list_hook(struct ListHead *matches, const char *match, HookFlags type)
+static void list_hook(GSList **matches, const char *match, HookFlags type)
 {
   struct Hook *tmp = NULL;
 
-  TAILQ_FOREACH(tmp, &Hooks, entries)
+  for (GSList *np = *matches; np != NULL; np = np->next)
   {
     if ((tmp->type & type) && mutt_regex_match(&tmp->regex, match))
     {
-      mutt_list_insert_tail(matches, mutt_str_dup(tmp->command));
+      *matches = g_slist_append(*matches, mutt_str_dup(tmp->command));
     }
   }
 }
@@ -867,7 +867,7 @@ static void list_hook(struct ListHead *matches, const char *match, HookFlags typ
  *
  * The crypt-hook associates keys with addresses.
  */
-void mutt_crypt_hook(struct ListHead *list, struct Address *addr)
+void mutt_crypt_hook(GSList **list, struct Address *addr)
 {
   list_hook(list, buf_string(addr->mailbox), MUTT_CRYPT_HOOK);
 }

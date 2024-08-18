@@ -488,17 +488,16 @@ pid_t pgp_invoke_verify_key(FILE **fp_pgp_in, FILE **fp_pgp_out, FILE **fp_pgp_e
  */
 pid_t pgp_invoke_list_keys(FILE **fp_pgp_in, FILE **fp_pgp_out, FILE **fp_pgp_err,
                            int fd_pgp_in, int fd_pgp_out, int fd_pgp_err,
-                           enum PgpRing keyring, struct ListHead *hints)
+                           enum PgpRing keyring, GSList *hints)
 {
   struct Buffer *uids = buf_pool_get();
   struct Buffer *quoted = buf_pool_get();
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, hints, entries)
+  for (GSList *np = hints; np != NULL; np = np->next)
   {
     buf_quote_filename(quoted, (char *) np->data, true);
     buf_addstr(uids, buf_string(quoted));
-    if (STAILQ_NEXT(np, entries))
+    if (np->next)
       buf_addch(uids, ' ');
   }
 

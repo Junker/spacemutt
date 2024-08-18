@@ -24,10 +24,9 @@
 #ifndef MUTT_NCRYPT_GNUPGPARSE_H
 #define MUTT_NCRYPT_GNUPGPARSE_H
 
+#include <glib.h>
 #include "pgpkey.h"
 
-struct ListHead;
-
-struct PgpKeyInfo * pgp_get_candidates(enum PgpRing keyring, struct ListHead *hints);
+struct PgpKeyInfo * pgp_get_candidates(enum PgpRing keyring, GSList *hints);
 
 #endif /* MUTT_NCRYPT_GNUPGPARSE_H */

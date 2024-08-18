@@ -416,7 +416,7 @@ bail:
  * @retval ptr  Key list
  * @retval NULL Error
  */
-struct PgpKeyInfo *pgp_get_candidates(enum PgpRing keyring, struct ListHead *hints)
+struct PgpKeyInfo *pgp_get_candidates(enum PgpRing keyring, GSList *hints)
 {
   FILE *fp = NULL;
   pid_t pid;
