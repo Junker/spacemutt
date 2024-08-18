@@ -25,3 +25,4 @@
 
 bool g_slist_match(GSList *h, const char *s);
 GSList *g_slist_find_str(GSList *list, const char *data, bool ignore_case);
+GSList* g_slist_insert_after(GSList *slist, GSList *sibling, gpointer data);

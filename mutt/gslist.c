@@ -65,3 +65,15 @@ GSList *g_slist_find_str(GSList *list, const char *data, bool ignore_case)
 
   return g_slist_find_custom(list, data, (GCompareFunc)(ignore_case ? mutt_istr_cmp : mutt_str_cmp));
 }
+
+
+GSList* g_slist_insert_after(GSList *slist, GSList *sibling, gpointer data) {
+    if (sibling == NULL || slist == NULL) {
+        return slist;
+    }
+    GSList *new_node = g_slist_alloc();
+    new_node->data = data;
+    new_node->next = sibling->next;
+    sibling->next = new_node;
+    return slist;
+}
