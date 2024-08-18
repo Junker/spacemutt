@@ -77,3 +77,18 @@ GSList* g_slist_insert_after(GSList *slist, GSList *sibling, gpointer data) {
     sibling->next = new_node;
     return slist;
 }
+
+bool g_slist_equal_custom(GSList *list1, GSList *list2, GCompareFunc cmp_func)
+{
+  while (list1 != NULL && list2 != NULL)
+  {
+    if (cmp_func(list1->data, list2->data) != 0)
+    {
+      return false;
+    }
+    list1 = list1->next;
+    list2 = list2->next;
+  }
+
+  return list1 == list2;
+}
