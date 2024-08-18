@@ -210,12 +210,9 @@ void clean_references(struct MuttThread *brk, struct MuttThread *cur)
       struct Email *e = cur->message;
 
       /* clearing the References: header from obsolete Message-ID(s) */
-      GList *np = ref->next;
-      while (np)
+      while (cur->message->env->references->tail != ref)
       {
-        GList *next = np->next;
-        g_queue_delete_link(cur->message->env->references, np);
-        np = next;
+        g_free(g_queue_pop_tail(cur->message->env->references));
       }
 
       e->changed = true;
