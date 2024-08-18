@@ -46,6 +46,8 @@
 #include "mx.h"
 #include "protos.h"
 #include "sort.h"
+#include "mutt/gslist.h"
+
 
 /**
  * UseThreadsMethods - Choices for '$use_threads' for the index
@@ -521,7 +523,7 @@ void mutt_draw_tree(struct ThreadsContext *tctx)
  * message, we have to make a list of all the subjects of its most immediate
  * existing descendants.
  */
-static void make_subject_list(struct ListHead *subjects, struct MuttThread *cur, time_t *dateptr)
+static void make_subject_list(GSList **subjects, struct MuttThread *cur, time_t *dateptr)
 {
   struct MuttThread *start = cur;
   struct Envelope *env = NULL;
@@ -545,17 +547,17 @@ static void make_subject_list(struct ListHead *subjects, struct MuttThread *cur,
     env = cur->message->env;
     if (env->real_subj && ((env->real_subj != env->subject) || !c_sort_re))
     {
-      struct ListNode *np = NULL;
-      STAILQ_FOREACH(np, subjects, entries)
+      GSList *np = NULL;
+      for (np = *subjects; np != NULL; np = np->next)
       {
         rc = mutt_str_cmp(env->real_subj, np->data);
         if (rc >= 0)
           break;
       }
       if (!np)
-        mutt_list_insert_head(subjects, env->real_subj);
+        *subjects = g_slist_prepend(*subjects, env->real_subj);
       else if (rc > 0)
-        mutt_list_insert_after(subjects, np, env->real_subj);
+        *subjects = g_slist_insert_after(*subjects, np, env->real_subj);
     }
 
     while (!cur->next && (cur != start))
@@ -584,14 +586,13 @@ static struct MuttThread *find_subject(struct Mailbox *m, struct MuttThread *cur
 
   struct HashElem *he = NULL;
   struct MuttThread *tmp = NULL, *last = NULL;
-  struct ListHead subjects = STAILQ_HEAD_INITIALIZER(subjects);
+  GSList *subjects = NULL;
   time_t date = 0;
 
   make_subject_list(&subjects, cur, &date);
 
-  struct ListNode *np = NULL;
   const bool c_thread_received = cs_subset_bool(NeoMutt->sub, "thread_received");
-  STAILQ_FOREACH(np, &subjects, entries)
+  for (GSList *np = subjects; np != NULL; np = np->next)
   {
     for (he = mutt_hash_find_bucket(m->subj_hash, np->data); he; he = he->next)
     {
@@ -612,7 +613,7 @@ static struct MuttThread *find_subject(struct Mailbox *m, struct MuttThread *cur
     }
   }
 
-  mutt_list_clear(&subjects);
+  g_slist_free(g_steal_pointer(&subjects));
   return last;
 }
 
