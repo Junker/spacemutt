@@ -30,7 +30,7 @@
 
 void test_email_header_set(void)
 {
-  // struct ListNode *header_set(struct ListHead *hdrlist, const struct Buffer *buf)
+  // GList *header_set(GQueue *hdrlist, const struct Buffer *buf)
   const char *starting_value = "X-TestHeader: 0.57";
   const char *updated_value = "X-TestHeader: 6.28";
 

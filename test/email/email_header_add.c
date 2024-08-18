@@ -30,7 +30,7 @@
 
 void test_email_header_add(void)
 {
-  // struct ListNode *header_add(struct ListHead *hdrlist, const struct Buffer *buf)
+  // GList *header_add(GQueue *hdrlist, const struct Buffer *buf)
   const char *header = "X-TestHeader: 123";
 
   GQueue *hdrlist = g_queue_new();

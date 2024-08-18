@@ -29,7 +29,7 @@
 
 void test_email_header_find(void)
 {
-  // struct ListNode *header_find(struct ListHead *hdrlist, const char *header)
+  // GList *header_find(GQueue *hdrlist, const char *header)
   char *header = "X-TestHeader: 123";
 
   GQueue *hdrlist = g_queue_new();

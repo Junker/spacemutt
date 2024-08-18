@@ -48,4 +48,5 @@ void test_email_header_free(void)
     TEST_CHECK(header_find(hdrlist, second_header) == NULL);
     TEST_CHECK(hdrlist->head == NULL); /* List now empty */
   }
+  g_free(hdrlist);
 }
