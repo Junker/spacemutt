@@ -58,23 +58,27 @@ size_t g_queue_write(const GQueue *h, struct Buffer *buf)
   return buf_len(buf);
 }
 
-bool g_queue_equal_custom(GQueue *queue1, GQueue *queue2, GCompareFunc cmp_func) {
-    if (g_queue_get_length(queue1) != g_queue_get_length(queue2)) {
-        return false;
+bool g_queue_equal_custom(GQueue *queue1, GQueue *queue2, GCompareFunc cmp_func)
+{
+  if (queue1->length != queue2->length)
+  {
+    return false;
+  }
+
+  GList *iter1 = queue1->head;
+  GList *iter2 = queue2->head;
+
+  while (iter1 != NULL && iter2 != NULL)
+  {
+    if (cmp_func(iter1->data, iter2->data) != 0)
+    {
+      return false;
     }
+    iter1 = iter1->next;
+    iter2 = iter2->next;
+  }
 
-    GList *iter1 = queue1->head;
-    GList *iter2 = queue2->head;
-
-    while (iter1 != NULL && iter2 != NULL) {
-        if (cmp_func(iter1->data, iter2->data) != 0) {
-            return false;
-        }
-        iter1 = iter1->next;
-        iter2 = iter2->next;
-    }
-
-    return true;
+  return true;
 }
 
 /**
@@ -88,6 +92,6 @@ GList *g_queue_find_str(GQueue *queue, const char *data, bool ignore_case)
 {
   if (!data)
     return NULL;
-  
+
   return g_queue_find_custom(queue, data, (GCompareFunc)(ignore_case ? mutt_istr_cmp : mutt_str_cmp));
 }
