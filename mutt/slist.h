@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <glib.h>
 #include "list.h"
 
 struct Buffer;
@@ -35,7 +36,7 @@ struct Buffer;
  */
 struct Slist
 {
-  struct ListHead head; ///< List containing values
+  GSList *head;         ///< List containing values
   size_t count;         ///< Number of values in list
   uint32_t flags;       ///< Flags controlling list, e.g. #D_SLIST_SEP_SPACE
 };

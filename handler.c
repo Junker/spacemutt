@@ -1157,7 +1157,6 @@ static int multilingual_handler(struct Body *b_email, struct State *state)
   struct Body *choice = NULL;
   struct Body *first_part = NULL;
   struct Body *zxx_part = NULL;
-  struct ListNode *np = NULL;
 
   while (b)
   {
@@ -1178,7 +1177,7 @@ static int multilingual_handler(struct Body *b_email, struct State *state)
                buf_string(langs));
     buf_pool_release(&langs);
 
-    STAILQ_FOREACH(np, &c_preferred_languages->head, entries)
+    for (GSList *np = c_preferred_languages->head; np != NULL; np = np->next)
     {
       while (b)
       {
@@ -1188,11 +1187,11 @@ static int multilingual_handler(struct Body *b_email, struct State *state)
             zxx_part = b;
 
           mutt_debug(LL_DEBUG2, "RFC8255 >> comparing configuration preferred_language='%s' to mail part content-language='%s'\n",
-                     np->data, b->language);
+                     (char*)np->data, b->language);
           if (b->language && mutt_str_equal(np->data, b->language))
           {
             mutt_debug(LL_DEBUG2, "RFC8255 >> preferred_language='%s' matches content-language='%s' >> part selected to be displayed\n",
-                       np->data, b->language);
+                       (char*)np->data, b->language);
             choice = b;
             break;
           }

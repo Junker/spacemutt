@@ -122,10 +122,9 @@ int imap_authenticate(struct ImapAccountData *adata)
     mutt_debug(LL_DEBUG2, "Trying user-defined imap_authenticators\n");
 
     /* Try user-specified list of authentication methods */
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, &c_imap_authenticators->head, entries)
+    for (GSList *np = c_imap_authenticators->head; np != NULL; np = np->next)
     {
-      mutt_debug(LL_DEBUG2, "Trying method %s\n", np->data);
+      mutt_debug(LL_DEBUG2, "Trying method %s\n", (char*)np->data);
 
       for (size_t i = 0; i < mutt_array_size(ImapAuthenticators); i++)
       {

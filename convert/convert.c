@@ -79,9 +79,8 @@ size_t mutt_convert_file_to(FILE *fp, const char *fromcode, struct Slist const *
   struct ContentState *states = mutt_mem_calloc(ncodes, sizeof(struct ContentState));
   struct Content *infos = mutt_mem_calloc(ncodes, sizeof(struct Content));
 
-  struct ListNode *np = NULL;
   int ni = 0;
-  STAILQ_FOREACH(np, &tocodes->head, entries)
+  for (GSList *np = tocodes->head; np != NULL; np = np->next)
   {
     if (!mutt_istr_equal(np->data, "utf-8"))
     {
@@ -219,21 +218,18 @@ size_t mutt_convert_file_from_to(FILE *fp, const struct Slist *fromcodes,
   char **tcode = NULL;
   size_t rc;
   int cn;
-  struct ListNode *np = NULL;
 
   /* Copy them */
   tcode = mutt_mem_calloc(tocodes->count, sizeof(char *));
-  np = NULL;
   cn = 0;
-  STAILQ_FOREACH(np, &tocodes->head, entries)
+  for (GSList *np = tocodes->head; np != NULL; np = np->next)
   {
     tcode[cn++] = mutt_str_dup(np->data);
   }
 
   rc = ICONV_ILLEGAL_SEQ;
-  np = NULL;
   cn = 0;
-  STAILQ_FOREACH(np, &fromcodes->head, entries)
+  for (GSList *np = fromcodes->head; np != NULL; np = np->next)
   {
     /* Try each fromcode in turn */
     rc = mutt_convert_file_to(fp, np->data, tocodes, &cn, info);

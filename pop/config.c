@@ -49,8 +49,7 @@ static int pop_auth_validator(const struct ConfigSet *cs, const struct ConfigDef
   if (!pop_auth_methods || (pop_auth_methods->count == 0))
     return CSR_SUCCESS;
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &pop_auth_methods->head, entries)
+  for (GSList *np = pop_auth_methods->head; np != NULL; np = np->next)
   {
     if (pop_auth_is_valid(np->data))
       continue;

@@ -513,8 +513,7 @@ bool mailcap_lookup(struct Body *b, char *type, size_t typelen,
   struct Buffer *path = buf_pool_get();
   bool found = false;
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &c_mailcap_path->head, entries)
+  for (GSList *np = c_mailcap_path->head; np != NULL; np = np->next)
   {
     buf_strcpy(path, np->data);
     buf_expand_path(path);

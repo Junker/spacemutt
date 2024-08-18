@@ -128,14 +128,13 @@ static void slist_dump(const struct Slist *list, struct Buffer *buf)
 
   buf_printf(buf, "[%zu] ", list->count);
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &list->head, entries)
+  for (GSList *np = list->head; np != NULL; np = np->next)
   {
     if (np->data)
-      buf_add_printf(buf, "'%s'", np->data);
+      buf_add_printf(buf, "'%s'", (char*)np->data);
     else
       buf_addstr(buf, "NULL");
-    if (STAILQ_NEXT(np, entries))
+    if (np->next)
       buf_addstr(buf, ",");
   }
   TEST_MSG("%s", buf_string(buf));
@@ -337,9 +336,8 @@ static bool test_initial_values(struct ConfigSubset *sub, struct Buffer *err)
     return false;
   }
 
-  struct ListNode *np = NULL;
   size_t i = 0;
-  STAILQ_FOREACH(np, &VarApple->head, entries)
+  for (GSList *np = VarApple->head; np != NULL; np = np->next)
   {
     if (!mutt_str_equal(values[i], np->data))
       return false;
@@ -356,9 +354,8 @@ static bool test_initial_values(struct ConfigSubset *sub, struct Buffer *err)
     return false;
   }
 
-  np = NULL;
   i = 0;
-  STAILQ_FOREACH(np, &VarBanana->head, entries)
+  for (GSList *np = VarBanana->head; np != NULL; np = np->next)
   {
     if (!mutt_str_equal(values[i], np->data))
       return false;
@@ -375,9 +372,8 @@ static bool test_initial_values(struct ConfigSubset *sub, struct Buffer *err)
     return false;
   }
 
-  np = NULL;
   i = 0;
-  STAILQ_FOREACH(np, &VarCherry->head, entries)
+  for (GSList *np = VarCherry->head; np != NULL; np = np->next)
   {
     if (!mutt_str_equal(values[i], np->data))
       return false;
@@ -790,13 +786,13 @@ static bool test_reset(struct ConfigSubset *sub, struct Buffer *err)
   buf_reset(err);
 
   const struct Slist *VarLemon = cs_subset_slist(sub, "Lemon");
-  char *item = STAILQ_FIRST(&VarLemon->head)->data;
+  char *item = VarLemon->head->data;
   TEST_MSG("Initial: %s = '%s'", name, item);
   int rc = cs_str_string_set(cs, name, "apple", err);
   if (!TEST_CHECK(CSR_RESULT(rc) == CSR_SUCCESS))
     return false;
   VarLemon = cs_subset_slist(sub, "Lemon");
-  item = STAILQ_FIRST(&VarLemon->head)->data;
+  item = VarLemon->head->data;
   TEST_MSG("Set: %s = '%s'", name, item);
 
   rc = cs_str_reset(cs, name, err);
@@ -807,7 +803,7 @@ static bool test_reset(struct ConfigSubset *sub, struct Buffer *err)
   }
 
   VarLemon = cs_subset_slist(sub, "Lemon");
-  item = STAILQ_FIRST(&VarLemon->head)->data;
+  item = VarLemon->head->data;
   if (!TEST_CHECK_STR_EQ(item, "lemon"))
   {
     TEST_MSG("Value of %s wasn't changed", name);
@@ -820,14 +816,14 @@ static bool test_reset(struct ConfigSubset *sub, struct Buffer *err)
   buf_reset(err);
 
   const struct Slist *VarMango = cs_subset_slist(sub, "Mango");
-  item = STAILQ_FIRST(&VarMango->head)->data;
+  item = VarMango->head->data;
   TEST_MSG("Initial: %s = '%s'", name, item);
   dont_fail = true;
   rc = cs_str_string_set(cs, name, "banana", err);
   if (!TEST_CHECK(CSR_RESULT(rc) == CSR_SUCCESS))
     return false;
   VarMango = cs_subset_slist(sub, "Mango");
-  item = STAILQ_FIRST(&VarMango->head)->data;
+  item = VarMango->head->data;
   TEST_MSG("Set: %s = '%s'", name, item);
   dont_fail = false;
 
@@ -843,14 +839,14 @@ static bool test_reset(struct ConfigSubset *sub, struct Buffer *err)
   }
 
   VarMango = cs_subset_slist(sub, "Mango");
-  item = STAILQ_FIRST(&VarMango->head)->data;
+  item = VarMango->head->data;
   if (!TEST_CHECK_STR_EQ(item, "banana"))
   {
     TEST_MSG("Value of %s changed", name);
     return false;
   }
 
-  item = STAILQ_FIRST(&VarMango->head)->data;
+  item = VarMango->head->data;
   TEST_MSG("Reset: %s = '%s'", name, item);
 
   name = "Xigua";
@@ -891,7 +887,7 @@ static bool test_validator(struct ConfigSubset *sub, struct Buffer *err)
     goto tv_out;
   }
   const struct Slist *VarNectarine = cs_subset_slist(sub, "Nectarine");
-  item = STAILQ_FIRST(&VarNectarine->head)->data;
+  item = VarNectarine->head->data;
   TEST_MSG("Address: %s = %s", name, item);
 
   buf_reset(err);
@@ -906,7 +902,7 @@ static bool test_validator(struct ConfigSubset *sub, struct Buffer *err)
     goto tv_out;
   }
   VarNectarine = cs_subset_slist(sub, "Nectarine");
-  item = STAILQ_FIRST(&VarNectarine->head)->data;
+  item = VarNectarine->head->data;
   TEST_MSG("Native: %s = %s", name, item);
 
   name = "Olive";
@@ -922,7 +918,7 @@ static bool test_validator(struct ConfigSubset *sub, struct Buffer *err)
     goto tv_out;
   }
   const struct Slist *VarOlive = cs_subset_slist(sub, "Olive");
-  item = STAILQ_FIRST(&VarOlive->head)->data;
+  item = VarOlive->head->data;
   TEST_MSG("Address: %s = %s", name, item);
 
   buf_reset(err);
@@ -937,7 +933,7 @@ static bool test_validator(struct ConfigSubset *sub, struct Buffer *err)
     goto tv_out;
   }
   VarOlive = cs_subset_slist(sub, "Olive");
-  item = STAILQ_FIRST(&VarOlive->head)->data;
+  item = VarOlive->head->data;
   TEST_MSG("Native: %s = %s", name, item);
 
   name = "Papaya";
@@ -953,7 +949,7 @@ static bool test_validator(struct ConfigSubset *sub, struct Buffer *err)
     goto tv_out;
   }
   const struct Slist *VarPapaya = cs_subset_slist(sub, "Papaya");
-  item = STAILQ_FIRST(&VarPapaya->head)->data;
+  item = VarPapaya->head->data;
   TEST_MSG("Address: %s = %s", name, item);
 
   buf_reset(err);
@@ -968,7 +964,7 @@ static bool test_validator(struct ConfigSubset *sub, struct Buffer *err)
     goto tv_out;
   }
   VarPapaya = cs_subset_slist(sub, "Papaya");
-  item = STAILQ_FIRST(&VarPapaya->head)->data;
+  item = VarPapaya->head->data;
   TEST_MSG("Native: %s = %s", name, item);
 
   result = true;
@@ -1012,7 +1008,7 @@ static bool test_charset_validator(struct ConfigSubset *sub, struct Buffer *err)
     goto tv_out;
   }
   const struct Slist *VarWolfberry = cs_subset_slist(sub, "Wolfberry");
-  item = STAILQ_FIRST(&VarWolfberry->head)->data;
+  item = VarWolfberry->head->data;
   TEST_MSG("Address: %s = %s", name, item);
 
   buf_reset(err);
@@ -1027,7 +1023,7 @@ static bool test_charset_validator(struct ConfigSubset *sub, struct Buffer *err)
     goto tv_out;
   }
   VarWolfberry = cs_subset_slist(sub, "Wolfberry");
-  item = STAILQ_FIRST(&VarWolfberry->head)->data;
+  item = VarWolfberry->head->data;
   TEST_MSG("Native: %s = %s", name, item);
 
   // When one of the charsets is invalid, it fails
@@ -1058,8 +1054,8 @@ static void dump_native(struct ConfigSet *cs, const char *parent, const char *ch
   struct Slist *pl = (struct Slist *) pval;
   struct Slist *cl = (struct Slist *) cval;
 
-  char *pstr = pl ? STAILQ_FIRST(&pl->head)->data : NULL;
-  char *cstr = cl ? STAILQ_FIRST(&cl->head)->data : NULL;
+  char *pstr = pl ? pl->head->data : NULL;
+  char *cstr = cl ? cl->head->data : NULL;
 
   TEST_MSG("%15s = %s", parent, NONULL(pstr));
   TEST_MSG("%15s = %s", child, NONULL(cstr));

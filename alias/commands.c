@@ -74,8 +74,7 @@ void parse_alias_tags(const char *tags, struct TagList *tl)
     return;
   }
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &sl->head, entries)
+  for (GSList *np = sl->head; np != NULL; np = np->next)
   {
     struct Tag *tag = tag_new();
     tag->name = np->data; // Transfer string

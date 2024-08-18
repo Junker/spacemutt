@@ -38,6 +38,8 @@
 #include "config/lib.h"
 #include "core/lib.h"
 #include "tags.h"
+#include "mutt/gslist.h"
+
 
 struct HashTable *TagTransforms = NULL; ///< Hash Table: "inbox" -> "i" - Alternative tag names
 struct HashTable *TagFormats = NULL; ///< Hash Table: "inbox" -> "GI" - Tag format strings
@@ -117,7 +119,7 @@ void driver_tags_add(struct TagList *tl, char *new_tag)
   /* filter out hidden tags */
   const struct Slist *c_hidden_tags = cs_subset_slist(NeoMutt->sub, "hidden_tags");
   if (c_hidden_tags)
-    if (mutt_list_find(&c_hidden_tags->head, new_tag))
+    if (g_slist_find_str(c_hidden_tags->head, new_tag, false))
       tag->hidden = true;
 
   STAILQ_INSERT_TAIL(tl, tag, entries);

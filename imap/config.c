@@ -49,8 +49,7 @@ static int imap_auth_validator(const struct ConfigSet *cs, const struct ConfigDe
   if (!imap_auth_methods || (imap_auth_methods->count == 0))
     return CSR_SUCCESS;
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &imap_auth_methods->head, entries)
+  for (GSList *np = imap_auth_methods->head; np != NULL; np = np->next)
   {
     if (imap_auth_is_valid(np->data))
       continue;
@@ -58,7 +57,7 @@ static int imap_auth_validator(const struct ConfigSet *cs, const struct ConfigDe
     if (sasl_auth_validator(np->data))
       continue;
 #endif
-    buf_printf(err, _("Option %s: %s is not a valid authenticator"), cdef->name, np->data);
+    buf_printf(err, _("Option %s: %s is not a valid authenticator"), cdef->name, (char*)np->data);
     return CSR_ERR_INVALID;
   }
 

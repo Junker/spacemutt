@@ -340,8 +340,7 @@ int mutt_ch_convert_nonmime_string(const struct Slist *const assumed_charset,
   if (ulen == 0)
     return 0;
 
-  const struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &assumed_charset->head, entries)
+  for (GSList *np = assumed_charset->head; np != NULL; np = np->next)
   {
     char const *c = np->data;
     size_t n = mutt_str_len(c);
@@ -469,7 +468,7 @@ const char *mutt_ch_get_default_charset(const struct Slist *const assumed_charse
   const char *c = NULL;
 
   if (assumed_charset && (assumed_charset->count > 0))
-    c = STAILQ_FIRST(&assumed_charset->head)->data;
+    c = assumed_charset->head->data;
   else
     c = "us-ascii";
 
@@ -1118,8 +1117,7 @@ char *mutt_ch_choose(const char *fromcode, const struct Slist *charsets,
   char *e = NULL, *tocode = NULL;
   size_t elen = 0, bestn = 0;
 
-  const struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &charsets->head, entries)
+  for (GSList *np = charsets->head; np != NULL; np = np->next)
   {
     char *t = mutt_str_dup(np->data);
     if (!t)

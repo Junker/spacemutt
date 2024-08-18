@@ -537,10 +537,9 @@ int pop_authenticate(struct PopAccountData *adata)
   if (c_pop_authenticators && (c_pop_authenticators->count > 0))
   {
     /* Try user-specified list of authentication methods */
-    struct ListNode *np = NULL;
-    STAILQ_FOREACH(np, &c_pop_authenticators->head, entries)
+    for (GSList *np = c_pop_authenticators->head; np != NULL; np = np->next)
     {
-      mutt_debug(LL_DEBUG2, "Trying method %s\n", np->data);
+      mutt_debug(LL_DEBUG2, "Trying method %s\n", (char*)np->data);
       authenticator = PopAuthenticators;
 
       while (authenticator->authenticate)

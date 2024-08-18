@@ -93,8 +93,7 @@ int charset_slist_validator(const struct ConfigSet *cs, const struct ConfigDef *
   int rc = CSR_SUCCESS;
   bool strict = (cdef->type & D_CHARSET_STRICT);
 
-  const struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &list->head, entries)
+  for (GSList *np = list->head; np != NULL; np = np->next)
   {
     char const *charset = np->data;
     if (!mutt_ch_check_charset(charset, strict))

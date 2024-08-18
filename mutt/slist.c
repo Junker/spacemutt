@@ -42,6 +42,8 @@
 #include "memory.h"
 #include "queue.h"
 #include "string2.h"
+#include "mutt/gslist.h"
+
 
 /**
  * slist_new - Create a new string list
@@ -52,7 +54,7 @@ struct Slist *slist_new(uint32_t flags)
 {
   struct Slist *list = mutt_mem_calloc(1, sizeof(*list));
   list->flags = flags;
-  STAILQ_INIT(&list->head);
+  list->head = NULL;
 
   return list;
 }
@@ -74,7 +76,7 @@ struct Slist *slist_add_string(struct Slist *list, const char *str)
   if (!str && !(list->flags & D_SLIST_ALLOW_EMPTY))
     return list;
 
-  mutt_list_insert_tail(&list->head, mutt_str_dup(str));
+  list->head = g_slist_append(list->head, mutt_str_dup(str));
   list->count++;
 
   return list;
@@ -95,7 +97,7 @@ bool slist_equal(const struct Slist *a, const struct Slist *b)
   if (a->count != b->count)
     return false;
 
-  return mutt_list_equal(&a->head, &b->head);
+  return g_slist_equal_custom(a->head, b->head, (GCompareFunc)mutt_str_cmp);
 }
 
 /**
@@ -110,7 +112,7 @@ struct Slist *slist_dup(const struct Slist *list)
 
   struct Slist *list_new = slist_new(list->flags);
 
-  mutt_list_copy_tail(&list_new->head, &list->head);
+  list_new->head = g_slist_copy_deep(list->head, (GCopyFunc)mutt_str_dup, NULL);
   list_new->count = list->count;
   return list_new;
 }
@@ -125,7 +127,7 @@ void slist_free(struct Slist **ptr)
     return;
 
   struct Slist *slist = *ptr;
-  mutt_list_free(&slist->head);
+  g_slist_free_full(g_steal_pointer(&slist->head), g_free);
 
   FREE(ptr);
 }
@@ -157,8 +159,7 @@ bool slist_is_member(const struct Slist *list, const char *str)
   if (!str && !(list->flags & D_SLIST_ALLOW_EMPTY))
     return false;
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &list->head, entries)
+  for (GSList *np = list->head; np != NULL; np = np->next)
   {
     if (mutt_str_equal(np->data, str))
       return true;
@@ -186,7 +187,6 @@ struct Slist *slist_parse(const char *str, uint32_t flags)
 
   struct Slist *list = mutt_mem_calloc(1, sizeof(struct Slist));
   list->flags = flags;
-  STAILQ_INIT(&list->head);
 
   if (!src)
     return list;
@@ -208,7 +208,7 @@ struct Slist *slist_parse(const char *str, uint32_t flags)
         start = p + 1;
         continue;
       }
-      mutt_list_insert_tail(&list->head, mutt_str_dup(start));
+      list->head = g_slist_append(list->head, mutt_str_dup(start));
       list->count++;
       start = p + 1;
     }
@@ -216,7 +216,7 @@ struct Slist *slist_parse(const char *str, uint32_t flags)
 
   if (!slist_is_member(list, start))
   {
-    mutt_list_insert_tail(&list->head, mutt_str_dup(start));
+    list->head = g_slist_append(list->head, mutt_str_dup(start));
     list->count++;
   }
 
@@ -237,23 +237,17 @@ struct Slist *slist_remove_string(struct Slist *list, const char *str)
   if (!str && !(list->flags & D_SLIST_ALLOW_EMPTY))
     return list;
 
-  struct ListNode *prev = NULL;
-  struct ListNode *np = NULL;
-  struct ListNode *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, &list->head, entries, tmp)
+  for (GSList *np = list->head; np != NULL;)
   {
+    GSList *next = np->next;
     if (mutt_str_equal(np->data, str))
     {
-      if (prev)
-        STAILQ_REMOVE_AFTER(&list->head, prev, entries);
-      else
-        STAILQ_REMOVE_HEAD(&list->head, entries);
       FREE(&np->data);
-      FREE(&np);
+      list->head = g_slist_delete_link(list->head, np);
       list->count--;
       break;
     }
-    prev = np;
+    np = next;
   }
   return list;
 }
@@ -269,11 +263,10 @@ int slist_to_buffer(const struct Slist *list, struct Buffer *buf)
   if (!list || !buf || (list->count == 0))
     return 0;
 
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &list->head, entries)
+  for (GSList *np = list->head; np != NULL; np = np->next)
   {
     buf_addstr(buf, np->data);
-    if (STAILQ_NEXT(np, entries))
+    if (np->next)
     {
       const int sep = (list->flags & D_SLIST_SEP_MASK);
       if (sep == D_SLIST_SEP_COMMA)
