@@ -95,3 +95,15 @@ GList *g_queue_find_str(GQueue *queue, const char *data, bool ignore_case)
 
   return g_queue_find_custom(queue, data, (GCompareFunc)(ignore_case ? mutt_istr_cmp : mutt_str_cmp));
 }
+
+guint g_queue_remove_all_custom(GQueue *queue, gpointer data, GCompareFunc cmp_func)
+{
+  GList *current = queue->head;
+  while (current != NULL)
+  {
+    GList *next = current->next;
+    if (cmp_func(current->data, data) == 0)
+      g_queue_delete_link(queue, current);
+    current = next;
+  }
+}
