@@ -20,6 +20,9 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef MUTT_GQUEUE_H
+#define MUTT_GQUEUE_H
+
 #include <stdbool.h>
 #include <glib.h>
 
@@ -44,3 +47,5 @@ size_t g_queue_write(const GQueue *h, struct Buffer *buf);
 bool g_queue_equal_custom(GQueue *queue1, GQueue *queue2, GCompareFunc cmp_func);
 GList *g_queue_find_str(GQueue *queue, const char *data, bool ignore_case);
 guint g_queue_remove_all_custom(GQueue *queue, gpointer data, GCompareFunc cmp_func);
+
+#endif /* MUTT_GQUEUE_H */

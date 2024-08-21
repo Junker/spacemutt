@@ -20,6 +20,9 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef MUTT_GSLIST_H
+#define MUTT_GSLIST_H
+
 #include <stdbool.h>
 #include <glib.h>
 
@@ -27,3 +30,5 @@ bool g_slist_match(GSList *h, const char *s);
 GSList *g_slist_find_str(GSList *list, const char *data, bool ignore_case);
 GSList* g_slist_insert_after(GSList *slist, GSList *sibling, gpointer data);
 bool g_slist_equal_custom(GSList *list1, GSList *list2, GCompareFunc cmp_func);
+
+#endif /* MUTT_GSLIST_H */
