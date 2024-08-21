@@ -107,9 +107,9 @@ void test_attr_colors(void)
   {
     attr_color_list_clear(NULL);
 
-    struct AttrColorList acl = TAILQ_HEAD_INITIALIZER(acl);
+    AttrColorList *acl = g_queue_new();
 
-    struct AttrColor *ac = attr_color_list_find(&acl, COLOR_RED, COLOR_RED, A_BOLD);
+    struct AttrColor *ac = attr_color_list_find(acl, COLOR_RED, COLOR_RED, A_BOLD);
     TEST_CHECK(ac == NULL);
 
     color_t fg_find = COLOR_DEFAULT;
@@ -139,19 +139,19 @@ void test_attr_colors(void)
         ac->attrs = attrs_find;
       }
 
-      TAILQ_INSERT_TAIL(&acl, ac, entries);
+      g_queue_push_tail(acl, ac);
     }
 
     ac = attr_color_list_find(NULL, fg_find, bg_find, attrs_find);
     TEST_CHECK(ac == NULL);
 
-    ac = attr_color_list_find(&acl, fg_find, bg_find, attrs_find);
+    ac = attr_color_list_find(acl, fg_find, bg_find, attrs_find);
     TEST_CHECK(ac != NULL);
     TEST_CHECK(ac->attrs == attrs_find);
     TEST_CHECK(ac->curses_color->fg == fg_find);
     TEST_CHECK(ac->curses_color->bg == bg_find);
 
-    attr_color_list_clear(&acl);
+    attr_color_list_free_full(acl);
   }
 
   {

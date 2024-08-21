@@ -47,8 +47,7 @@ void pager_private_data_free(struct MuttWindow *win, void **ptr)
   notify_send(priv->notify, NT_PAGER, NT_PAGER_DELETE, priv);
   notify_free(&priv->notify);
 
-  attr_color_list_clear(&priv->ansi_list);
-
+  attr_color_list_free_full(priv->ansi_list);
   FREE(ptr);
 }
 
@@ -64,7 +63,7 @@ struct PagerPrivateData *pager_private_data_new(void)
 
   // TODO initialize fields
 
-  TAILQ_INIT(&priv->ansi_list);
+  priv->ansi_list = g_queue_new();
 
   return priv;
 }

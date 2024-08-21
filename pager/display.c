@@ -837,7 +837,7 @@ static int fill_buffer(FILE *fp, LOFF_T *bytes_read, LOFF_T offset, unsigned cha
 static int format_line(struct MuttWindow *win, struct Line **lines, int line_num,
                        unsigned char *buf, PagerFlags flags, struct AnsiColor *ansi,
                        int cnt, int *pspace, int *pvch, int *pcol,
-                       int *pspecial, int width, struct AttrColorList *ansi_list)
+                       int *pspecial, int width, AttrColorList *ansi_list)
 {
   int space = -1; /* index of the last space or TAB */
   const bool c_markers = cs_subset_bool(NeoMutt->sub, "markers");
@@ -1043,7 +1043,7 @@ int display_line(FILE *fp, LOFF_T *bytes_read, struct Line **lines,
                  int line_num, int *lines_used, int *lines_max,
                  PagerFlags flags, struct QuoteStyle **quote_list, int *q_level,
                  bool *force_redraw, regex_t *search_re,
-                 struct MuttWindow *win_pager, struct AttrColorList *ansi_list)
+                 struct MuttWindow *win_pager, AttrColorList *ansi_list)
 {
   unsigned char *buf = NULL, *fmt = NULL;
   size_t buflen = 0;

@@ -41,7 +41,7 @@ static struct ConfigDef Vars[] = {
 
 void test_ansi_color(void)
 {
-  // int ansi_color_parse(const char *str, struct AnsiColor *ansi, struct AttrColorList *acl, bool dry_run);
+  // int ansi_color_parse(const char *str, struct AnsiColor *ansi, AttrColorList *acl, bool dry_run);
 
   TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
 
@@ -51,7 +51,7 @@ void test_ansi_color(void)
   const char *str = NULL;
   int rc;
 
-  struct AttrColorList acl = TAILQ_HEAD_INITIALIZER(acl);
+  AttrColorList *acl = g_queue_new();
   struct AnsiColor ansi = { 0 };
   ansi.fg.color = COLOR_DEFAULT;
   ansi.bg.color = COLOR_DEFAULT;
@@ -61,24 +61,24 @@ void test_ansi_color(void)
   TEST_CHECK(rc == 7);
 
   str = "\033[4;31m";
-  rc = ansi_color_parse(str, &ansi, &acl, false);
+  rc = ansi_color_parse(str, &ansi, acl, false);
   TEST_CHECK(rc == 7);
 
   str = "\033[7;38;5;207m";
-  rc = ansi_color_parse(str, &ansi, &acl, false);
+  rc = ansi_color_parse(str, &ansi, acl, false);
   TEST_CHECK(rc == 13);
 
   str = "\033[3;38;2;0;0;6m";
   ansi.attrs = A_NORMAL;
-  rc = ansi_color_parse(str, &ansi, &acl, false);
+  rc = ansi_color_parse(str, &ansi, acl, false);
   TEST_CHECK(rc == 15);
 
   str = "\033[3;38;2;0;0;6m";
-  rc = ansi_color_parse(str, &ansi, &acl, false);
+  rc = ansi_color_parse(str, &ansi, acl, false);
   TEST_CHECK(rc == 15);
 
   str = "\033[48;2;0;0;6m";
-  rc = ansi_color_parse(str, &ansi, &acl, false);
+  rc = ansi_color_parse(str, &ansi, acl, false);
   TEST_CHECK(rc == 13);
 
   memset(&ansi, 0, sizeof(ansi));
@@ -86,23 +86,23 @@ void test_ansi_color(void)
   ansi.bg.color = COLOR_DEFAULT;
 
   str = "";
-  rc = ansi_color_parse(str, &ansi, &acl, false);
+  rc = ansi_color_parse(str, &ansi, acl, false);
   TEST_CHECK(rc == 0);
 
   str = "\033[1m";
   ansi.attrs = A_NORMAL;
-  rc = ansi_color_parse(str, &ansi, &acl, false);
+  rc = ansi_color_parse(str, &ansi, acl, false);
   TEST_CHECK(rc == 4);
 
   str = "\033[3m";
   ansi.attrs = A_NORMAL;
-  rc = ansi_color_parse(str, &ansi, &acl, false);
+  rc = ansi_color_parse(str, &ansi, acl, false);
   TEST_CHECK(rc == 4);
 
   str = "\033[4m";
   ansi.attrs = A_NORMAL;
-  rc = ansi_color_parse(str, &ansi, &acl, false);
+  rc = ansi_color_parse(str, &ansi, acl, false);
   TEST_CHECK(rc == 4);
 
-  attr_color_list_clear(&acl);
+  attr_color_list_free_full(acl);
 }

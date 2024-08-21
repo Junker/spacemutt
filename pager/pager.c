@@ -175,7 +175,7 @@ static int pager_repaint(struct MuttWindow *win)
     while (display_line(priv->fp, &priv->bytes_read, &priv->lines, ++i,
                         &priv->lines_used, &priv->lines_max, flags, &priv->quote_list,
                         &priv->q_level, &priv->force_redraw, &priv->search_re,
-                        priv->pview->win_pager, &priv->ansi_list) == 0)
+                        priv->pview->win_pager, priv->ansi_list) == 0)
     {
       if (!priv->lines[i].cont_line && (++j == priv->win_height))
       {
@@ -208,7 +208,7 @@ static int pager_repaint(struct MuttWindow *win)
         if (display_line(priv->fp, &priv->bytes_read, &priv->lines, priv->cur_line,
                          &priv->lines_used, &priv->lines_max, flags, &priv->quote_list,
                          &priv->q_level, &priv->force_redraw, &priv->search_re,
-                         priv->pview->win_pager, &priv->ansi_list) > 0)
+                         priv->pview->win_pager, priv->ansi_list) > 0)
         {
           priv->win_height++;
         }

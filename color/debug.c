@@ -37,7 +37,7 @@
 #include "dump.h"
 #include "pager/private_data.h"
 
-extern struct AttrColorList MergedColors;
+extern AttrColorList *MergedColors;
 extern struct CursesColorList CursesColors;
 
 /**
@@ -88,7 +88,7 @@ void ansi_colors_dump(struct Buffer *buf)
     return;
 
   struct PagerPrivateData *priv = win->parent->wdata;
-  if (!priv || TAILQ_EMPTY(&priv->ansi_list))
+  if (!priv || g_queue_is_empty(priv->ansi_list))
     return;
 
   struct Buffer *swatch = buf_pool_get();
@@ -96,9 +96,9 @@ void ansi_colors_dump(struct Buffer *buf)
   char color_bg[64] = { 0 };
 
   buf_addstr(buf, "# Ansi Colors\n");
-  struct AttrColor *ac = NULL;
-  TAILQ_FOREACH(ac, &priv->ansi_list, entries)
+  for (GList *np = priv->ansi_list->head; np != NULL; np = np->next)
   {
+    struct AttrColor *ac = np->data;
     struct CursesColor *cc = ac->curses_color;
     if (!cc)
       continue;
@@ -176,7 +176,7 @@ void curses_colors_dump(struct Buffer *buf)
  */
 void merged_colors_dump(struct Buffer *buf)
 {
-  if (TAILQ_EMPTY(&MergedColors))
+  if (!MergedColors || g_queue_is_empty(MergedColors))
     return;
 
   struct Buffer *swatch = buf_pool_get();
@@ -184,9 +184,9 @@ void merged_colors_dump(struct Buffer *buf)
   char color_bg[64] = { 0 };
 
   buf_addstr(buf, "# Merged Colors\n");
-  struct AttrColor *ac = NULL;
-  TAILQ_FOREACH(ac, &MergedColors, entries)
+  for (GList *np = MergedColors->head; np != NULL; np = np->next)
   {
+    struct AttrColor *ac = np->data;
     struct CursesColor *cc = ac->curses_color;
     if (!cc)
       continue;

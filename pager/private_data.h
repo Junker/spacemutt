@@ -67,7 +67,7 @@ struct PagerPrivateData
 
   bool force_redraw;              ///< Repaint is needed
   PagerRedrawFlags redraw;        ///< When to redraw the screen
-  struct AttrColorList ansi_list; ///< List of ANSI colours used in the Pager
+  AttrColorList *ansi_list;       ///< List of ANSI colours used in the Pager
   struct Notify *notify;          ///< Notifications: #NotifyPager, #PagerPrivateData
 
   int rc;                        ///< Return code from functions

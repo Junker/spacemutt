@@ -36,14 +36,14 @@
 #include "color.h"
 #include "curses2.h"
 
-struct AttrColorList MergedColors; ///< Array of user colours
+AttrColorList *MergedColors; ///< Array of user colours
 
 /**
  * merged_colors_init - Initialise the Merged colours
  */
 void merged_colors_init(void)
 {
-  TAILQ_INIT(&MergedColors);
+  MergedColors = g_queue_new();
 }
 
 /**
@@ -52,11 +52,8 @@ void merged_colors_init(void)
 void merged_colors_cleanup(void)
 {
   struct AttrColor *ac = NULL;
-  struct AttrColor *tmp = NULL;
-
-  TAILQ_FOREACH_SAFE(ac, &MergedColors, entries, tmp)
+  while ((ac = g_queue_pop_tail(MergedColors)) != NULL)
   {
-    TAILQ_REMOVE(&MergedColors, ac, entries);
     curses_color_free(&ac->curses_color);
     FREE(&ac);
   }
@@ -71,9 +68,9 @@ void merged_colors_cleanup(void)
  */
 static struct AttrColor *merged_colors_find(color_t fg, color_t bg, int attrs)
 {
-  struct AttrColor *ac = NULL;
-  TAILQ_FOREACH(ac, &MergedColors, entries)
+  for (GList *np = MergedColors->head; np != NULL; np = np->next)
   {
+    struct AttrColor *ac = np->data;
     if (ac->attrs != attrs)
       continue;
 
@@ -143,7 +140,7 @@ const struct AttrColor *merged_color_overlay(const struct AttrColor *base,
   ac->attrs = attrs;
   ac->fg = (base->fg.color == COLOR_DEFAULT) ? over->fg : base->fg;
   ac->bg = (base->bg.color == COLOR_DEFAULT) ? over->bg : base->bg;
-  TAILQ_INSERT_TAIL(&MergedColors, ac, entries);
+  g_queue_push_tail(MergedColors, ac);
 
   return ac;
 }

@@ -114,19 +114,32 @@ struct AttrColor *attr_color_new(void)
  *
  * @note The list object isn't freed, only emptied
  */
-void attr_color_list_clear(struct AttrColorList *acl)
+void attr_color_list_clear(AttrColorList *acl)
 {
   if (!acl)
     return;
 
   struct AttrColor *ac = NULL;
-  struct AttrColor *tmp = NULL;
-  TAILQ_FOREACH_SAFE(ac, acl, entries, tmp)
+  while ((ac = g_queue_pop_tail(acl)) != NULL)
   {
-    TAILQ_REMOVE(acl, ac, entries);
     attr_color_free(&ac);
   }
 }
+
+/**
+ * mutt_addrlist_free_full - free all Addresses and AddressList
+ * @param al AddressList
+ *
+ */
+void attr_color_list_free_full(AttrColorList *acl)
+{
+  if (!acl)
+    return;
+
+  attr_color_list_clear(acl);
+  g_queue_free(acl);
+}
+
 
 /**
  * attr_color_list_find - Find an AttrColor in a list
@@ -136,15 +149,15 @@ void attr_color_list_clear(struct AttrColorList *acl)
  * @param attrs Attributes, e.g. A_UNDERLINE
  * @retval ptr Matching AttrColor
  */
-struct AttrColor *attr_color_list_find(struct AttrColorList *acl, color_t fg,
+struct AttrColor *attr_color_list_find(AttrColorList *acl, color_t fg,
                                        color_t bg, int attrs)
 {
   if (!acl)
     return NULL;
 
-  struct AttrColor *ac = NULL;
-  TAILQ_FOREACH(ac, acl, entries)
+  for (GList *np = acl->head; np != NULL; np = np->next)
   {
+    struct AttrColor *ac = np->data;
     if (ac->attrs != attrs)
       continue;
 

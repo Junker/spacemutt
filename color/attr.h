@@ -71,7 +71,7 @@ struct AttrColor
   short ref_count;                  ///< Number of users
   TAILQ_ENTRY(AttrColor) entries;   ///< Linked list
 };
-TAILQ_HEAD(AttrColorList, AttrColor);
+typedef GQueue AttrColorList;
 
 void              attr_color_clear (struct AttrColor *ac);
 struct AttrColor  attr_color_copy  (const struct AttrColor *ac);
@@ -80,8 +80,9 @@ bool              attr_color_is_set(const struct AttrColor *ac);
 bool              attr_color_match (struct AttrColor *ac1, struct AttrColor *ac2);
 struct AttrColor *attr_color_new   (void);
 
-void              attr_color_list_clear(struct AttrColorList *acl);
-struct AttrColor *attr_color_list_find (struct AttrColorList *acl, color_t fg, color_t bg, int attrs);
+void              attr_color_list_clear(AttrColorList *acl);
+void              attr_color_list_free_full(AttrColorList *acl);
+struct AttrColor *attr_color_list_find (AttrColorList *acl, color_t fg, color_t bg, int attrs);
 
 void attr_color_overwrite(struct AttrColor *ac_old, struct AttrColor *ac_new);
 

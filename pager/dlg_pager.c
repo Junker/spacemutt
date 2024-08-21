@@ -291,7 +291,7 @@ int dlg_pager(struct PagerView *pview)
   memset(priv, 0, sizeof(*priv));
   priv->rc = prc;
   priv->notify = notify;
-  TAILQ_INIT(&priv->ansi_list);
+  priv->ansi_list = g_queue_new();
 
   //---------- setup flags ----------------------------------------------------
   if (!(pview->flags & MUTT_SHOWCOLOR))
@@ -582,16 +582,9 @@ int dlg_pager(struct PagerView *pview)
     priv->search_compiled = false;
   }
   FREE(&priv->lines);
-  attr_color_list_clear(&priv->ansi_list);
-  {
-    struct AttrColor *ac = NULL;
-    int count = 0;
-    TAILQ_FOREACH(ac, &priv->ansi_list, entries)
-    {
-      count++;
-    }
-    color_debug(LL_DEBUG5, "AnsiColors %d\n", count);
-  }
+  attr_color_list_clear(priv->ansi_list);
+  color_debug(LL_DEBUG5, "AnsiColors %d\n", priv->ansi_list->length);
+  
 
   priv->pview = NULL;
 

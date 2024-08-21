@@ -29,7 +29,6 @@
 #include "mutt/lib.h"
 #include "lib.h"
 
-struct AttrColorList;
 struct MuttWindow;
 struct QuoteStyle;
 
@@ -66,6 +65,6 @@ struct Line
 int display_line(FILE *fp, LOFF_T *bytes_read, struct Line **lines,
                  int line_num, int *lines_used, int *lines_max, PagerFlags flags,
                  struct QuoteStyle **quote_list, int *q_level, bool *force_redraw,
-                 regex_t *search_re, struct MuttWindow *win_pager, struct AttrColorList *ansi_list);
+                 regex_t *search_re, struct MuttWindow *win_pager, AttrColorList *ansi_list);
 
 #endif /* MUTT_PAGER_DISPLAY_H */

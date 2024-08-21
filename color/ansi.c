@@ -46,7 +46,7 @@ color_t color_xterm256_to_24bit(const color_t color);
  *
  * Keep track of all the unique ANSI colours in a list.
  */
-static void ansi_color_list_add(struct AttrColorList *acl, struct AnsiColor *ansi)
+static void ansi_color_list_add(AttrColorList *acl, struct AnsiColor *ansi)
 {
   if (!acl || !ansi)
     return;
@@ -101,7 +101,7 @@ static void ansi_color_list_add(struct AttrColorList *acl, struct AnsiColor *ans
   ac->curses_color = cc;
   ansi->attr_color = ac;
 
-  TAILQ_INSERT_TAIL(acl, ac, entries);
+  g_queue_push_tail(acl, ac);
 }
 
 /**
@@ -116,7 +116,7 @@ static void ansi_color_list_add(struct AttrColorList *acl, struct AnsiColor *ans
  * If the colour hasn't been seen before, store the it in @a acl.
  */
 int ansi_color_parse(const char *str, struct AnsiColor *ansi,
-                     struct AttrColorList *acl, bool dry_run)
+                     AttrColorList *acl, bool dry_run)
 {
   int seq_len = 0;
   int total_len = 0;
