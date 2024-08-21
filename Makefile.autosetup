@@ -32,7 +32,7 @@ INSTALL_DIR=	@INSTALL@ -d -m 755
 MKDIR_P=	mkdir -p
 RM=		rm -fr
 DEPFILES=	$(ALLOBJS:.o=.Po)
-BINFILES=	$(NEOMUTT)
+BINFILES=	$(SPACEMUTT)
 @if HAVE_PGP
 LIBBINFILES+=	$(PGPEWRAP)
 @endif
@@ -62,9 +62,9 @@ ALL_FILES!=	(cd $(SRCDIR) && git ls-files 2>/dev/null) || true
 default:	all
 
 ###############################################################################
-# neomutt
-NEOMUTT=	spacemutt$(EXEEXT)
-NEOMUTTOBJS=	alternates.o commands.o conststrings.o copy.o editmsg.o \
+# spacemutt
+SPACEMUTT=	spacemutt$(EXEEXT)
+SPACEMUTTOBJS=	alternates.o commands.o conststrings.o copy.o editmsg.o \
 		enriched.o external.o flags.o git_ver.o globals.o \
 		handler.o hdrline.o help.o hook.o init.o mailcap.o \
 		maillist.o main.o muttlib.o mutt_account.o mutt_body.o \
@@ -74,17 +74,17 @@ NEOMUTTOBJS=	alternates.o commands.o conststrings.o copy.o editmsg.o \
 		system.o version.o mutt_guile.o
 
 @if USE_INOTIFY
-NEOMUTTOBJS+=	monitor.o
+SPACEMUTTOBJS+=	monitor.o
 @endif
 @if !HAVE_TIMEGM
-NEOMUTTOBJS+=	timegm.o
+SPACEMUTTOBJS+=	timegm.o
 @endif
 @if !HAVE_WCSCASECMP
-NEOMUTTOBJS+=	wcscasecmp.o
+SPACEMUTTOBJS+=	wcscasecmp.o
 @endif
 
-CLEANFILES+=	$(NEOMUTT) $(NEOMUTTOBJS)
-ALLOBJS+=	$(NEOMUTTOBJS)
+CLEANFILES+=	$(SPACEMUTT) $(SPACEMUTTOBJS)
+ALLOBJS+=	$(SPACEMUTTOBJS)
 
 ###############################################################################
 # libaddress
@@ -899,8 +899,8 @@ MUTTLIBS+=	$(LIBINDEX) $(LIBPAGER) $(LIBINDEX) $(LIBPAGER) $(LIBAUTOCRYPT) $(LIB
 		$(LIBDEBUG) $(LIBMUTT)
 
 # neomutt
-$(NEOMUTT): $(GENERATED) $(NEOMUTTOBJS) $(MUTTLIBS)
-	$(CC) -o $@ $(NEOMUTTOBJS) $(MUTTLIBS) $(LDFLAGS) $(LIBS)
+$(SPACEMUTT): $(GENERATED) $(SPACEMUTTOBJS) $(MUTTLIBS)
+	$(CC) -o $@ $(SPACEMUTTOBJS) $(MUTTLIBS) $(LDFLAGS) $(LIBS)
 
 # clean
 clean: $(CLEAN_TARGETS)
