@@ -270,7 +270,7 @@ static int query_tag(struct Menu *menu, int sel, int act)
  * @retval  0 Success
  * @retval -1 Error
  */
-int query_run(const char *s, bool verbose, struct AliasList *al, const struct ConfigSubset *sub)
+int query_run(const char *s, bool verbose, AliasList *al, const struct ConfigSubset *sub)
 {
   FILE *fp = NULL;
   char *buf = NULL;
@@ -324,7 +324,7 @@ int query_run(const char *s, bool verbose, struct AliasList *al, const struct Co
       parse_alias_comments(alias, next_tok);
     }
 
-    TAILQ_INSERT_TAIL(al, alias, entries);
+    g_queue_push_tail(al, alias);
   }
 
   FREE(&buf);
@@ -482,7 +482,7 @@ int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
   struct AliasMenuData mdata = { ARRAY_HEAD_INITIALIZER, NULL, sub };
   mdata.search_state = search_state_new();
 
-  struct AliasList al = TAILQ_HEAD_INITIALIZER(al);
+  AliasList *al = aliaslist_new();
   const char *const c_query_command = cs_subset_string(sub, "query_command");
   if (!c_query_command)
   {
@@ -490,14 +490,14 @@ int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
     goto done;
   }
 
-  query_run(buf_string(buf), true, &al, sub);
-  if (TAILQ_EMPTY(&al))
+  query_run(buf_string(buf), true, al, sub);
+  if (g_queue_is_empty(al))
     goto done;
 
-  mdata.al = &al;
+  mdata.al = al;
 
-  struct Alias *a_first = TAILQ_FIRST(&al);
-  if (!TAILQ_NEXT(a_first, entries)) // only one response?
+  struct Alias *a_first = g_queue_pop_head(al);
+  if (al->length < 2) // only one response?
   {
     AddressList *addr = mutt_addrlist_new();
     if (alias_to_addrlist(addr, a_first))
@@ -511,10 +511,10 @@ int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
     goto done;
   }
 
-  struct Alias *np = NULL;
-  TAILQ_FOREACH(np, mdata.al, entries)
+  for (GList *np = mdata.al->head; np != NULL; np = np->next)
   {
-    alias_array_alias_add(&mdata.ava, np);
+    struct Alias *alias = np->data;
+    alias_array_alias_add(&mdata.ava, alias);
   }
 
   /* multiple results, choose from query menu */
@@ -550,7 +550,7 @@ done:
   FREE(&mdata.title);
   FREE(&mdata.limit);
   search_state_free(&mdata.search_state);
-  aliaslist_clear(&al);
+  aliaslist_free_full(g_steal_pointer(&al));
   return 0;
 }
 
@@ -568,9 +568,9 @@ void query_index(struct Mailbox *m, struct ConfigSubset *sub)
     return;
   }
 
-  struct AliasList al = TAILQ_HEAD_INITIALIZER(al);
+  AliasList *al = aliaslist_new();
   struct AliasMenuData mdata = { ARRAY_HEAD_INITIALIZER, NULL, sub };
-  mdata.al = &al;
+  mdata.al = al;
   mdata.search_state = search_state_new();
 
   struct Buffer *buf = buf_pool_get();
@@ -580,14 +580,14 @@ void query_index(struct Mailbox *m, struct ConfigSubset *sub)
     goto done;
   }
 
-  query_run(buf_string(buf), false, &al, sub);
-  if (TAILQ_EMPTY(&al))
+  query_run(buf_string(buf), false, al, sub);
+  if (g_queue_is_empty(al))
     goto done;
 
-  struct Alias *np = NULL;
-  TAILQ_FOREACH(np, mdata.al, entries)
+  for (GList *np = mdata.al->head; np != NULL; np = np->next)
   {
-    alias_array_alias_add(&mdata.ava, np);
+    struct Alias *alias = np->data;
+    alias_array_alias_add(&mdata.ava, alias);
   }
 
   if (!dlg_query(buf, &mdata))
@@ -618,7 +618,7 @@ done:
   FREE(&mdata.title);
   FREE(&mdata.limit);
   search_state_free(&mdata.search_state);
-  aliaslist_clear(&al);
+  aliaslist_free_full(g_steal_pointer(&al));
   buf_pool_release(&buf);
 }
 

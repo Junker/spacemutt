@@ -37,11 +37,10 @@ struct Alias
   AddressList       *addr;        ///< List of Addresses the Alias expands to
   char              *comment;     ///< Free-form comment string
   struct TagList     tags;        ///< Tags
-  TAILQ_ENTRY(Alias) entries;     ///< Linked list
 };
-TAILQ_HEAD(AliasList, Alias);
 
-extern struct AliasList Aliases;
+typedef GQueue AliasList;
+extern AliasList *Aliases;
 
 /**
  * enum NotifyAlias - Alias notification types
@@ -70,6 +69,10 @@ struct EventAlias
 void          alias_free(struct Alias **ptr);
 struct Alias *alias_new (void);
 
-void          aliaslist_clear(struct AliasList *al);
+AliasList    *aliaslist_new();
+void          aliaslist_clear(AliasList *al);
+void          aliaslist_free_full(AliasList *al);
+
+
 
 #endif /* MUTT_ALIAS_ALIAS_H */

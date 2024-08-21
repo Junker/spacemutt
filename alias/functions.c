@@ -270,28 +270,26 @@ static int op_query(struct AliasMenuData *mdata, int op)
   }
 
   struct Menu *menu = mdata->menu;
-  struct AliasList al = TAILQ_HEAD_INITIALIZER(al);
+  AliasList *al = aliaslist_new();
 
-  query_run(buf_string(buf), true, &al, mdata->sub);
+  query_run(buf_string(buf), true, al, mdata->sub);
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
   char title[256] = { 0 };
   snprintf(title, sizeof(title), "%s%s", _("Query: "), buf_string(buf));
   sbar_set_title(mdata->sbar, title);
 
-  if (TAILQ_EMPTY(&al))
+  if (g_queue_is_empty(al))
   {
     if (op == OP_QUERY)
       menu->max = 0;
     return FR_NO_ACTION;
   }
 
-  struct Alias *np = NULL;
-  struct Alias *tmp = NULL;
-  TAILQ_FOREACH_SAFE(np, &al, entries, tmp)
+  struct Alias *alias = NULL;
+  while ((alias = g_queue_pop_head(al)) != NULL)
   {
-    alias_array_alias_add(&mdata->ava, np);
-    TAILQ_REMOVE(&al, np, entries);
-    TAILQ_INSERT_TAIL(mdata->al, np, entries); // Transfer
+    alias_array_alias_add(&mdata->ava, alias);
+    g_queue_push_tail(mdata->al, alias); // Transfer
   }
   alias_array_sort(&mdata->ava, mdata->sub);
   menu->max = ARRAY_SIZE(&mdata->ava);

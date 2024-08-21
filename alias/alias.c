@@ -55,11 +55,12 @@
 #include "send/lib.h"
 #include "alternates.h"
 #include "globals.h"
+#include "alias.h"
 #include "maillist.h"
 #include "muttlib.h"
 #include "reverse.h"
 
-struct AliasList Aliases = TAILQ_HEAD_INITIALIZER(Aliases); ///< List of all the user's email aliases
+AliasList *Aliases;
 
 /**
  * write_safe_address - Defang malicious email addresses
@@ -277,10 +278,10 @@ static bool string_is_address(const char *str, const char *user, const char *dom
  */
 AddressList *alias_lookup(const char *name)
 {
-  struct Alias *a = NULL;
 
-  TAILQ_FOREACH(a, &Aliases, entries)
+  for (GList *np = Aliases->head; np != NULL; np = np->next)
   {
+    struct Alias *a = np->data;
     if (mutt_istr_equal(name, a->name))
       return a->addr;
   }
@@ -510,7 +511,7 @@ retry_name:
   }
 
   alias_reverse_add(alias);
-  TAILQ_INSERT_TAIL(&Aliases, alias, entries);
+  g_queue_push_tail(Aliases, alias);
 
   const char *const c_alias_file = cs_subset_path(sub, "alias_file");
   buf_strcpy(buf, c_alias_file);
@@ -690,30 +691,54 @@ void alias_free(struct Alias **ptr)
 }
 
 /**
+ * aliaslist_new - creates a new AliasList
+ * @retval AddressList
+ */
+AliasList *aliaslist_new()
+{
+  return g_queue_new();
+}
+
+
+/**
  * aliaslist_clear - Empty a List of Aliases
  * @param al AliasList to empty
  *
  * Each Alias will be freed and the AliasList will be left empty.
  */
-void aliaslist_clear(struct AliasList *al)
+void aliaslist_clear(AliasList *al)
 {
   if (!al)
     return;
 
-  struct Alias *np = NULL, *tmp = NULL;
-  TAILQ_FOREACH_SAFE(np, al, entries, tmp)
+  struct Alias *a = NULL;
+  while ((a = g_queue_pop_tail(al)) != NULL)
   {
-    TAILQ_REMOVE(al, np, entries);
-    alias_free(&np);
+    alias_free(&a);
   }
-  TAILQ_INIT(al);
 }
+
+/**
+ * aliaslist_free_full - free all Aliases and AliasList
+ * @param al AliasList
+ *
+ */
+void aliaslist_free_full(AliasList *al)
+{
+  if (!al)
+    return;
+
+  aliaslist_clear(al);
+  g_queue_free(al);
+}
+
 
 /**
  * alias_init - Set up the Alias globals
  */
 void alias_init(void)
 {
+  Aliases = aliaslist_new();
   alias_reverse_init();
 }
 
@@ -722,11 +747,11 @@ void alias_init(void)
  */
 void alias_cleanup(void)
 {
-  struct Alias *np = NULL;
-  TAILQ_FOREACH(np, &Aliases, entries)
+  for (GList *np = Aliases->head; np != NULL; np = np->next)
   {
-    alias_reverse_delete(np);
+    struct Alias *alias = np->data;
+    alias_reverse_delete(alias);
   }
-  aliaslist_clear(&Aliases);
+  aliaslist_free_full(Aliases);
   alias_reverse_shutdown();
 }

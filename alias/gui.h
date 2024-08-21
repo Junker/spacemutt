@@ -27,6 +27,8 @@
 
 #include <stdbool.h>
 #include "mutt/lib.h"
+#include "alias.h"
+
 
 struct Alias;
 struct MuttWindow;
@@ -53,7 +55,7 @@ ARRAY_HEAD(AliasViewArray, struct AliasView);
 struct AliasMenuData
 {
   struct AliasViewArray  ava;           ///< All Aliases/Queries
-  struct AliasList      *al;            ///< Alias data
+  AliasList             *al;            ///< Alias data
   struct ConfigSubset   *sub;           ///< Config items
   struct Menu           *menu;          ///< Menu
   struct Buffer         *query;         ///< Query string
