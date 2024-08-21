@@ -143,16 +143,18 @@ static void append_signature(FILE *fp, struct ConfigSubset *sub)
  * @param leave_only If set, don't remove the user's address if it it the only
  *                   one in the list
  */
-static void remove_user(struct AddressList *al, bool leave_only)
+static void remove_user(AddressList *al, bool leave_only)
 {
-  struct Address *a = NULL, *tmp = NULL;
-  TAILQ_FOREACH_SAFE(a, al, entries, tmp)
+  for (GList *np = al->head; np != NULL;)
   {
-    if (mutt_addr_is_user(a) && (!leave_only || TAILQ_NEXT(a, entries)))
+    struct Address *a = np->data;
+    GList *next = np->next;
+    if (mutt_addr_is_user(a) && (!leave_only || next))
     {
-      TAILQ_REMOVE(al, a, entries);
+      g_queue_delete_link(al, np);
       mutt_addr_free(&a);
     }
+    np = next;
   }
 }
 
@@ -162,17 +164,17 @@ static void remove_user(struct AddressList *al, bool leave_only)
  * @param t   'To' Address list
  * @param c   'Cc' Address list
  */
-static void add_mailing_lists(struct AddressList *out, const struct AddressList *t,
-                              const struct AddressList *c)
+static void add_mailing_lists(AddressList *out, const AddressList *t,
+                              const AddressList *c)
 {
-  const struct AddressList *const als[] = { t, c };
+  const AddressList *const als[] = { t, c };
 
   for (size_t i = 0; i < mutt_array_size(als); ++i)
   {
-    const struct AddressList *al = als[i];
-    struct Address *a = NULL;
-    TAILQ_FOREACH(a, al, entries)
+    const AddressList *al = als[i];
+    for (GList *np = al->head; np != NULL; np = np->next)
     {
+      struct Address *a = np->data;
       if (!a->group && mutt_is_mail_list(a))
       {
         mutt_addrlist_append(out, mutt_addr_copy(a));
@@ -189,7 +191,7 @@ static void add_mailing_lists(struct AddressList *out, const struct AddressList 
  * @retval  0 Success
  * @retval -1 Failure
  */
-int mutt_edit_address(struct AddressList *al, const char *field, bool expand_aliases)
+int mutt_edit_address(AddressList *al, const char *field, bool expand_aliases)
 {
   int rc = 0;
   struct Buffer *buf = buf_pool_get();
@@ -281,27 +283,27 @@ static int edit_envelope(struct Envelope *en, SendFlags flags, struct ConfigSubs
   else
   {
     const bool c_fast_reply = cs_subset_bool(sub, "fast_reply");
-    if (TAILQ_EMPTY(&en->to) || !c_fast_reply || (flags & SEND_REVIEW_TO))
+    if (g_queue_is_empty(en->to) || !c_fast_reply || (flags & SEND_REVIEW_TO))
     {
-      if ((mutt_edit_address(&en->to, _("To: "), true) == -1))
+      if ((mutt_edit_address(en->to, _("To: "), true) == -1))
         goto done;
     }
 
     const bool c_ask_cc = cs_subset_bool(sub, "ask_cc");
-    if (TAILQ_EMPTY(&en->cc) || !c_fast_reply)
+    if (g_queue_is_empty(en->cc) || !c_fast_reply)
     {
-      if (c_ask_cc && (mutt_edit_address(&en->cc, _("Cc: "), true) == -1))
+      if (c_ask_cc && (mutt_edit_address(en->cc, _("Cc: "), true) == -1))
         goto done;
     }
 
     const bool c_ask_bcc = cs_subset_bool(sub, "ask_bcc");
-    if (TAILQ_EMPTY(&en->bcc) || !c_fast_reply)
+    if (g_queue_is_empty(en->bcc) || !c_fast_reply)
     {
-      if (c_ask_bcc && (mutt_edit_address(&en->bcc, _("Bcc: "), true) == -1))
+      if (c_ask_bcc && (mutt_edit_address(en->bcc, _("Bcc: "), true) == -1))
         goto done;
     }
 
-    if (TAILQ_EMPTY(&en->to) && TAILQ_EMPTY(&en->cc) && TAILQ_EMPTY(&en->bcc))
+    if (g_queue_is_empty(en->to) && g_queue_is_empty(en->cc) && g_queue_is_empty(en->bcc))
     {
       mutt_warning(_("No recipients specified"));
       goto done;
@@ -309,7 +311,7 @@ static int edit_envelope(struct Envelope *en, SendFlags flags, struct ConfigSubs
 
     const bool c_reply_with_xorig = cs_subset_bool(sub, "reply_with_xorig");
     if (c_reply_with_xorig && (flags & (SEND_REPLY | SEND_LIST_REPLY | SEND_GROUP_REPLY)) &&
-        (mutt_edit_address(&en->from, "From: ", true) == -1))
+        (mutt_edit_address(en->from, "From: ", true) == -1))
     {
       goto done;
     }
@@ -379,11 +381,11 @@ static void process_user_recips(struct Envelope *env)
   {
     size_t plen;
     if ((plen = mutt_istr_startswith(uh->data, "to:")))
-      mutt_addrlist_parse(&env->to, uh->data + plen);
+      mutt_addrlist_parse(env->to, uh->data + plen);
     else if ((plen = mutt_istr_startswith(uh->data, "cc:")))
-      mutt_addrlist_parse(&env->cc, uh->data + plen);
+      mutt_addrlist_parse(env->cc, uh->data + plen);
     else if ((plen = mutt_istr_startswith(uh->data, "bcc:")))
-      mutt_addrlist_parse(&env->bcc, uh->data + plen);
+      mutt_addrlist_parse(env->bcc, uh->data + plen);
     else if ((plen = mutt_istr_startswith(uh->data, "newsgroups:")))
       env->newsgroups = nntp_get_header(uh->data + plen);
     else if ((plen = mutt_istr_startswith(uh->data, "followup-to:")))
@@ -405,13 +407,13 @@ static void process_user_header(struct Envelope *env)
     if ((plen = mutt_istr_startswith(uh->data, "from:")))
     {
       /* User has specified a default From: address.  Remove default address */
-      mutt_addrlist_clear(&env->from);
-      mutt_addrlist_parse(&env->from, uh->data + plen);
+      mutt_addrlist_clear(env->from);
+      mutt_addrlist_parse(env->from, uh->data + plen);
     }
     else if ((plen = mutt_istr_startswith(uh->data, "reply-to:")))
     {
-      mutt_addrlist_clear(&env->reply_to);
-      mutt_addrlist_parse(&env->reply_to, uh->data + plen);
+      mutt_addrlist_clear(env->reply_to);
+      mutt_addrlist_parse(env->reply_to, uh->data + plen);
     }
     else if ((plen = mutt_istr_startswith(uh->data, "message-id:")))
     {
@@ -678,7 +680,7 @@ void greeting_n(const struct ExpandoNode *node, void *data,
                 MuttFormatFlags flags, int max_cols, struct Buffer *buf)
 {
   const struct Email *e = data;
-  const struct Address *to = TAILQ_FIRST(&e->env->to);
+  const struct Address *to = g_queue_peek_head(e->env->to);
 
   const char *s = mutt_get_name(to);
   buf_strcpy(buf, s);
@@ -691,7 +693,7 @@ void greeting_u(const struct ExpandoNode *node, void *data,
                 MuttFormatFlags flags, int max_cols, struct Buffer *buf)
 {
   const struct Email *e = data;
-  const struct Address *to = TAILQ_FIRST(&e->env->to);
+  const struct Address *to = g_queue_peek_head(e->env->to);
 
   char tmp[128] = { 0 };
   char *p = NULL;
@@ -715,8 +717,8 @@ void greeting_v(const struct ExpandoNode *node, void *data,
                 MuttFormatFlags flags, int max_cols, struct Buffer *buf)
 {
   const struct Email *e = data;
-  const struct Address *to = TAILQ_FIRST(&e->env->to);
-  const struct Address *cc = TAILQ_FIRST(&e->env->cc);
+  const struct Address *to = g_queue_peek_head(e->env->to);
+  const struct Address *cc = g_queue_peek_head(e->env->cc);
 
   char tmp[128] = { 0 };
   char *p = NULL;
@@ -819,7 +821,7 @@ static int include_reply(struct Mailbox *m, struct Email *e, FILE *fp_out,
  * @param sub  Config Subset
  * @retval ptr Addresses to use
  */
-static const struct AddressList *choose_default_to(const struct Address *from,
+static const AddressList *choose_default_to(const struct Address *from,
                                                    const struct Envelope *env,
                                                    struct ConfigSubset *sub)
 {
@@ -827,11 +829,11 @@ static const struct AddressList *choose_default_to(const struct Address *from,
   if (!c_reply_self && mutt_addr_is_user(from))
   {
     /* mail is from the user, assume replying to recipients */
-    return &env->to;
+    return env->to;
   }
   else
   {
-    return &env->from;
+    return env->from;
   }
 }
 
@@ -845,15 +847,15 @@ static const struct AddressList *choose_default_to(const struct Address *from,
  * @retval  0 Success
  * @retval -1 Aborted
  */
-static int default_to(struct AddressList *to, struct Envelope *env,
+static int default_to(AddressList *to, struct Envelope *env,
                       SendFlags flags, int hmfupto, struct ConfigSubset *sub)
 {
-  const struct Address *from = TAILQ_FIRST(&env->from);
-  const struct Address *reply_to = TAILQ_FIRST(&env->reply_to);
+  const struct Address *from = g_queue_peek_head(env->from);
+  const struct Address *reply_to = g_queue_peek_head(env->reply_to);
 
-  if (flags && !TAILQ_EMPTY(&env->mail_followup_to) && (hmfupto == MUTT_YES))
+  if (flags && !g_queue_is_empty(env->mail_followup_to) && (hmfupto == MUTT_YES))
   {
-    mutt_addrlist_copy(to, &env->mail_followup_to, true);
+    mutt_addrlist_copy(to, env->mail_followup_to, true);
     return 0;
   }
 
@@ -862,19 +864,19 @@ static int default_to(struct AddressList *to, struct Envelope *env,
   if (flags & SEND_LIST_REPLY)
     return 0;
 
-  const struct AddressList *default_to = choose_default_to(from, env, sub);
+  const AddressList *default_to = choose_default_to(from, env, sub);
 
   if (reply_to)
   {
     const bool from_is_reply_to = mutt_addr_cmp(from, reply_to);
     const bool multiple_reply_to = reply_to &&
-                                   TAILQ_NEXT(TAILQ_FIRST(&env->reply_to), entries);
+                                   env->reply_to->length > 1;
 
     const bool c_ignore_list_reply_to = cs_subset_bool(sub, "ignore_list_reply_to");
     const enum QuadOption c_reply_to = cs_subset_quad(sub, "reply_to");
     if ((from_is_reply_to && !multiple_reply_to && !reply_to->personal) ||
         (c_ignore_list_reply_to && mutt_is_mail_list(reply_to) &&
-         (mutt_addrlist_search(&env->to, reply_to) || mutt_addrlist_search(&env->cc, reply_to))))
+         (mutt_addrlist_search(env->to, reply_to) || mutt_addrlist_search(env->cc, reply_to))))
     {
       /* If the Reply-To: address is a mailing list, assume that it was
        * put there by the mailing list, and use the From: address
@@ -882,7 +884,7 @@ static int default_to(struct AddressList *to, struct Envelope *env,
        * We also take the from header if our correspondent has a reply-to
        * header which is identical to the electronic mail address given
        * in his From header, and the reply-to has no display-name.  */
-      mutt_addrlist_copy(to, &env->from, false);
+      mutt_addrlist_copy(to, env->from, false);
     }
     else if (!(from_is_reply_to && !multiple_reply_to) && (c_reply_to != MUTT_YES))
     {
@@ -898,7 +900,7 @@ static int default_to(struct AddressList *to, struct Envelope *env,
       switch (query_quadoption(prompt, sub, "reply_to"))
       {
         case MUTT_YES:
-          mutt_addrlist_copy(to, &env->reply_to, false);
+          mutt_addrlist_copy(to, env->reply_to, false);
           break;
 
         case MUTT_NO:
@@ -911,7 +913,7 @@ static int default_to(struct AddressList *to, struct Envelope *env,
     }
     else
     {
-      mutt_addrlist_copy(to, &env->reply_to, false);
+      mutt_addrlist_copy(to, env->reply_to, false);
     }
   }
   else
@@ -935,14 +937,14 @@ int mutt_fetch_recips(struct Envelope *out, struct Envelope *in,
                       SendFlags flags, struct ConfigSubset *sub)
 {
   enum QuadOption hmfupto = MUTT_ABORT;
-  const struct Address *followup_to = TAILQ_FIRST(&in->mail_followup_to);
+  const struct Address *followup_to = g_queue_peek_head(in->mail_followup_to);
 
   if ((flags & (SEND_LIST_REPLY | SEND_GROUP_REPLY | SEND_GROUP_CHAT_REPLY)) && followup_to)
   {
     char prompt[256] = { 0 };
     snprintf(prompt, sizeof(prompt), _("Follow-up to %s%s?"),
              buf_string(followup_to->mailbox),
-             TAILQ_NEXT(TAILQ_FIRST(&in->mail_followup_to), entries) ? ",..." : "");
+             (in->mail_followup_to->length > 1) ? ",..." : "");
 
     hmfupto = query_quadoption(prompt, sub, "honor_followup_to");
     if (hmfupto == MUTT_ABORT)
@@ -951,21 +953,21 @@ int mutt_fetch_recips(struct Envelope *out, struct Envelope *in,
 
   if (flags & SEND_LIST_REPLY)
   {
-    add_mailing_lists(&out->to, &in->to, &in->cc);
+    add_mailing_lists(out->to, in->to, in->cc);
 
     if (followup_to && (hmfupto == MUTT_YES) &&
-        (default_to(&out->cc, in, flags & SEND_LIST_REPLY, (hmfupto == MUTT_YES), sub) == MUTT_ABORT))
+        (default_to(out->cc, in, flags & SEND_LIST_REPLY, (hmfupto == MUTT_YES), sub) == MUTT_ABORT))
     {
       return -1; /* abort */
     }
   }
   else if (flags & SEND_TO_SENDER)
   {
-    mutt_addrlist_copy(&out->to, &in->from, false);
+    mutt_addrlist_copy(out->to, in->from, false);
   }
   else
   {
-    if (default_to(&out->to, in, flags & (SEND_GROUP_REPLY | SEND_GROUP_CHAT_REPLY),
+    if (default_to(out->to, in, flags & (SEND_GROUP_REPLY | SEND_GROUP_CHAT_REPLY),
                    (hmfupto == MUTT_YES), sub) == -1)
     {
       return -1; /* abort */
@@ -976,10 +978,10 @@ int mutt_fetch_recips(struct Envelope *out, struct Envelope *in,
     {
       /* if(!mutt_addr_is_user(in->to)) */
       if (flags & SEND_GROUP_REPLY)
-        mutt_addrlist_copy(&out->cc, &in->to, true);
+        mutt_addrlist_copy(out->cc, in->to, true);
       else
-        mutt_addrlist_copy(&out->to, &in->to, true);
-      mutt_addrlist_copy(&out->cc, &in->cc, true);
+        mutt_addrlist_copy(out->to, in->to, true);
+      mutt_addrlist_copy(out->cc, in->cc, true);
     }
   }
   return 0;
@@ -1023,18 +1025,18 @@ void mutt_fix_reply_recipients(struct Envelope *env, struct ConfigSubset *sub)
 
     /* the order is important here.  do the CC: first so that if the
      * the user is the only recipient, it ends up on the TO: field */
-    remove_user(&env->cc, TAILQ_EMPTY(&env->to));
-    remove_user(&env->to, TAILQ_EMPTY(&env->cc) || c_reply_self);
+    remove_user(env->cc, g_queue_is_empty(env->to));
+    remove_user(env->to, g_queue_is_empty(env->cc) || c_reply_self);
   }
 
   /* the CC field can get cluttered, especially with lists */
-  mutt_addrlist_dedupe(&env->to);
-  mutt_addrlist_dedupe(&env->cc);
-  mutt_addrlist_remove_xrefs(&env->to, &env->cc);
+  mutt_addrlist_dedupe(env->to);
+  mutt_addrlist_dedupe(env->cc);
+  mutt_addrlist_remove_xrefs(env->to, env->cc);
 
-  if (!TAILQ_EMPTY(&env->cc) && TAILQ_EMPTY(&env->to))
+  if (!g_queue_is_empty(env->cc) && g_queue_is_empty(env->to))
   {
-    TAILQ_SWAP(&env->to, &env->cc, Address, entries);
+    GQUEUE_SWAP(env->to, env->cc);
   }
 }
 
@@ -1100,8 +1102,8 @@ void mutt_add_to_reference_headers(struct Envelope *env, struct Envelope *env_cu
   add_message_id(env->in_reply_to, env_cur);
 
   const bool c_x_comment_to = cs_subset_bool(sub, "x_comment_to");
-  if (OptNewsSend && c_x_comment_to && !TAILQ_EMPTY(&env_cur->from))
-    env->x_comment_to = mutt_str_dup(mutt_get_name(TAILQ_FIRST(&env_cur->from)));
+  if (OptNewsSend && c_x_comment_to && !g_queue_is_empty(env_cur->from))
+    env->x_comment_to = mutt_str_dup(mutt_get_name(g_queue_peek_head(env_cur->from)));
 }
 
 /**
@@ -1180,7 +1182,7 @@ static int envelope_defaults(struct Envelope *env, struct EmailArray *ea,
       return -1;
     }
 
-    if ((flags & SEND_LIST_REPLY) && TAILQ_EMPTY(&env->to))
+    if ((flags & SEND_LIST_REPLY) && g_queue_is_empty(env->to))
     {
       mutt_error(_("No mailing lists found"));
       return -1;
@@ -1344,49 +1346,49 @@ void mutt_set_followup_to(struct Envelope *env, struct ConfigSubset *sub)
     return;
   }
 
-  if (TAILQ_EMPTY(&env->mail_followup_to))
+  if (g_queue_is_empty(env->mail_followup_to))
   {
     if (mutt_is_list_recipient(false, env))
     {
       /* this message goes to known mailing lists, so create a proper
        * mail-followup-to header */
 
-      mutt_addrlist_copy(&env->mail_followup_to, &env->to, false);
-      mutt_addrlist_copy(&env->mail_followup_to, &env->cc, true);
+      mutt_addrlist_copy(env->mail_followup_to, env->to, false);
+      mutt_addrlist_copy(env->mail_followup_to, env->cc, true);
     }
 
     /* remove ourselves from the mail-followup-to header */
-    remove_user(&env->mail_followup_to, false);
+    remove_user(env->mail_followup_to, false);
 
     /* If we are not subscribed to any of the lists in question, re-add
      * ourselves to the mail-followup-to header.  The mail-followup-to header
      * generated is a no-op with group-reply, but makes sure list-reply has the
      * desired effect.  */
 
-    if (!TAILQ_EMPTY(&env->mail_followup_to) &&
+    if (!g_queue_is_empty(env->mail_followup_to) &&
         !mutt_is_subscribed_list_recipient(false, env))
     {
-      struct AddressList *al = NULL;
-      if (!TAILQ_EMPTY(&env->reply_to))
-        al = &env->reply_to;
-      else if (!TAILQ_EMPTY(&env->from))
-        al = &env->from;
+      AddressList *al = NULL;
+      if (!g_queue_is_empty(env->reply_to))
+        al = env->reply_to;
+      else if (!g_queue_is_empty(env->from))
+        al = env->from;
 
       if (al)
       {
-        struct Address *a = NULL;
-        TAILQ_FOREACH_REVERSE(a, al, AddressList, entries)
+        for (GList *np = al->head; np != NULL; np = np->next)
         {
-          mutt_addrlist_prepend(&env->mail_followup_to, mutt_addr_copy(a));
+          struct Address *a = np->data;
+          mutt_addrlist_prepend(env->mail_followup_to, mutt_addr_copy(a));
         }
       }
       else
       {
-        mutt_addrlist_prepend(&env->mail_followup_to, mutt_default_from(sub));
+        mutt_addrlist_prepend(env->mail_followup_to, mutt_default_from(sub));
       }
     }
 
-    mutt_addrlist_dedupe(&env->mail_followup_to);
+    mutt_addrlist_dedupe(env->mail_followup_to);
   }
 }
 
@@ -1400,14 +1402,14 @@ void mutt_set_followup_to(struct Envelope *env, struct ConfigSubset *sub)
  * find an address that matches $alternates, we use that as the default from
  * field
  */
-static void set_reverse_name(struct AddressList *al, struct Envelope *env,
+static void set_reverse_name(AddressList *al, struct Envelope *env,
                              struct ConfigSubset *sub)
 {
-  struct Address *a = NULL;
-  if (TAILQ_EMPTY(al))
+  if (g_queue_is_empty(al))
   {
-    TAILQ_FOREACH(a, &env->to, entries)
+    for (GList *np = env->to->head; np != NULL; np = np->next)
     {
+      struct Address *a = np->data;
       if (mutt_addr_is_user(a))
       {
         mutt_addrlist_append(al, mutt_addr_copy(a));
@@ -1416,10 +1418,11 @@ static void set_reverse_name(struct AddressList *al, struct Envelope *env,
     }
   }
 
-  if (TAILQ_EMPTY(al))
+  if (g_queue_is_empty(al))
   {
-    TAILQ_FOREACH(a, &env->cc, entries)
+    for (GList *np = env->cc->head; np != NULL; np = np->next)
     {
+      struct Address *a = np->data;
       if (mutt_addr_is_user(a))
       {
         mutt_addrlist_append(al, mutt_addr_copy(a));
@@ -1428,23 +1431,23 @@ static void set_reverse_name(struct AddressList *al, struct Envelope *env,
     }
   }
 
-  if (TAILQ_EMPTY(al))
+  if (g_queue_is_empty(al))
   {
-    struct Address *from = TAILQ_FIRST(&env->from);
+    struct Address *from = g_queue_peek_head(env->from);
     if (from && mutt_addr_is_user(from))
     {
       mutt_addrlist_append(al, mutt_addr_copy(from));
     }
   }
 
-  if (!TAILQ_EMPTY(al))
+  if (!g_queue_is_empty(al))
   {
     /* when $reverse_real_name is not set, clear the personal name so that it
      * may be set via a reply- or send-hook.  */
 
     const bool c_reverse_real_name = cs_subset_bool(sub, "reverse_real_name");
     if (!c_reverse_real_name)
-      FREE(&TAILQ_FIRST(al)->personal);
+      FREE(&((struct Address*)g_queue_peek_head(al))->personal);
   }
 }
 
@@ -1525,13 +1528,13 @@ static int invoke_mta(struct Mailbox *m, struct Email *e, struct ConfigSubset *s
 
   if (c_smtp_url)
   {
-    rc = mutt_smtp_send(&e->env->from, &e->env->to, &e->env->cc, &e->env->bcc,
+    rc = mutt_smtp_send(e->env->from, e->env->to, e->env->cc, e->env->bcc,
                         buf_string(tempfile), (e->body->encoding == ENC_8BIT), sub);
     goto cleanup;
   }
 
 sendmail:
-  rc = mutt_invoke_sendmail(m, &e->env->from, &e->env->to, &e->env->cc, &e->env->bcc,
+  rc = mutt_invoke_sendmail(m, e->env->from, e->env->to, e->env->cc, e->env->bcc,
                             buf_string(tempfile), (e->body->encoding == ENC_8BIT), sub);
 cleanup:
   if (fp_tmp)
@@ -2206,7 +2209,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
     /* Use any list-post header as a template */
     mutt_parse_mailto(e_templ->env, NULL, e_cur->env->list_post);
     /* We don't let them set the sender's address. */
-    mutt_addrlist_clear(&e_templ->env->from);
+    mutt_addrlist_clear(e_templ->env->from);
   }
 
   if (!(flags & (SEND_KEY | SEND_POSTPONED | SEND_RESEND)))
@@ -2271,13 +2274,13 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
      * addresses to the list.  We just have to ensure the postponed messages
      * have their aliases expanded.  */
 
-    if (!TAILQ_EMPTY(&e_templ->env->from))
+    if (!g_queue_is_empty(e_templ->env->from))
     {
       mutt_debug(LL_DEBUG5, "e_templ->env->from before set_reverse_name: %s\n",
-                 buf_string(TAILQ_FIRST(&e_templ->env->from)->mailbox));
-      mutt_addrlist_clear(&e_templ->env->from);
+                 buf_string(((struct Address*)g_queue_peek_head(e_templ->env->from))->mailbox));
+      mutt_addrlist_clear(e_templ->env->from);
     }
-    set_reverse_name(&e_templ->env->from, e_cur->env, sub);
+    set_reverse_name(e_templ->env->from, e_cur->env, sub);
   }
 
   const bool c_reply_with_xorig = cs_subset_bool(sub, "reply_with_xorig");
@@ -2291,11 +2294,11 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
      * If there is already a from address recorded in 'e_templ->env->from',
      * then it theoretically comes from `$reverse_name` handling, and we don't use
      * the 'X-Original-To header'.  */
-    if (!TAILQ_EMPTY(&e_cur->env->x_original_to) && TAILQ_EMPTY(&e_templ->env->from))
+    if (!g_queue_is_empty(e_cur->env->x_original_to) && g_queue_is_empty(e_templ->env->from))
     {
-      mutt_addrlist_copy(&e_templ->env->from, &e_cur->env->x_original_to, false);
+      mutt_addrlist_copy(e_templ->env->from, e_cur->env->x_original_to, false);
       mutt_debug(LL_DEBUG5, "e_templ->env->from extracted from X-Original-To: header: %s\n",
-                 buf_string(TAILQ_FIRST(&e_templ->env->from)->mailbox));
+                 buf_string(((struct Address*)g_queue_peek_head(e_templ->env->from))->mailbox));
     }
   }
 
@@ -2339,10 +2342,10 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
      * patterns will work.  if $use_from is unset, the from address is killed
      * after send-hooks are evaluated */
 
-    const bool killfrom = TAILQ_EMPTY(&e_templ->env->from);
+    const bool killfrom = g_queue_is_empty(e_templ->env->from);
     if (killfrom)
     {
-      mutt_addrlist_append(&e_templ->env->from, mutt_default_from(sub));
+      mutt_addrlist_append(e_templ->env->from, mutt_default_from(sub));
     }
 
     if ((flags & SEND_REPLY) && e_cur)
@@ -2369,11 +2372,11 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
     /* $use_from and/or $from might have changed in a send-hook */
     if (killfrom)
     {
-      mutt_addrlist_clear(&e_templ->env->from);
+      mutt_addrlist_clear(e_templ->env->from);
 
       const bool c_use_from = cs_subset_bool(sub, "use_from");
       if (c_use_from && !(flags & (SEND_POSTPONED | SEND_RESEND)))
-        mutt_addrlist_append(&e_templ->env->from, mutt_default_from(sub));
+        mutt_addrlist_append(e_templ->env->from, mutt_default_from(sub));
     }
 
     if (c_hdrs)
@@ -2431,7 +2434,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
   /* wait until now to set the real name portion of our return address so
    * that $real_name can be set in a send-hook */
   {
-    struct Address *from = TAILQ_FIRST(&e_templ->env->from);
+    struct Address *from = g_queue_peek_head(e_templ->env->from);
     if (from && !from->personal && !(flags & (SEND_RESEND | SEND_POSTPONED)))
     {
       const char *const c_real_name = cs_subset_string(sub, "real_name");
@@ -2670,15 +2673,15 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
       (!(flags & SEND_BATCH) || (c_copy & 0x1)))
   {
     /* set the default FCC */
-    const bool killfrom = TAILQ_EMPTY(&e_templ->env->from);
+    const bool killfrom = g_queue_is_empty(e_templ->env->from);
     if (killfrom)
     {
-      mutt_addrlist_append(&e_templ->env->from, mutt_default_from(sub));
+      mutt_addrlist_append(e_templ->env->from, mutt_default_from(sub));
     }
     mutt_select_fcc(fcc, e_templ);
     if (killfrom)
     {
-      mutt_addrlist_clear(&e_templ->env->from);
+      mutt_addrlist_clear(e_templ->env->from);
     }
   }
 
@@ -2714,9 +2717,9 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
 
   if (!(flags & SEND_NEWS))
   {
-    if ((mutt_addrlist_count_recips(&e_templ->env->to) == 0) &&
-        (mutt_addrlist_count_recips(&e_templ->env->cc) == 0) &&
-        (mutt_addrlist_count_recips(&e_templ->env->bcc) == 0))
+    if ((mutt_addrlist_count_recips(e_templ->env->to) == 0) &&
+        (mutt_addrlist_count_recips(e_templ->env->cc) == 0) &&
+        (mutt_addrlist_count_recips(e_templ->env->bcc) == 0))
     {
       if (flags & SEND_BATCH)
       {
@@ -2963,7 +2966,7 @@ static bool send_simple_email(struct Mailbox *m, struct EmailArray *ea,
   {
     mutt_env_set_subject(e->env, subj);
   }
-  if (TAILQ_EMPTY(&e->env->to) && !mutt_addrlist_parse(&e->env->to, NULL))
+  if (g_queue_is_empty(e->env->to) && !mutt_addrlist_parse(e->env->to, NULL))
   {
     mutt_warning(_("No recipient specified"));
   }

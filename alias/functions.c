@@ -122,7 +122,7 @@ static int op_create_alias(struct AliasMenuData *mdata, int op)
 
   if (menu->tag_prefix)
   {
-    struct AddressList naddr = TAILQ_HEAD_INITIALIZER(naddr);
+    AddressList *naddr = mutt_addrlist_new();
 
     struct AliasView *avp = NULL;
     ARRAY_FOREACH(avp, &mdata->ava)
@@ -130,24 +130,24 @@ static int op_create_alias(struct AliasMenuData *mdata, int op)
       if (!avp->is_tagged)
         continue;
 
-      struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-      if (alias_to_addrlist(&al, avp->alias))
+      AddressList *al = mutt_addrlist_new();
+      if (alias_to_addrlist(al, avp->alias))
       {
-        mutt_addrlist_copy(&naddr, &al, false);
-        mutt_addrlist_clear(&al);
+        mutt_addrlist_copy(naddr, al, false);
+        mutt_addrlist_free_full(g_steal_pointer(&al));
       }
     }
 
-    alias_create(&naddr, mdata->sub);
-    mutt_addrlist_clear(&naddr);
+    alias_create(naddr, mdata->sub);
+    mutt_addrlist_free_full(g_steal_pointer(&naddr));
   }
   else
   {
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-    if (alias_to_addrlist(&al, ARRAY_GET(&mdata->ava, menu_get_index(menu))->alias))
+    AddressList *al = mutt_addrlist_new();
+    if (alias_to_addrlist(al, ARRAY_GET(&mdata->ava, menu_get_index(menu))->alias))
     {
-      alias_create(&al, mdata->sub);
-      mutt_addrlist_clear(&al);
+      alias_create(al, mdata->sub);
+      mutt_addrlist_free_full(al);
     }
   }
   return FR_SUCCESS;

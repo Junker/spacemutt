@@ -214,19 +214,18 @@ static void init_header_padding(void)
  *
  * @note Number of rows is capped at #MAX_ADDR_ROWS
  */
-static int calc_address(struct AddressList *al, short cols, short *srows)
+static int calc_address(AddressList *al, short cols, short *srows)
 {
-  struct ListHead slist = STAILQ_HEAD_INITIALIZER(slist);
+  GSList *slist = NULL;
   mutt_addrlist_write_list(al, &slist);
 
   int rows = 1;
   int addr_len;
   int width_left = cols;
-  struct ListNode *next = NULL;
-  struct ListNode *np = NULL;
-  STAILQ_FOREACH(np, &slist, entries)
+  GSList *next = NULL;
+  for (GSList *np = slist; np != NULL; np = np->next)
   {
-    next = STAILQ_NEXT(np, entries);
+    next = np->next;
     addr_len = mutt_strwidth(np->data);
     if (next)
       addr_len += 2; // ", "
@@ -246,7 +245,7 @@ static int calc_address(struct AddressList *al, short cols, short *srows)
       width_left -= addr_len;
   }
 
-  mutt_list_free(&slist);
+  g_slist_free_full(g_steal_pointer(&slist), g_free);
 
   *srows = MIN(rows, MAX_ADDR_ROWS);
   return *srows;
@@ -310,9 +309,9 @@ static int calc_envelope(struct MuttWindow *win, struct EnvelopeWindowData *wdat
   }
   else
   {
-    rows += calc_address(&env->to, cols, &wdata->to_rows);
-    rows += calc_address(&env->cc, cols, &wdata->cc_rows);
-    rows += calc_address(&env->bcc, cols, &wdata->bcc_rows);
+    rows += calc_address(env->to, cols, &wdata->to_rows);
+    rows += calc_address(env->cc, cols, &wdata->cc_rows);
+    rows += calc_address(env->bcc, cols, &wdata->bcc_rows);
   }
   rows += calc_security(e, &wdata->sec_rows, wdata->sub);
   const bool c_compose_show_user_headers = cs_subset_bool(wdata->sub, "compose_show_user_headers");
@@ -489,12 +488,11 @@ static int draw_crypt_lines(struct MuttWindow *win, struct EnvelopeWindowData *w
  * @param max_lines How many lines may be used
  * @retval num Lines used
  */
-static int draw_envelope_addr(int field, struct AddressList *al,
+static int draw_envelope_addr(int field, AddressList *al,
                               struct MuttWindow *win, int row, size_t max_lines)
 {
   draw_header(win, row, field);
 
-  struct ListHead list = STAILQ_HEAD_INITIALIZER(list);
   int count = mutt_addrlist_count_recips(al);
 
   int lines_used = 1;
@@ -505,10 +503,10 @@ static int draw_envelope_addr(int field, struct AddressList *al,
   struct Buffer *buf = buf_pool_get();
   bool in_group = false;
   char *sep = NULL;
-  struct Address *addr = NULL;
-  TAILQ_FOREACH(addr, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
-    struct Address *next = TAILQ_NEXT(addr, entries);
+    struct Address *addr = np->data;
+    struct Address *next = np->next ? np->next->data : NULL;
 
     if (addr->group)
     {
@@ -582,7 +580,6 @@ static int draw_envelope_addr(int field, struct AddressList *al,
     mutt_debug(LL_DEBUG3, "%d addresses remaining\n", count);
     mutt_debug(LL_DEBUG3, "%zd lines remaining\n", max_lines - lines_used);
   }
-  mutt_list_free(&list);
   buf_pool_release(&buf);
 
   if (count > 0)
@@ -664,7 +661,7 @@ static void draw_envelope(struct MuttWindow *win, struct EnvelopeWindowData *wda
   const int cols = win->state.cols - MaxHeaderWidth;
 
   mutt_window_clear(win);
-  int row = draw_envelope_addr(HDR_FROM, &e->env->from, win, 0, 1);
+  int row = draw_envelope_addr(HDR_FROM, e->env->from, win, 0, 1);
 
   if (wdata->is_news)
   {
@@ -683,15 +680,15 @@ static void draw_envelope(struct MuttWindow *win, struct EnvelopeWindowData *wda
   }
   else
   {
-    row += draw_envelope_addr(HDR_TO, &e->env->to, win, row, wdata->to_rows);
-    row += draw_envelope_addr(HDR_CC, &e->env->cc, win, row, wdata->cc_rows);
-    row += draw_envelope_addr(HDR_BCC, &e->env->bcc, win, row, wdata->bcc_rows);
+    row += draw_envelope_addr(HDR_TO, e->env->to, win, row, wdata->to_rows);
+    row += draw_envelope_addr(HDR_CC, e->env->cc, win, row, wdata->cc_rows);
+    row += draw_envelope_addr(HDR_BCC, e->env->bcc, win, row, wdata->bcc_rows);
   }
 
   draw_header(win, row++, HDR_SUBJECT);
   mutt_paddstr(win, cols, NONULL(e->env->subject));
 
-  row += draw_envelope_addr(HDR_REPLYTO, &e->env->reply_to, win, row, 1);
+  row += draw_envelope_addr(HDR_REPLYTO, e->env->reply_to, win, row, 1);
 
   draw_header(win, row++, HDR_FCC);
   mutt_paddstr(win, cols, fcc);

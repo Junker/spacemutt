@@ -143,37 +143,37 @@ static void make_from(struct Envelope *env, char *buf, size_t buflen,
 
   bool me;
   enum FieldType disp;
-  struct AddressList *name = NULL;
+  AddressList *name = NULL;
 
-  me = mutt_addr_is_user(TAILQ_FIRST(&env->from));
+  me = mutt_addr_is_user(g_queue_peek_head(env->from));
 
   if (do_lists || me)
   {
-    if (check_for_mailing_list(&env->to, make_from_prefix(DISP_TO), buf, buflen))
+    if (check_for_mailing_list(env->to, make_from_prefix(DISP_TO), buf, buflen))
       return;
-    if (check_for_mailing_list(&env->cc, make_from_prefix(DISP_CC), buf, buflen))
+    if (check_for_mailing_list(env->cc, make_from_prefix(DISP_CC), buf, buflen))
       return;
   }
 
-  if (me && !TAILQ_EMPTY(&env->to))
+  if (me && !g_queue_is_empty(env->to))
   {
     disp = (flags & MUTT_FORMAT_PLAIN) ? DISP_PLAIN : DISP_TO;
-    name = &env->to;
+    name = env->to;
   }
-  else if (me && !TAILQ_EMPTY(&env->cc))
+  else if (me && !g_queue_is_empty(env->cc))
   {
     disp = DISP_CC;
-    name = &env->cc;
+    name = env->cc;
   }
-  else if (me && !TAILQ_EMPTY(&env->bcc))
+  else if (me && !g_queue_is_empty(env->bcc))
   {
     disp = DISP_BCC;
-    name = &env->bcc;
+    name = env->bcc;
   }
-  else if (!TAILQ_EMPTY(&env->from))
+  else if (!g_queue_is_empty(env->from))
   {
     disp = DISP_FROM;
-    name = &env->from;
+    name = env->from;
   }
   else
   {
@@ -181,7 +181,7 @@ static void make_from(struct Envelope *env, char *buf, size_t buflen,
     return;
   }
 
-  snprintf(buf, buflen, "%s%s", make_from_prefix(disp), mutt_get_name(TAILQ_FIRST(name)));
+  snprintf(buf, buflen, "%s%s", make_from_prefix(disp), mutt_get_name(g_queue_peek_head(name)));
 }
 
 /**
@@ -196,22 +196,22 @@ static void make_from_addr(struct Envelope *env, char *buf, size_t buflen, bool 
   if (!env || !buf)
     return;
 
-  bool me = mutt_addr_is_user(TAILQ_FIRST(&env->from));
+  bool me = mutt_addr_is_user(g_queue_peek_head(env->from));
 
   if (do_lists || me)
   {
-    if (check_for_mailing_list_addr(&env->to, buf, buflen))
+    if (check_for_mailing_list_addr(env->to, buf, buflen))
       return;
-    if (check_for_mailing_list_addr(&env->cc, buf, buflen))
+    if (check_for_mailing_list_addr(env->cc, buf, buflen))
       return;
   }
 
-  if (me && !TAILQ_EMPTY(&env->to))
-    snprintf(buf, buflen, "%s", buf_string(TAILQ_FIRST(&env->to)->mailbox));
-  else if (me && !TAILQ_EMPTY(&env->cc))
-    snprintf(buf, buflen, "%s", buf_string(TAILQ_FIRST(&env->cc)->mailbox));
-  else if (!TAILQ_EMPTY(&env->from))
-    mutt_str_copy(buf, buf_string(TAILQ_FIRST(&env->from)->mailbox), buflen);
+  if (me && !g_queue_is_empty(env->to))
+    snprintf(buf, buflen, "%s", buf_string(((struct Address*)env->to->head->data)->mailbox));
+  else if (me && !g_queue_is_empty(env->cc))
+    snprintf(buf, buflen, "%s", buf_string(((struct Address*)env->cc->head->data)->mailbox));
+  else if (!g_queue_is_empty(env->from))
+    mutt_str_copy(buf, buf_string(((struct Address*)env->from->head->data)->mailbox), buflen);
   else
     *buf = '\0';
 }
@@ -221,12 +221,14 @@ static void make_from_addr(struct Envelope *env, char *buf, size_t buflen, bool 
  * @param al AddressList
  * @retval true Any of the addresses match one of the user's addresses
  */
-static bool user_in_addr(struct AddressList *al)
+static bool user_in_addr(AddressList *al)
 {
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, al, entries)
-  if (mutt_addr_is_user(a))
-    return true;
+  for (GList *np = al->head; np != NULL; np = np->next)
+  {
+    struct Address *a = np->data;
+    if (mutt_addr_is_user(a))
+      return true;
+  }
   return false;
 }
 
@@ -246,30 +248,30 @@ static enum ToChars user_is_recipient(struct Email *e)
   {
     e->recip_valid = true;
 
-    if (mutt_addr_is_user(TAILQ_FIRST(&env->from)))
+    if (mutt_addr_is_user(g_queue_peek_head(env->from)))
     {
       e->recipient = FLAG_CHAR_TO_ORIGINATOR;
     }
-    else if (user_in_addr(&env->to))
+    else if (user_in_addr(env->to))
     {
-      if (TAILQ_NEXT(TAILQ_FIRST(&env->to), entries) || !TAILQ_EMPTY(&env->cc))
+      if (g_queue_peek_nth(env->to, 1) || !g_queue_is_empty(env->cc))
         e->recipient = FLAG_CHAR_TO_TO; /* non-unique recipient */
       else
         e->recipient = FLAG_CHAR_TO_UNIQUE; /* unique recipient */
     }
-    else if (user_in_addr(&env->cc))
+    else if (user_in_addr(env->cc))
     {
       e->recipient = FLAG_CHAR_TO_CC;
     }
-    else if (check_for_mailing_list(&env->to, NULL, NULL, 0))
+    else if (check_for_mailing_list(env->to, NULL, NULL, 0))
     {
       e->recipient = FLAG_CHAR_TO_SUBSCRIBED_LIST;
     }
-    else if (check_for_mailing_list(&env->cc, NULL, NULL, 0))
+    else if (check_for_mailing_list(env->cc, NULL, NULL, 0))
     {
       e->recipient = FLAG_CHAR_TO_SUBSCRIBED_LIST;
     }
-    else if (user_in_addr(&env->reply_to))
+    else if (user_in_addr(env->reply_to))
     {
       e->recipient = FLAG_CHAR_TO_REPLY_TO;
     }
@@ -495,7 +497,7 @@ void index_a(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  const struct Address *from = TAILQ_FIRST(&e->env->from);
+  const struct Address *from = g_queue_peek_head(e->env->from);
 
   const char *s = NULL;
   if (from && from->mailbox)
@@ -519,7 +521,7 @@ void index_A(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  const struct Address *reply_to = TAILQ_FIRST(&e->env->reply_to);
+  const struct Address *reply_to = g_queue_peek_head(e->env->reply_to);
 
   if (reply_to && reply_to->mailbox)
   {
@@ -580,8 +582,8 @@ void index_B(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 
   char tmp[128] = { 0 };
 
-  if (first_mailing_list(tmp, sizeof(tmp), &e->env->to) ||
-      first_mailing_list(tmp, sizeof(tmp), &e->env->cc))
+  if (first_mailing_list(tmp, sizeof(tmp), e->env->to) ||
+      first_mailing_list(tmp, sizeof(tmp), e->env->cc))
   {
     buf_strcpy(buf, tmp);
     return;
@@ -754,7 +756,7 @@ void index_f(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  mutt_addrlist_write(&e->env->from, buf, true);
+  mutt_addrlist_write(e->env->from, buf, true);
 }
 
 /**
@@ -881,7 +883,7 @@ void index_I(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  const struct Address *from = TAILQ_FIRST(&e->env->from);
+  const struct Address *from = g_queue_peek_head(e->env->from);
 
   char tmp[128] = { 0 };
 
@@ -956,8 +958,8 @@ void index_K(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 
   char tmp[128] = { 0 };
 
-  if (first_mailing_list(tmp, sizeof(tmp), &e->env->to) ||
-      first_mailing_list(tmp, sizeof(tmp), &e->env->cc))
+  if (first_mailing_list(tmp, sizeof(tmp), e->env->to) ||
+      first_mailing_list(tmp, sizeof(tmp), e->env->cc))
   {
     buf_strcpy(buf, tmp);
   }
@@ -1077,7 +1079,7 @@ void index_n(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  const struct Address *from = TAILQ_FIRST(&e->env->from);
+  const struct Address *from = g_queue_peek_head(e->env->from);
 
   if (flags & MUTT_FORMAT_INDEX)
     node_expando_set_color(node, MT_COLOR_INDEX_AUTHOR);
@@ -1161,7 +1163,7 @@ void index_r(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  mutt_addrlist_write(&e->env->to, buf, true);
+  mutt_addrlist_write(e->env->to, buf, true);
 }
 
 /**
@@ -1175,7 +1177,7 @@ void index_R(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  mutt_addrlist_write(&e->env->cc, buf, true);
+  mutt_addrlist_write(e->env->cc, buf, true);
 }
 
 /**
@@ -1252,13 +1254,13 @@ void index_t(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  const struct Address *to = TAILQ_FIRST(&e->env->to);
-  const struct Address *cc = TAILQ_FIRST(&e->env->cc);
+  const struct Address *to = g_queue_peek_head(e->env->to);
+  const struct Address *cc = g_queue_peek_head(e->env->cc);
 
   char tmp[128] = { 0 };
 
-  if (!check_for_mailing_list(&e->env->to, "To ", tmp, sizeof(tmp)) &&
-      !check_for_mailing_list(&e->env->cc, "Cc ", tmp, sizeof(tmp)))
+  if (!check_for_mailing_list(e->env->to, "To ", tmp, sizeof(tmp)) &&
+      !check_for_mailing_list(e->env->cc, "Cc ", tmp, sizeof(tmp)))
   {
     if (to)
       snprintf(tmp, sizeof(tmp), "To %s", mutt_get_name(to));
@@ -1324,7 +1326,7 @@ void index_u(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  const struct Address *from = TAILQ_FIRST(&e->env->from);
+  const struct Address *from = g_queue_peek_head(e->env->from);
   if (!from || !from->mailbox)
     return;
 
@@ -1352,9 +1354,9 @@ void index_v(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e || !e->env)
     return;
 
-  const struct Address *from = TAILQ_FIRST(&e->env->from);
-  const struct Address *to = TAILQ_FIRST(&e->env->to);
-  const struct Address *cc = TAILQ_FIRST(&e->env->cc);
+  const struct Address *from = g_queue_peek_head(e->env->from);
+  const struct Address *to = g_queue_peek_head(e->env->to);
+  const struct Address *cc = g_queue_peek_head(e->env->cc);
 
   char tmp[128] = { 0 };
   char *p = NULL;

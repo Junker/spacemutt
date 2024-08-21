@@ -237,7 +237,7 @@ void serial_restore_char(char **c, const unsigned char *d, int *off, bool conver
  * @param[in]     convert If true, the strings will be converted to utf-8
  * @retval ptr End of the newly packed binary
  */
-unsigned char *serial_dump_address(const struct AddressList *al,
+unsigned char *serial_dump_address(const AddressList *al,
                                    unsigned char *d, int *off, bool convert)
 {
   unsigned int counter = 0;
@@ -245,9 +245,9 @@ unsigned char *serial_dump_address(const struct AddressList *al,
 
   d = serial_dump_int(0xdeadbeef, d, off);
 
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     d = serial_dump_buffer(a->personal, d, off, convert);
     d = serial_dump_buffer(a->mailbox, d, off, convert);
     d = serial_dump_int(a->group, d, off);
@@ -266,7 +266,7 @@ unsigned char *serial_dump_address(const struct AddressList *al,
  * @param[in,out] off     Offset into the blob
  * @param[in]     convert If true, the strings will be converted from utf-8
  */
-void serial_restore_address(struct AddressList *al, const unsigned char *d,
+void serial_restore_address(AddressList *al, const unsigned char *d,
                             int *off, bool convert)
 {
   unsigned int counter = 0;
@@ -586,14 +586,14 @@ void serial_restore_body(struct Body *b, const unsigned char *d, int *off, bool 
 unsigned char *serial_dump_envelope(const struct Envelope *env,
                                     unsigned char *d, int *off, bool convert)
 {
-  d = serial_dump_address(&env->return_path, d, off, convert);
-  d = serial_dump_address(&env->from, d, off, convert);
-  d = serial_dump_address(&env->to, d, off, convert);
-  d = serial_dump_address(&env->cc, d, off, convert);
-  d = serial_dump_address(&env->bcc, d, off, convert);
-  d = serial_dump_address(&env->sender, d, off, convert);
-  d = serial_dump_address(&env->reply_to, d, off, convert);
-  d = serial_dump_address(&env->mail_followup_to, d, off, convert);
+  d = serial_dump_address(env->return_path, d, off, convert);
+  d = serial_dump_address(env->from, d, off, convert);
+  d = serial_dump_address(env->to, d, off, convert);
+  d = serial_dump_address(env->cc, d, off, convert);
+  d = serial_dump_address(env->bcc, d, off, convert);
+  d = serial_dump_address(env->sender, d, off, convert);
+  d = serial_dump_address(env->reply_to, d, off, convert);
+  d = serial_dump_address(env->mail_followup_to, d, off, convert);
 
   d = serial_dump_char(env->list_post, d, off, convert);
   d = serial_dump_char(env->list_subscribe, d, off, convert);
@@ -635,14 +635,14 @@ void serial_restore_envelope(struct Envelope *env, const unsigned char *d, int *
 {
   int real_subj_off = 0;
 
-  serial_restore_address(&env->return_path, d, off, convert);
-  serial_restore_address(&env->from, d, off, convert);
-  serial_restore_address(&env->to, d, off, convert);
-  serial_restore_address(&env->cc, d, off, convert);
-  serial_restore_address(&env->bcc, d, off, convert);
-  serial_restore_address(&env->sender, d, off, convert);
-  serial_restore_address(&env->reply_to, d, off, convert);
-  serial_restore_address(&env->mail_followup_to, d, off, convert);
+  serial_restore_address(env->return_path, d, off, convert);
+  serial_restore_address(env->from, d, off, convert);
+  serial_restore_address(env->to, d, off, convert);
+  serial_restore_address(env->cc, d, off, convert);
+  serial_restore_address(env->bcc, d, off, convert);
+  serial_restore_address(env->sender, d, off, convert);
+  serial_restore_address(env->reply_to, d, off, convert);
+  serial_restore_address(env->mail_followup_to, d, off, convert);
 
   serial_restore_char(&env->list_post, d, off, convert);
   serial_restore_char(&env->list_subscribe, d, off, convert);

@@ -26,9 +26,10 @@
 
 #include <sqlite3.h>
 #include <stdbool.h>
+#include "address/address.h"
+
 
 struct Address;
-struct AddressList;
 struct AutocryptAccount;
 struct AutocryptGossipHistory;
 struct AutocryptPeer;
@@ -78,7 +79,7 @@ int                            mutt_autocrypt_db_gossip_history_insert(struct Ad
 struct AutocryptGossipHistory *mutt_autocrypt_db_gossip_history_new(void);
 int                            mutt_autocrypt_db_init(bool can_create);
 void                           mutt_autocrypt_db_normalize_addr(struct Address *a);
-void                           mutt_autocrypt_db_normalize_addrlist(struct AddressList *al);
+void                           mutt_autocrypt_db_normalize_addrlist(AddressList *al);
 void                           mutt_autocrypt_db_peer_free(struct AutocryptPeer **ptr);
 int                            mutt_autocrypt_db_peer_get(struct Address *addr, struct AutocryptPeer **peer);
 void                           mutt_autocrypt_db_peer_history_free(struct AutocryptPeerHistory **ptr);

@@ -28,8 +28,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "lib.h"
+#include "address/address.h"
 
-struct AddressList;
 struct Body;
 struct Email;
 struct Envelope;
@@ -86,11 +86,11 @@ void smime_cleanup(void);
 int           smime_class_application_handler(struct Body *b, struct State *s);
 struct Body * smime_class_build_smime_entity (struct Body *b, char *certlist);
 int           smime_class_decrypt_mime       (FILE *fp_in, FILE **fp_out, struct Body *b, struct Body **b_dec);
-char *        smime_class_find_keys          (const struct AddressList *addrlist, bool oppenc_mode);
+char *        smime_class_find_keys          (const AddressList *addrlist, bool oppenc_mode);
 void          smime_class_getkeys            (struct Envelope *env);
 void          smime_class_invoke_import      (const char *infile, const char *mailbox);
 SecurityFlags smime_class_send_menu          (struct Email *e);
-struct Body * smime_class_sign_message       (struct Body *b, const struct AddressList *from);
+struct Body * smime_class_sign_message       (struct Body *b, const AddressList *from);
 bool          smime_class_valid_passphrase   (void);
 int           smime_class_verify_one         (struct Body *b, struct State *s, const char *tempfile);
 int           smime_class_verify_sender      (struct Email *e, struct Message *msg);

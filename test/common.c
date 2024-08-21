@@ -42,8 +42,8 @@
 #include "complete/lib.h"
 #include "copy.h"
 #include "mx.h"
+#include "address/address.h"
 
-struct AddressList;
 struct Email;
 struct Envelope;
 struct MuttWindow;
@@ -292,7 +292,7 @@ int log_disp_null(time_t stamp, const char *file, int line, const char *function
   return 0;
 }
 
-bool check_for_mailing_list(struct AddressList *al, const char *pfx, char *buf, int buflen)
+bool check_for_mailing_list(AddressList *al, const char *pfx, char *buf, int buflen)
 {
   return false;
 }

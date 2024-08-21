@@ -211,13 +211,13 @@ void buf_expand_path_regex(struct Buffer *buf, bool regex)
 
       case '@':
       {
-        struct AddressList *al = alias_lookup(s + 1);
-        if (al && !TAILQ_EMPTY(al))
+        AddressList *al = alias_lookup(s + 1);
+        if (al && !g_queue_is_empty(al))
         {
           struct Email *e = email_new();
           e->env = mutt_env_new();
-          mutt_addrlist_copy(&e->env->from, al, false);
-          mutt_addrlist_copy(&e->env->to, al, false);
+          mutt_addrlist_copy(e->env->from, al, false);
+          mutt_addrlist_copy(e->env->to, al, false);
 
           buf_alloc(p, PATH_MAX);
           mutt_default_save(p, e);

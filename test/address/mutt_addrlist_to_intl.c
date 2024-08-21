@@ -43,7 +43,7 @@ static struct ConfigDef Vars[] = {
 
 void test_mutt_addrlist_to_intl(void)
 {
-  // int mutt_addrlist_to_intl(struct AddressList *al, char **err);
+  // int mutt_addrlist_to_intl(AddressList *al, char **err);
 
   {
     char *err = NULL;
@@ -51,8 +51,9 @@ void test_mutt_addrlist_to_intl(void)
   }
 
   {
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-    TEST_CHECK(mutt_addrlist_to_intl(&al, NULL) == 0);
+    AddressList *al = mutt_addrlist_new();
+    TEST_CHECK(mutt_addrlist_to_intl(al, NULL) == 0);
+    mutt_addrlist_free_full(al);
   }
 
   {
@@ -75,18 +76,18 @@ void test_mutt_addrlist_to_intl(void)
 
     for (size_t i = 0; i < mutt_array_size(local2intl); ++i)
     {
-      struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-      mutt_addrlist_append(&al, mutt_addr_create(NULL, local2intl[i].local));
-      mutt_addrlist_to_intl(&al, NULL);
-      struct Address *a = TAILQ_FIRST(&al);
+      AddressList *al = mutt_addrlist_new();
+      mutt_addrlist_append(al, mutt_addr_create(NULL, local2intl[i].local));
+      mutt_addrlist_to_intl(al, NULL);
+      struct Address *a = g_queue_peek_head(al);
 #ifdef HAVE_LIBIDN
       TEST_CHECK_STR_EQ(buf_string(a->mailbox), local2intl[i].intl);
 #else
       TEST_CHECK_STR_EQ(buf_string(a->mailbox), local2intl[i].local);
 #endif
-      mutt_addrlist_to_local(&al);
+      mutt_addrlist_to_local(al);
       TEST_CHECK_STR_EQ(buf_string(a->mailbox), local2intl[i].local);
-      mutt_addrlist_clear(&al);
+      mutt_addrlist_free_full(al);
     }
   }
 }

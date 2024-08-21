@@ -32,7 +32,7 @@
 
 void test_mutt_addrlist_prepend(void)
 {
-  // void mutt_addrlist_prepend(struct AddressList *al, struct Address *a);
+  // void mutt_addrlist_prepend(AddressList *al, struct Address *a);
 
   {
     struct Address a = { 0 };
@@ -41,19 +41,19 @@ void test_mutt_addrlist_prepend(void)
   }
 
   {
-    struct AddressList al = { 0 };
-    mutt_addrlist_prepend(&al, NULL);
-    TEST_CHECK_(1, "mutt_addrlist_prepend(&al, NULL)");
+    AddressList *al = NULL;
+    mutt_addrlist_prepend(al, NULL);
+    TEST_CHECK_(1, "mutt_addrlist_prepend(al, NULL)");
   }
 
   {
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-    mutt_addrlist_prepend(&al, mutt_addr_create(NULL, "test@example.com"));
-    mutt_addrlist_prepend(&al, mutt_addr_create(NULL, "john@doe.org"));
-    struct Address *a = TAILQ_FIRST(&al);
+    AddressList *al = mutt_addrlist_new();
+    mutt_addrlist_prepend(al, mutt_addr_create(NULL, "test@example.com"));
+    mutt_addrlist_prepend(al, mutt_addr_create(NULL, "john@doe.org"));
+    struct Address *a = g_queue_peek_nth(al, 0);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "john@doe.org");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 1);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "test@example.com");
-    mutt_addrlist_clear(&al);
+    mutt_addrlist_free_full(al);
   }
 }

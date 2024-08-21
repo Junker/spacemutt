@@ -51,7 +51,6 @@
 #include "expando/lib.h"
 #include "menu/lib.h"
 
-struct AddressList;
 struct AttachCtx;
 struct AttachPtr;
 struct MailboxView;
@@ -65,7 +64,7 @@ void show_backtrace(void);
 
 // Email
 char        body_name              (const struct Body *b);
-void        dump_addr_list         (char *buf, size_t buflen, const struct AddressList *al, const char *name);
+void        dump_addr_list         (char *buf, size_t buflen, const AddressList *al, const char *name);
 void        dump_attach            (const struct AttachPtr *att);
 void        dump_body              (const struct Body *body);
 void        dump_body_next         (struct Buffer *buf, const struct Body *b);

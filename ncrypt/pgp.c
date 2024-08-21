@@ -1329,7 +1329,7 @@ int pgp_class_encrypted_handler(struct Body *b, struct State *state)
 /**
  * pgp_class_sign_message - Cryptographically sign the Body of a message - Implements CryptModuleSpecs::sign_message() - @ingroup crypto_sign_message
  */
-struct Body *pgp_class_sign_message(struct Body *b, const struct AddressList *from)
+struct Body *pgp_class_sign_message(struct Body *b, const AddressList *from)
 {
   struct Body *b_enc = NULL, *rv = NULL;
   char buf[1024] = { 0 };
@@ -1460,7 +1460,7 @@ cleanup:
 /**
  * pgp_class_find_keys - Find the keyids of the recipients of a message - Implements CryptModuleSpecs::find_keys() - @ingroup crypto_find_keys
  */
-char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
+char *pgp_class_find_keys(const AddressList *addrlist, bool oppenc_mode)
 {
   GSList *crypt_hook_list = NULL;
   GSList *crypt_hook = NULL;
@@ -1473,12 +1473,12 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
   const char *fqdn = mutt_fqdn(true, NeoMutt->sub);
   char buf[1024] = { 0 };
   bool key_selected;
-  struct AddressList hookal = TAILQ_HEAD_INITIALIZER(hookal);
+  AddressList *hookal = mutt_addrlist_new();
 
-  struct Address *a = NULL;
   const bool c_crypt_confirm_hook = cs_subset_bool(NeoMutt->sub, "crypt_confirm_hook");
-  TAILQ_FOREACH(a, addrlist, entries)
+  for (GList *np = addrlist->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     key_selected = false;
     mutt_crypt_hook(&crypt_hook_list, a);
     crypt_hook = crypt_hook_list;
@@ -1507,11 +1507,11 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
           }
 
           /* check for e-mail address */
-          mutt_addrlist_clear(&hookal);
-          if (strchr(keyid, '@') && (mutt_addrlist_parse(&hookal, keyid) != 0))
+          mutt_addrlist_clear(hookal);
+          if (strchr(keyid, '@') && (mutt_addrlist_parse(hookal, keyid) != 0))
           {
-            mutt_addrlist_qualify(&hookal, fqdn);
-            p = TAILQ_FIRST(&hookal);
+            mutt_addrlist_qualify(hookal, fqdn);
+            p = g_queue_peek_head(hookal);
           }
           else if (!oppenc_mode)
           {
@@ -1529,7 +1529,7 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
         else if (ans == MUTT_ABORT)
         {
           FREE(&keylist);
-          mutt_addrlist_clear(&hookal);
+          mutt_addrlist_free_full(hookal);
           g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
           return NULL;
         }
@@ -1550,7 +1550,7 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
       if (!k_info)
       {
         FREE(&keylist);
-        mutt_addrlist_clear(&hookal);
+        mutt_addrlist_free_full(hookal);
         g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
         return NULL;
       }
@@ -1566,7 +1566,7 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
       key_selected = true;
 
       pgp_key_free(&k_info);
-      mutt_addrlist_clear(&hookal);
+      mutt_addrlist_clear(hookal);
 
       if (crypt_hook)
         crypt_hook = crypt_hook->next;
@@ -1585,7 +1585,7 @@ char *pgp_class_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
  * This is necessary for $fcc_attach.
  */
 struct Body *pgp_class_encrypt_message(struct Body *b, char *keylist, bool sign,
-                                       const struct AddressList *from)
+                                       const AddressList *from)
 {
   char buf[1024] = { 0 };
   FILE *fp_pgp_in = NULL, *fp_tmp = NULL;

@@ -27,12 +27,11 @@
 #include "config.h"
 #include <stdbool.h>
 
-struct AddressList;
 struct ConfigSubset;
 
 bool smtp_auth_is_valid(const char *authenticator);
-int mutt_smtp_send(const struct AddressList *from, const struct AddressList *to,
-                   const struct AddressList *cc, const struct AddressList *bcc,
+int mutt_smtp_send(const AddressList *from, const AddressList *to,
+                   const AddressList *cc, const AddressList *bcc,
                    const char *msgfile, bool eightbit, struct ConfigSubset *sub);
 
 #endif /* MUTT_SEND_SMTP_H */

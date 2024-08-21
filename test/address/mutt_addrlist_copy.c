@@ -33,44 +33,46 @@
 
 void test_mutt_addrlist_copy(void)
 {
-  // void mutt_addrlist_copy(struct AddressList *dst, const struct AddressList *src, bool prune);
+  // void mutt_addrlist_copy(AddressList *dst, const AddressList *src, bool prune);
 
   {
-    struct AddressList al = { 0 };
-    mutt_addrlist_copy(NULL, &al, false);
-    TEST_CHECK_(1, "mutt_addrlist_copy(NULL, &al, false)");
+    AddressList *al = NULL;
+    mutt_addrlist_copy(NULL, al, false);
+    TEST_CHECK_(1, "mutt_addrlist_copy(NULL, al, false)");
   }
 
   {
-    struct AddressList al = { 0 };
-    mutt_addrlist_copy(&al, NULL, false);
-    TEST_CHECK_(1, "mutt_addrlist_copy(&al, NULL, false)");
+    AddressList *al = NULL;
+    mutt_addrlist_copy(al, NULL, false);
+    TEST_CHECK_(1, "mutt_addrlist_copy(al, NULL, false)");
   }
 
   {
-    struct AddressList src = TAILQ_HEAD_INITIALIZER(src);
-    struct AddressList dst = TAILQ_HEAD_INITIALIZER(dst);
-    mutt_addrlist_copy(&dst, &src, false);
-    TEST_CHECK(TAILQ_EMPTY(&src));
-    TEST_CHECK(TAILQ_EMPTY(&dst));
+    AddressList *src = mutt_addrlist_new();
+    AddressList *dst = mutt_addrlist_new();
+    mutt_addrlist_copy(dst, src, false);
+    TEST_CHECK(g_queue_is_empty(src));
+    TEST_CHECK(g_queue_is_empty(dst));
+    mutt_addrlist_free_full(src);
+    mutt_addrlist_free_full(dst);
   }
 
   {
-    struct AddressList src = TAILQ_HEAD_INITIALIZER(src);
-    struct AddressList dst = TAILQ_HEAD_INITIALIZER(dst);
-    mutt_addrlist_append(&src, mutt_addr_create(NULL, "test@example.com"));
-    mutt_addrlist_append(&src, mutt_addr_create(NULL, "john@doe.org"));
-    mutt_addrlist_append(&src, mutt_addr_create(NULL, "the-who@stage.co.uk"));
-    mutt_addrlist_copy(&dst, &src, false);
-    TEST_CHECK(!TAILQ_EMPTY(&src));
-    TEST_CHECK(!TAILQ_EMPTY(&dst));
-    struct Address *adst = TAILQ_FIRST(&dst);
+    AddressList *src = mutt_addrlist_new();
+    AddressList *dst = mutt_addrlist_new();
+    mutt_addrlist_append(src, mutt_addr_create(NULL, "test@example.com"));
+    mutt_addrlist_append(src, mutt_addr_create(NULL, "john@doe.org"));
+    mutt_addrlist_append(src, mutt_addr_create(NULL, "the-who@stage.co.uk"));
+    mutt_addrlist_copy(dst, src, false);
+    TEST_CHECK(!g_queue_is_empty(src));
+    TEST_CHECK(!g_queue_is_empty(dst));
+    struct Address *adst = g_queue_peek_nth(dst, 0);
     TEST_CHECK_STR_EQ(buf_string(adst->mailbox), "test@example.com");
-    adst = TAILQ_NEXT(adst, entries);
+    adst = g_queue_peek_nth(dst, 1);
     TEST_CHECK_STR_EQ(buf_string(adst->mailbox), "john@doe.org");
-    adst = TAILQ_NEXT(adst, entries);
+    adst = g_queue_peek_nth(dst, 2);
     TEST_CHECK_STR_EQ(buf_string(adst->mailbox), "the-who@stage.co.uk");
-    mutt_addrlist_clear(&src);
-    mutt_addrlist_clear(&dst);
+    mutt_addrlist_free_full(src);
+    mutt_addrlist_free_full(dst);
   }
 }

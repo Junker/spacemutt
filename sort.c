@@ -156,8 +156,8 @@ static int compare_to(const struct Email *a, const struct Email *b, bool reverse
 {
   char fa[128] = { 0 };
 
-  mutt_str_copy(fa, mutt_get_name(TAILQ_FIRST(&a->env->to)), sizeof(fa));
-  const char *fb = mutt_get_name(TAILQ_FIRST(&b->env->to));
+  mutt_str_copy(fa, mutt_get_name(g_queue_peek_head(a->env->to)), sizeof(fa));
+  const char *fb = mutt_get_name(g_queue_peek_head(b->env->to));
   int result = mutt_istrn_cmp(fa, fb, sizeof(fa));
   return reverse ? -result : result;
 }
@@ -169,8 +169,8 @@ static int compare_from(const struct Email *a, const struct Email *b, bool rever
 {
   char fa[128] = { 0 };
 
-  mutt_str_copy(fa, mutt_get_name(TAILQ_FIRST(&a->env->from)), sizeof(fa));
-  const char *fb = mutt_get_name(TAILQ_FIRST(&b->env->from));
+  mutt_str_copy(fa, mutt_get_name(g_queue_peek_head(a->env->from)), sizeof(fa));
+  const char *fb = mutt_get_name(g_queue_peek_head(b->env->from));
   int result = mutt_istrn_cmp(fa, fb, sizeof(fa));
   return reverse ? -result : result;
 }

@@ -714,7 +714,7 @@ static bool set_signer_from_address(gpgme_ctx_t ctx, const char *address, bool f
  * @retval  0 Success
  * @retval -1 Error
  */
-static int set_signer(gpgme_ctx_t ctx, const struct AddressList *al, bool for_smime)
+static int set_signer(gpgme_ctx_t ctx, const AddressList *al, bool for_smime)
 {
   const char *signid = NULL;
 
@@ -740,9 +740,9 @@ static int set_signer(gpgme_ctx_t ctx, const struct AddressList *al, bool for_sm
   /* Try getting the signing key from the From line */
   if (al)
   {
-    struct Address *a;
-    TAILQ_FOREACH(a, al, entries)
+    for (GList *np = al->head; np != NULL; np = np->next)
     {
+      struct Address *a = np->data;
       if (a->mailbox && set_signer_from_address(ctx, buf_string(a->mailbox), for_smime))
       {
         return 0;
@@ -779,7 +779,7 @@ static gpgme_error_t set_pka_sig_notation(gpgme_ctx_t ctx)
  * @retval ptr Name of temporary file containing encrypted text
  */
 static char *encrypt_gpgme_object(gpgme_data_t plaintext, char *keylist, bool use_smime,
-                                  bool combined_signed, const struct AddressList *from)
+                                  bool combined_signed, const AddressList *from)
 {
   gpgme_error_t err = GPG_ERR_NO_ERROR;
   gpgme_ctx_t ctx = NULL;
@@ -903,7 +903,7 @@ static void print_time(time_t t, struct State *state)
  * @retval ptr  new Body
  * @retval NULL error
  */
-static struct Body *sign_message(struct Body *b, const struct AddressList *from, bool use_smime)
+static struct Body *sign_message(struct Body *b, const AddressList *from, bool use_smime)
 {
   struct Body *b_sign = NULL;
   char *sigfile = NULL;
@@ -1024,7 +1024,7 @@ static struct Body *sign_message(struct Body *b, const struct AddressList *from,
 /**
  * pgp_gpgme_sign_message - Cryptographically sign the Body of a message - Implements CryptModuleSpecs::sign_message() - @ingroup crypto_sign_message
  */
-struct Body *pgp_gpgme_sign_message(struct Body *b, const struct AddressList *from)
+struct Body *pgp_gpgme_sign_message(struct Body *b, const AddressList *from)
 {
   return sign_message(b, from, false);
 }
@@ -1032,7 +1032,7 @@ struct Body *pgp_gpgme_sign_message(struct Body *b, const struct AddressList *fr
 /**
  * smime_gpgme_sign_message - Cryptographically sign the Body of a message - Implements CryptModuleSpecs::sign_message() - @ingroup crypto_sign_message
  */
-struct Body *smime_gpgme_sign_message(struct Body *b, const struct AddressList *from)
+struct Body *smime_gpgme_sign_message(struct Body *b, const AddressList *from)
 {
   return sign_message(b, from, true);
 }
@@ -1041,7 +1041,7 @@ struct Body *smime_gpgme_sign_message(struct Body *b, const struct AddressList *
  * pgp_gpgme_encrypt_message - PGP encrypt an email - Implements CryptModuleSpecs::pgp_encrypt_message() - @ingroup crypto_pgp_encrypt_message
  */
 struct Body *pgp_gpgme_encrypt_message(struct Body *b, char *keylist, bool sign,
-                                       const struct AddressList *from)
+                                       const AddressList *from)
 {
   if (sign)
     crypt_convert_to_7bit(b);
@@ -3291,11 +3291,11 @@ static struct CryptKeyInfo *crypt_getkeybyaddr(struct Address *a,
     this_key_has_addr_match = false;
     match = false; /* any match */
 
-    struct AddressList alist = TAILQ_HEAD_INITIALIZER(alist);
-    mutt_addrlist_parse(&alist, k->uid);
-    struct Address *ka = NULL;
-    TAILQ_FOREACH(ka, &alist, entries)
+    AddressList *alist = mutt_addrlist_new();
+    mutt_addrlist_parse(alist, k->uid);
+    for (GList *np = alist->head; np != NULL; np = np->next)
     {
+      struct Address *ka = np->data;
       int validity = crypt_id_matches_addr(a, ka, k);
 
       if (validity & CRYPT_KV_MATCH) /* something matches */
@@ -3317,7 +3317,7 @@ static struct CryptKeyInfo *crypt_getkeybyaddr(struct Address *a,
         }
       }
     }
-    mutt_addrlist_clear(&alist);
+    mutt_addrlist_free_full(g_steal_pointer(&alist));
 
     if (match)
     {
@@ -3529,7 +3529,7 @@ done:
  * If oppenc_mode is true, only keys that can be determined without prompting
  * will be used.
  */
-static char *find_keys(const struct AddressList *addrlist, unsigned int app, bool oppenc_mode)
+static char *find_keys(const AddressList *addrlist, unsigned int app, bool oppenc_mode)
 {
   GSList *crypt_hook_list = NULL;
   GSList *crypt_hook = NULL;
@@ -3543,12 +3543,12 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
   char buf[1024] = { 0 };
   bool forced_valid = false;
   bool key_selected;
-  struct AddressList hookal = TAILQ_HEAD_INITIALIZER(hookal);
+  AddressList *hookal = mutt_addrlist_new();
 
-  struct Address *a = NULL;
   const bool c_crypt_confirm_hook = cs_subset_bool(NeoMutt->sub, "crypt_confirm_hook");
-  TAILQ_FOREACH(a, addrlist, entries)
+  for (GList *np = addrlist->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     key_selected = false;
     mutt_crypt_hook(&crypt_hook_list, a);
     crypt_hook = crypt_hook_list;
@@ -3578,11 +3578,11 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
           }
 
           /* check for e-mail address */
-          mutt_addrlist_clear(&hookal);
-          if (strchr(keyid, '@') && (mutt_addrlist_parse(&hookal, keyid) != 0))
+          mutt_addrlist_clear(hookal);
+          if (strchr(keyid, '@') && (mutt_addrlist_parse(hookal, keyid) != 0))
           {
-            mutt_addrlist_qualify(&hookal, fqdn);
-            p = TAILQ_FIRST(&hookal);
+            mutt_addrlist_qualify(hookal, fqdn);
+            p = g_queue_peek_head(hookal);
           }
           else if (!oppenc_mode)
           {
@@ -3600,7 +3600,7 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
         else if (ans == MUTT_ABORT)
         {
           FREE(&keylist);
-          mutt_addrlist_clear(&hookal);
+          mutt_addrlist_free_full(hookal);
           g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
           return NULL;
         }
@@ -3622,7 +3622,7 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
       if (!k_info)
       {
         FREE(&keylist);
-        mutt_addrlist_clear(&hookal);
+        mutt_addrlist_free_full(hookal);
         g_slist_free_full(g_steal_pointer(&crypt_hook_list), g_free);
         return NULL;
       }
@@ -3639,7 +3639,7 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
       key_selected = true;
 
       crypt_key_free(&k_info);
-      mutt_addrlist_clear(&hookal);
+      mutt_addrlist_clear(hookal);
 
       if (crypt_hook)
         crypt_hook = crypt_hook->next;
@@ -3654,7 +3654,7 @@ static char *find_keys(const struct AddressList *addrlist, unsigned int app, boo
 /**
  * pgp_gpgme_find_keys - Find the keyids of the recipients of a message - Implements CryptModuleSpecs::find_keys() - @ingroup crypto_find_keys
  */
-char *pgp_gpgme_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
+char *pgp_gpgme_find_keys(const AddressList *addrlist, bool oppenc_mode)
 {
   return find_keys(addrlist, APPLICATION_PGP, oppenc_mode);
 }
@@ -3662,7 +3662,7 @@ char *pgp_gpgme_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
 /**
  * smime_gpgme_find_keys - Find the keyids of the recipients of a message - Implements CryptModuleSpecs::find_keys() - @ingroup crypto_find_keys
  */
-char *smime_gpgme_find_keys(const struct AddressList *addrlist, bool oppenc_mode)
+char *smime_gpgme_find_keys(const AddressList *addrlist, bool oppenc_mode)
 {
   return find_keys(addrlist, APPLICATION_SMIME, oppenc_mode);
 }
@@ -4065,15 +4065,15 @@ static bool verify_sender(struct Email *e)
   struct Address *sender = NULL;
   bool rc = true;
 
-  if (!TAILQ_EMPTY(&e->env->from))
+  if (!g_queue_is_empty(e->env->from))
   {
-    mutt_expand_aliases(&e->env->from);
-    sender = TAILQ_FIRST(&e->env->from);
+    mutt_expand_aliases(e->env->from);
+    sender = g_queue_peek_head(e->env->from);
   }
-  else if (!TAILQ_EMPTY(&e->env->sender))
+  else if (!g_queue_is_empty(e->env->sender))
   {
-    mutt_expand_aliases(&e->env->sender);
-    sender = TAILQ_FIRST(&e->env->sender);
+    mutt_expand_aliases(e->env->sender);
+    sender = g_queue_peek_head(e->env->sender);
   }
 
   if (sender)

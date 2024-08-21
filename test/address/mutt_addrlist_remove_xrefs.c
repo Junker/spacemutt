@@ -32,57 +32,58 @@
 
 void test_mutt_addrlist_remove_xrefs(void)
 {
-  // void mutt_addrlist_remove_xrefs(const struct AddressList *a, struct AddressList *b);
+  // void mutt_addrlist_remove_xrefs(const AddressList *a, AddressList *b);
 
   {
-    struct AddressList al = { 0 };
-    mutt_addrlist_remove_xrefs(NULL, &al);
-    TEST_CHECK_(1, "mutt_addrlist_remove_xrefs(NULL, &al)");
+    AddressList *al = NULL;
+    mutt_addrlist_remove_xrefs(NULL, al);
+    TEST_CHECK_(1, "mutt_addrlist_remove_xrefs(NULL, al)");
   }
 
   {
-    struct AddressList al = { 0 };
-    mutt_addrlist_remove_xrefs(&al, NULL);
-    TEST_CHECK_(1, "mutt_addrlist_remove_xrefs(&al, NULL)");
+    AddressList *al = NULL;
+    mutt_addrlist_remove_xrefs(al, NULL);
+    TEST_CHECK_(1, "mutt_addrlist_remove_xrefs(al, NULL)");
   }
 
   {
-    struct AddressList al1 = TAILQ_HEAD_INITIALIZER(al1);
-    struct AddressList al2 = TAILQ_HEAD_INITIALIZER(al2);
-    mutt_addrlist_append(&al1, mutt_addr_create("Name 1", "foo@example.com"));
-    mutt_addrlist_append(&al2, mutt_addr_create("Name 2", "foo@example.com"));
-    mutt_addrlist_remove_xrefs(&al1, &al2);
-    struct Address *a = TAILQ_FIRST(&al1);
+    AddressList *al1 = mutt_addrlist_new();
+    AddressList *al2 = mutt_addrlist_new();
+    mutt_addrlist_append(al1, mutt_addr_create("Name 1", "foo@example.com"));
+    mutt_addrlist_append(al2, mutt_addr_create("Name 2", "foo@example.com"));
+    mutt_addrlist_remove_xrefs(al1, al2);
+    struct Address *a = g_queue_peek_nth(al1, 0);;
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "foo@example.com");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al1, 1);
     TEST_CHECK(a == NULL);
-    mutt_addrlist_clear(&al1);
-    TEST_CHECK(TAILQ_EMPTY(&al2));
+    TEST_CHECK(g_queue_is_empty(al2));
+    mutt_addrlist_free_full(al1);
+    mutt_addrlist_free_full(al2);
   }
 
   {
-    struct AddressList al1 = TAILQ_HEAD_INITIALIZER(al1);
-    struct AddressList al2 = TAILQ_HEAD_INITIALIZER(al2);
-    mutt_addrlist_append(&al1, mutt_addr_create("Name 1", "foo@example.com"));
-    mutt_addrlist_append(&al2, mutt_addr_create("Name 2", "foo@example.com"));
-    mutt_addrlist_append(&al1, mutt_addr_create(NULL, "john@doe.org"));
-    mutt_addrlist_append(&al1, mutt_addr_create(NULL, "foo@bar.baz"));
-    mutt_addrlist_append(&al2, mutt_addr_create(NULL, "foo@bar.baz"));
-    mutt_addrlist_append(&al2, mutt_addr_create(NULL, "mr.pink@reservoir.movie"));
-    mutt_addrlist_remove_xrefs(&al1, &al2);
-    struct Address *a = TAILQ_FIRST(&al1);
+    AddressList *al1 = mutt_addrlist_new();
+    AddressList *al2 = mutt_addrlist_new();
+    mutt_addrlist_append(al1, mutt_addr_create("Name 1", "foo@example.com"));
+    mutt_addrlist_append(al2, mutt_addr_create("Name 2", "foo@example.com"));
+    mutt_addrlist_append(al1, mutt_addr_create(NULL, "john@doe.org"));
+    mutt_addrlist_append(al1, mutt_addr_create(NULL, "foo@bar.baz"));
+    mutt_addrlist_append(al2, mutt_addr_create(NULL, "foo@bar.baz"));
+    mutt_addrlist_append(al2, mutt_addr_create(NULL, "mr.pink@reservoir.movie"));
+    mutt_addrlist_remove_xrefs(al1, al2);
+    struct Address *a = g_queue_peek_nth(al1, 0);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "foo@example.com");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al1, 1);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "john@doe.org");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al1, 2);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "foo@bar.baz");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al1, 3);
     TEST_CHECK(a == NULL);
-    a = TAILQ_FIRST(&al2);
+    a = g_queue_peek_nth(al2, 0);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "mr.pink@reservoir.movie");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al2, 1);
     TEST_CHECK(a == NULL);
-    mutt_addrlist_clear(&al1);
-    mutt_addrlist_clear(&al2);
+    mutt_addrlist_free_full(al1);
+    mutt_addrlist_free_full(al2);
   }
 }

@@ -29,7 +29,7 @@
 
 void test_mutt_addrlist_clear(void)
 {
-  // void mutt_addrlist_clear(struct AddressList *al);
+  // void mutt_addrlist_clear(AddressList *al);
 
   {
     mutt_addrlist_clear(NULL);
@@ -37,13 +37,15 @@ void test_mutt_addrlist_clear(void)
   }
 
   {
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-    mutt_addrlist_append(&al, mutt_addr_new());
-    mutt_addrlist_append(&al, mutt_addr_new());
-    mutt_addrlist_append(&al, mutt_addr_new());
-    mutt_addrlist_append(&al, mutt_addr_new());
-    mutt_addrlist_append(&al, mutt_addr_new());
-    mutt_addrlist_clear(&al);
-    TEST_CHECK(TAILQ_EMPTY(&al));
+    AddressList *al = mutt_addrlist_new();
+    mutt_addrlist_append(al, mutt_addr_new());
+    mutt_addrlist_append(al, mutt_addr_new());
+    mutt_addrlist_append(al, mutt_addr_new());
+    mutt_addrlist_append(al, mutt_addr_new());
+    mutt_addrlist_append(al, mutt_addr_new());
+    mutt_addrlist_clear(al);
+    TEST_CHECK(g_queue_is_empty(al));
+    mutt_addrlist_free_full(al);
+
   }
 }

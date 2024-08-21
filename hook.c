@@ -774,10 +774,10 @@ void mutt_default_save(struct Buffer *path, struct Email *e)
     return;
 
   struct Envelope *env = e->env;
-  const struct Address *from = TAILQ_FIRST(&env->from);
-  const struct Address *reply_to = TAILQ_FIRST(&env->reply_to);
-  const struct Address *to = TAILQ_FIRST(&env->to);
-  const struct Address *cc = TAILQ_FIRST(&env->cc);
+  const struct Address *from = g_queue_peek_head(env->from);
+  const struct Address *reply_to = g_queue_peek_head(env->reply_to);
+  const struct Address *to = g_queue_peek_head(env->to);
+  const struct Address *cc = g_queue_peek_head(env->cc);
   const struct Address *addr = NULL;
   bool from_me = mutt_addr_is_user(from);
 
@@ -811,9 +811,9 @@ void mutt_select_fcc(struct Buffer *path, struct Email *e)
 
   if (addr_hook(path, MUTT_FCC_HOOK, NULL, e) != 0)
   {
-    const struct Address *to = TAILQ_FIRST(&e->env->to);
-    const struct Address *cc = TAILQ_FIRST(&e->env->cc);
-    const struct Address *bcc = TAILQ_FIRST(&e->env->bcc);
+    const struct Address *to = g_queue_peek_head(e->env->to);
+    const struct Address *cc = g_queue_peek_head(e->env->cc);
+    const struct Address *bcc = g_queue_peek_head(e->env->bcc);
     const bool c_save_name = cs_subset_bool(NeoMutt->sub, "save_name");
     const bool c_force_name = cs_subset_bool(NeoMutt->sub, "force_name");
     const char *const c_record = cs_subset_string(NeoMutt->sub, "record");

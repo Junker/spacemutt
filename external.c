@@ -94,7 +94,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
 
   struct Buffer *buf = buf_pool_get();
   struct Buffer *prompt = buf_pool_get();
-  struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
+  AddressList *al = mutt_addrlist_new();
   char *err = NULL;
   int rc;
   int msg_count = 0;
@@ -105,7 +105,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
     struct Email *e = *ep;
     /* RFC5322 mandates a From: header,
      * so warn before bouncing messages without one */
-    if (TAILQ_EMPTY(&e->env->from))
+    if (g_queue_is_empty(e->env->from))
       mutt_error(_("Warning: message contains no From: header"));
 
     msg_count++;
@@ -121,16 +121,16 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
   if ((rc != 0) || buf_is_empty(buf))
     goto done;
 
-  mutt_addrlist_parse2(&al, buf_string(buf));
-  if (TAILQ_EMPTY(&al))
+  mutt_addrlist_parse2(al, buf_string(buf));
+  if (g_queue_is_empty(al))
   {
     mutt_error(_("Error parsing address"));
     goto done;
   }
 
-  mutt_expand_aliases(&al);
+  mutt_expand_aliases(al);
 
-  if (mutt_addrlist_to_intl(&al, &err) < 0)
+  if (mutt_addrlist_to_intl(al, &err) < 0)
   {
     mutt_error(_("Bad IDN: '%s'"), err);
     FREE(&err);
@@ -138,7 +138,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
   }
 
   buf_reset(buf);
-  mutt_addrlist_write(&al, buf, true);
+  mutt_addrlist_write(al, buf, true);
 
   buf_printf(prompt, ngettext("Bounce message to %s?", "Bounce messages to %s?", msg_count),
              buf_string(buf));
@@ -163,7 +163,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
       break;
     }
 
-    rc = mutt_bounce_message(msg->fp, m, e, &al, NeoMutt->sub);
+    rc = mutt_bounce_message(msg->fp, m, e, al, NeoMutt->sub);
     mx_msg_close(m, &msg);
 
     if (rc < 0)
@@ -175,7 +175,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
     mutt_message(ngettext("Message bounced", "Messages bounced", msg_count));
 
 done:
-  mutt_addrlist_clear(&al);
+  mutt_addrlist_free_full(al);
   buf_pool_release(&buf);
   buf_pool_release(&prompt);
 }
@@ -662,7 +662,7 @@ void mutt_display_address(struct Envelope *env)
 {
   const char *pfx = NULL;
 
-  struct AddressList *al = mutt_get_address(env, &pfx);
+  AddressList *al = mutt_get_address(env, &pfx);
   if (!al)
     return;
 

@@ -30,11 +30,12 @@
 
 void test_mutt_addrlist_search(void)
 {
-  // bool mutt_addrlist_search(const struct Address *needle, const struct AddressList *haystack);
+  // bool mutt_addrlist_search(const Address *needle, const AddressList *haystack);
 
   {
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-    TEST_CHECK(!mutt_addrlist_search(&al, NULL));
+    AddressList *al = mutt_addrlist_new();
+    TEST_CHECK(!mutt_addrlist_search(al, NULL));
+    mutt_addrlist_free_full(al);
   }
 
   {

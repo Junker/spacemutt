@@ -33,8 +33,9 @@ void test_mutt_grouplist_remove_addrlist(void)
   // int mutt_grouplist_remove_addrlist(struct GroupList *head, struct Address *a);
 
   {
-    struct AddressList addr = TAILQ_HEAD_INITIALIZER(addr);
-    TEST_CHECK(mutt_grouplist_remove_addrlist(NULL, &addr) == -1);
+    AddressList *addr = mutt_addrlist_new();
+    TEST_CHECK(mutt_grouplist_remove_addrlist(NULL, addr) == -1);
+    mutt_addrlist_free_full(addr);
   }
 
   {

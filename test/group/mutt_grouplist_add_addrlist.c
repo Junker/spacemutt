@@ -33,9 +33,10 @@ void test_mutt_grouplist_add_addrlist(void)
   // void mutt_grouplist_add_addrlist(struct GroupList *head, struct Address *a);
 
   {
-    struct AddressList addr = TAILQ_HEAD_INITIALIZER(addr);
-    mutt_grouplist_add_addrlist(NULL, &addr);
-    TEST_CHECK_(1, "mutt_grouplist_add_addrlist(NULL, &addr)");
+    AddressList *addr = mutt_addrlist_new();
+    mutt_grouplist_add_addrlist(NULL, addr);
+    TEST_CHECK_(1, "mutt_grouplist_add_addrlist(NULL, addr)");
+    mutt_addrlist_free_full(addr);
   }
 
   {

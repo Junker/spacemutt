@@ -32,7 +32,7 @@
 
 void test_mutt_addrlist_dedupe(void)
 {
-  // void mutt_addrlist_dedupe(struct AddressList *al);
+  // void mutt_addrlist_dedupe(AddressList *al);
 
   {
     mutt_addrlist_dedupe(NULL);
@@ -40,22 +40,22 @@ void test_mutt_addrlist_dedupe(void)
   }
 
   {
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-    int parsed = mutt_addrlist_parse(&al, "Name 1 <test@example.com>, john@doe.org, toast@example.com, Another <test@example.com>, toast@bar.org, foo@bar.baz, john@doe.org");
+    AddressList *al = mutt_addrlist_new();
+    int parsed = mutt_addrlist_parse(al, "Name 1 <test@example.com>, john@doe.org, toast@example.com, Another <test@example.com>, toast@bar.org, foo@bar.baz, john@doe.org");
     TEST_CHECK(parsed == 7);
-    mutt_addrlist_dedupe(&al);
-    struct Address *a = TAILQ_FIRST(&al);
+    mutt_addrlist_dedupe(al);
+    struct Address *a = g_queue_peek_nth(al, 0);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "test@example.com");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 1);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "john@doe.org");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 2);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "toast@example.com");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 3);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "toast@bar.org");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 4);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "foo@bar.baz");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 5);
     TEST_CHECK(a == NULL);
-    mutt_addrlist_clear(&al);
+    mutt_addrlist_free_full(al);
   }
 }

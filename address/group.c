@@ -34,6 +34,8 @@
 #include <stdlib.h>
 #include "group.h"
 #include "address.h"
+#include "mutt/gqueue.h"
+
 
 /**
  * Groups - Hash Table: "group-name" -> Group
@@ -53,7 +55,7 @@ static void group_free(struct Group **ptr)
 
   struct Group *g = *ptr;
 
-  mutt_addrlist_clear(&g->al);
+  mutt_addrlist_free_full(g->al);
   mutt_regexlist_free(&g->rs);
   FREE(&g->name);
 
@@ -73,7 +75,7 @@ static struct Group *group_new(const char *pat)
 
   g->name = mutt_str_dup(pat);
   STAILQ_INIT(&g->rs);
-  TAILQ_INIT(&g->al);
+  g->al = mutt_addrlist_new();
 
   return g;
 }
@@ -171,7 +173,7 @@ static bool empty_group(struct Group *g)
 {
   if (!g)
     return true;
-  return TAILQ_EMPTY(&g->al) && STAILQ_EMPTY(&g->rs);
+  return g_queue_is_empty(g->al) && STAILQ_EMPTY(&g->rs);
 }
 
 /**
@@ -220,21 +222,16 @@ void mutt_grouplist_destroy(struct GroupList *gl)
  * @param g  Group to add to
  * @param al Address List
  */
-static void group_add_addrlist(struct Group *g, const struct AddressList *al)
+static void group_add_addrlist(struct Group *g, const AddressList *al)
 {
   if (!g || !al)
     return;
 
-  struct AddressList al_new = TAILQ_HEAD_INITIALIZER(al_new);
-  mutt_addrlist_copy(&al_new, al, false);
-  mutt_addrlist_remove_xrefs(&g->al, &al_new);
-  struct Address *a = NULL, *tmp = NULL;
-  TAILQ_FOREACH_SAFE(a, &al_new, entries, tmp)
-  {
-    TAILQ_REMOVE(&al_new, a, entries);
-    mutt_addrlist_append(&g->al, a);
-  }
-  ASSERT(TAILQ_EMPTY(&al_new));
+  AddressList *al_new = mutt_addrlist_new();
+  mutt_addrlist_copy(al_new, al, false);
+  mutt_addrlist_remove_xrefs(g->al, al_new);
+  g_queue_copy_tail(g->al, al_new);
+  g_queue_free(al_new);
 }
 
 /**
@@ -268,7 +265,7 @@ static int group_remove_regex(struct Group *g, const char *s)
  * @param gl GroupList to add to
  * @param al Address list to add
  */
-void mutt_grouplist_add_addrlist(struct GroupList *gl, struct AddressList *al)
+void mutt_grouplist_add_addrlist(struct GroupList *gl, AddressList *al)
 {
   if (!gl || !al)
     return;
@@ -287,7 +284,7 @@ void mutt_grouplist_add_addrlist(struct GroupList *gl, struct AddressList *al)
  * @retval  0 Success
  * @retval -1 Error
  */
-int mutt_grouplist_remove_addrlist(struct GroupList *gl, struct AddressList *al)
+int mutt_grouplist_remove_addrlist(struct GroupList *gl, AddressList *al)
 {
   if (!gl || !al)
     return -1;
@@ -295,10 +292,10 @@ int mutt_grouplist_remove_addrlist(struct GroupList *gl, struct AddressList *al)
   struct GroupNode *gnp = NULL;
   STAILQ_FOREACH(gnp, gl, entries)
   {
-    struct Address *a = NULL;
-    TAILQ_FOREACH(a, al, entries)
+    for (GList *np = al->head; np != NULL; np = np->next)
     {
-      mutt_addrlist_remove(&gnp->group->al, buf_string(a->mailbox));
+      struct Address *a = np->data;
+      mutt_addrlist_remove(gnp->group->al, buf_string(a->mailbox));
     }
     if (empty_group(gnp->group))
     {
@@ -374,9 +371,9 @@ bool mutt_group_match(struct Group *g, const char *s)
 
   if (mutt_regexlist_match(&g->rs, s))
     return true;
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, &g->al, entries)
+  for (GList *np = g->al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     if (a->mailbox && mutt_istr_equal(s, buf_string(a->mailbox)))
       return true;
   }

@@ -29,7 +29,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-struct AddressList;
 struct Body;
 struct ConfigSubset;
 struct Email;
@@ -59,7 +58,7 @@ typedef uint32_t SendFlags;             ///< Flags for mutt_send_message(), e.g.
 
 void            mutt_add_to_reference_headers(struct Envelope *env, struct Envelope *env_cur, struct ConfigSubset *sub);
 struct Address *mutt_default_from(struct ConfigSubset *sub);
-int             mutt_edit_address(struct AddressList *al, const char *field, bool expand_aliases);
+int             mutt_edit_address(AddressList *al, const char *field, bool expand_aliases);
 void            mutt_encode_descriptions(struct Body *b, bool recurse, struct ConfigSubset *sub);
 int             mutt_fetch_recips(struct Envelope *out, struct Envelope *in, SendFlags flags, struct ConfigSubset *sub);
 void            mutt_fix_reply_recipients(struct Envelope *env, struct ConfigSubset *sub);

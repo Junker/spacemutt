@@ -768,9 +768,9 @@ void smime_class_getkeys(struct Envelope *env)
     return;
   }
 
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, &env->to, entries)
+  for (GList *np = env->to->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     if (mutt_addr_is_user(a))
     {
       getkeys(buf_string(a->mailbox));
@@ -778,8 +778,9 @@ void smime_class_getkeys(struct Envelope *env)
     }
   }
 
-  TAILQ_FOREACH(a, &env->cc, entries)
+  for (GList *np = env->cc->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     if (mutt_addr_is_user(a))
     {
       getkeys(buf_string(a->mailbox));
@@ -795,16 +796,16 @@ void smime_class_getkeys(struct Envelope *env)
 /**
  * smime_class_find_keys - Find the keyids of the recipients of a message - Implements CryptModuleSpecs::find_keys() - @ingroup crypto_find_keys
  */
-char *smime_class_find_keys(const struct AddressList *al, bool oppenc_mode)
+char *smime_class_find_keys(const AddressList *al, bool oppenc_mode)
 {
   struct SmimeKey *key = NULL;
   char *keyid = NULL, *keylist = NULL;
   size_t keylist_size = 0;
   size_t keylist_used = 0;
 
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     key = smime_get_key_by_addr(buf_string(a->mailbox), KEYFLAG_CANENCRYPT, true, oppenc_mode);
     if (!key && !oppenc_mode && isatty(STDIN_FILENO))
     {
@@ -1225,15 +1226,15 @@ int smime_class_verify_sender(struct Email *e, struct Message *msg)
   fflush(fp_out);
   mutt_file_fclose(&fp_out);
 
-  if (!TAILQ_EMPTY(&e->env->from))
+  if (!g_queue_is_empty(e->env->from))
   {
-    mutt_expand_aliases(&e->env->from);
-    mbox = buf_string(TAILQ_FIRST(&e->env->from)->mailbox);
+    mutt_expand_aliases(e->env->from);
+    mbox = buf_string(((struct Address*)e->env->from->head->data)->mailbox);
   }
-  else if (!TAILQ_EMPTY(&e->env->sender))
+  else if (!g_queue_is_empty(e->env->sender))
   {
-    mutt_expand_aliases(&e->env->sender);
-    mbox = buf_string(TAILQ_FIRST(&e->env->sender)->mailbox);
+    mutt_expand_aliases(e->env->sender);
+    mbox = buf_string(((struct Address*)e->env->sender->head->data)->mailbox);
   }
 
   if (mbox)
@@ -1494,7 +1495,7 @@ static char *openssl_md_to_smime_micalg(const char *md)
 /**
  * smime_class_sign_message - Cryptographically sign the Body of a message - Implements CryptModuleSpecs::sign_message() - @ingroup crypto_sign_message
  */
-struct Body *smime_class_sign_message(struct Body *b, const struct AddressList *from)
+struct Body *smime_class_sign_message(struct Body *b, const AddressList *from)
 {
   struct Body *b_sign = NULL;
   struct Body *rc = NULL;

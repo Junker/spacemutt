@@ -27,11 +27,10 @@
 #include <stddef.h>
 
 struct Address;
-struct AddressList;
 
-bool check_for_mailing_list     (struct AddressList *al, const char *pfx, char *buf, int buflen);
-bool check_for_mailing_list_addr(struct AddressList *al, char *buf, int buflen);
-bool first_mailing_list         (char *buf, size_t buflen, struct AddressList *al);
+bool check_for_mailing_list     (AddressList *al, const char *pfx, char *buf, int buflen);
+bool check_for_mailing_list_addr(AddressList *al, char *buf, int buflen);
+bool first_mailing_list         (char *buf, size_t buflen, AddressList *al);
 bool mutt_is_mail_list          (const struct Address *addr);
 bool mutt_is_subscribed_list    (const struct Address *addr);
 

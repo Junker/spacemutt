@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <glib.h>
 #include "mutt/lib.h"
 
 /**
@@ -39,9 +40,10 @@ struct Address
   bool group : 1;               ///< Group mailbox?
   bool is_intl : 1;             ///< International Domain Name
   bool intl_checked : 1;        ///< Checked for IDN?
-  TAILQ_ENTRY(Address) entries; ///< Linked list
 };
-TAILQ_HEAD(AddressList, Address);
+/* TAILQ_HEAD(AddressList, Address); */
+
+typedef GQueue AddressList;
 
 extern const char AddressSpecials[];
 
@@ -55,7 +57,7 @@ extern const char AddressSpecials[];
  */
 typedef bool (*addr_predicate_t)(const struct Address *a);
 
-/* Utility functions that don't use struct Address or struct AddressList */
+/* Utility functions that don't use struct Address or AddressList */
 void mutt_addr_cat        (char *buf, size_t buflen, const char *value, const char *specials);
 bool mutt_addr_valid_msgid(const char *msgid);
 
@@ -71,26 +73,28 @@ bool            mutt_addr_to_local   (struct Address *a);
 bool            mutt_addr_uses_unicode(const char *str);
 size_t          mutt_addr_write      (struct Buffer *buf, struct Address *addr, bool display);
 
-/* Functions that work on struct AddressList */
-void   mutt_addrlist_append      (struct AddressList *al, struct Address *a);
-void   mutt_addrlist_clear       (struct AddressList *al);
-void   mutt_addrlist_copy        (struct AddressList *dst, const struct AddressList *src, bool prune);
-int    mutt_addrlist_count_recips(const struct AddressList *al);
-void   mutt_addrlist_dedupe      (struct AddressList *al);
-bool   mutt_addrlist_equal       (const struct AddressList *ala, const struct AddressList *alb);
-int    mutt_addrlist_parse       (struct AddressList *al, const char *s);
-int    mutt_addrlist_parse2      (struct AddressList *al, const char *s);
-void   mutt_addrlist_prepend     (struct AddressList *al, struct Address *a);
-void   mutt_addrlist_qualify     (struct AddressList *al, const char *host);
-int    mutt_addrlist_remove      (struct AddressList *al, const char *mailbox);
-void   mutt_addrlist_remove_xrefs(const struct AddressList *a, struct AddressList *b);
-bool   mutt_addrlist_search      (const struct AddressList *haystack, const struct Address *needle);
-int    mutt_addrlist_to_intl     (struct AddressList *al, char **err);
-int    mutt_addrlist_to_local    (struct AddressList *al);
-bool   mutt_addrlist_uses_unicode(const struct AddressList *al);
-size_t mutt_addrlist_write       (const struct AddressList *al, struct Buffer *buf, bool display);
-size_t mutt_addrlist_write_wrap  (const struct AddressList *al, struct Buffer *buf, const char *header);
-void   mutt_addrlist_write_file  (const struct AddressList *al, FILE *fp,           const char *header);
-size_t mutt_addrlist_write_list  (const struct AddressList *al, struct ListHead *list);
+/* Functions that work on AddressList */
+AddressList *mutt_addrlist_new   ();
+void   mutt_addrlist_append      (AddressList *al, struct Address *a);
+void   mutt_addrlist_clear       (AddressList *al);
+void   mutt_addrlist_free_full   (AddressList *al);
+void   mutt_addrlist_copy        (AddressList *dst, const AddressList *src, bool prune);
+int    mutt_addrlist_count_recips(const AddressList *al);
+void   mutt_addrlist_dedupe      (AddressList *al);
+bool   mutt_addrlist_equal       (const AddressList *ala, const AddressList *alb);
+int    mutt_addrlist_parse       (AddressList *al, const char *s);
+int    mutt_addrlist_parse2      (AddressList *al, const char *s);
+void   mutt_addrlist_prepend     (AddressList *al, struct Address *a);
+void   mutt_addrlist_qualify     (AddressList *al, const char *host);
+int    mutt_addrlist_remove      (AddressList *al, const char *mailbox);
+void   mutt_addrlist_remove_xrefs(const AddressList *a, AddressList *b);
+bool   mutt_addrlist_search      (const AddressList *haystack, const struct Address *needle);
+int    mutt_addrlist_to_intl     (AddressList *al, char **err);
+int    mutt_addrlist_to_local    (AddressList *al);
+bool   mutt_addrlist_uses_unicode(const AddressList *al);
+size_t mutt_addrlist_write       (const AddressList *al, struct Buffer *buf, bool display);
+size_t mutt_addrlist_write_wrap  (const AddressList *al, struct Buffer *buf, const char *header);
+void   mutt_addrlist_write_file  (const AddressList *al, FILE *fp,           const char *header);
+size_t mutt_addrlist_write_list  (const AddressList *al, GSList **list);
 
 #endif /* MUTT_ADDRESS_ADDRESS_H */

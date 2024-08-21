@@ -196,16 +196,16 @@ static int smtp_get_resp(struct SmtpAccountData *adata)
  * @retval  0 Success
  * @retval <0 Error, e.g. #SMTP_ERR_WRITE
  */
-static int smtp_rcpt_to(struct SmtpAccountData *adata, const struct AddressList *al)
+static int smtp_rcpt_to(struct SmtpAccountData *adata, const AddressList *al)
 {
   if (!al)
     return 0;
 
   const char *const c_dsn_notify = cs_subset_string(adata->sub, "dsn_notify");
 
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     /* weed out group mailboxes, since those are for display only */
     if (!a->mailbox || a->group)
     {
@@ -1096,8 +1096,8 @@ static int smtp_open(struct SmtpAccountData *adata, bool esmtp)
  * @retval  0 Success
  * @retval -1 Error
  */
-int mutt_smtp_send(const struct AddressList *from, const struct AddressList *to,
-                   const struct AddressList *cc, const struct AddressList *bcc,
+int mutt_smtp_send(const AddressList *from, const AddressList *to,
+                   const AddressList *cc, const AddressList *bcc,
                    const char *msgfile, bool eightbit, struct ConfigSubset *sub)
 {
   struct SmtpAccountData adata = { 0 };
@@ -1125,9 +1125,9 @@ int mutt_smtp_send(const struct AddressList *from, const struct AddressList *to,
   {
     envfrom = buf_string(c_envelope_from_address->mailbox);
   }
-  else if (from && !TAILQ_EMPTY(from))
+  else if (from && !g_queue_is_empty(from))
   {
-    envfrom = buf_string(TAILQ_FIRST(from)->mailbox);
+    envfrom = buf_string(((struct Address*)g_queue_peek_head(from))->mailbox);
   }
   else
   {

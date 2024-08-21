@@ -27,8 +27,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "lib.h"
+#include "address/address.h"
 
-struct AddressList;
 struct Body;
 struct Email;
 struct PgpKeyInfo;
@@ -73,11 +73,11 @@ int           pgp_class_application_handler        (struct Body *b, struct State
 bool          pgp_class_check_traditional          (FILE *fp, struct Body *b, bool just_one);
 int           pgp_class_decrypt_mime               (FILE *fp_in, FILE **fp_out, struct Body *b, struct Body **b_dec);
 int           pgp_class_encrypted_handler          (struct Body *b, struct State *state);
-struct Body * pgp_class_encrypt_message            (struct Body *b, char *keylist, bool sign, const struct AddressList *from);
+struct Body * pgp_class_encrypt_message            (struct Body *b, char *keylist, bool sign, const AddressList *from);
 void          pgp_class_extract_key_from_attachment(FILE *fp, struct Body *b);
-char *        pgp_class_find_keys                  (const struct AddressList *addrlist, bool oppenc_mode);
+char *        pgp_class_find_keys                  (const AddressList *addrlist, bool oppenc_mode);
 SecurityFlags pgp_class_send_menu                  (struct Email *e);
-struct Body * pgp_class_sign_message               (struct Body *b, const struct AddressList *from);
+struct Body * pgp_class_sign_message               (struct Body *b, const AddressList *from);
 struct Body * pgp_class_traditional_encryptsign    (struct Body *b, SecurityFlags flags, char *keylist);
 bool          pgp_class_valid_passphrase           (void);
 int           pgp_class_verify_one                 (struct Body *b, struct State *state, const char *tempfile);

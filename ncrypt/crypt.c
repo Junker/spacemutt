@@ -244,7 +244,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
   {
     /* Set sender (necessary for e.g. PKA).  */
     const char *mailbox = NULL;
-    struct Address *from = TAILQ_FIRST(&e->env->from);
+    struct Address *from = g_queue_peek_head(e->env->from);
     bool free_from = false;
 
     if (!from)
@@ -275,15 +275,15 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
     mutt_env_set_subject(protected_headers, e->env->subject);
     if (c_devel_security)
     {
-      mutt_addrlist_copy(&protected_headers->return_path, &e->env->return_path, false);
-      mutt_addrlist_copy(&protected_headers->from, &e->env->from, false);
-      mutt_addrlist_copy(&protected_headers->to, &e->env->to, false);
-      mutt_addrlist_copy(&protected_headers->cc, &e->env->cc, false);
-      mutt_addrlist_copy(&protected_headers->sender, &e->env->sender, false);
-      mutt_addrlist_copy(&protected_headers->reply_to, &e->env->reply_to, false);
-      mutt_addrlist_copy(&protected_headers->mail_followup_to,
-                         &e->env->mail_followup_to, false);
-      mutt_addrlist_copy(&protected_headers->x_original_to, &e->env->x_original_to, false);
+      mutt_addrlist_copy(protected_headers->return_path, e->env->return_path, false);
+      mutt_addrlist_copy(protected_headers->from, e->env->from, false);
+      mutt_addrlist_copy(protected_headers->to, e->env->to, false);
+      mutt_addrlist_copy(protected_headers->cc, e->env->cc, false);
+      mutt_addrlist_copy(protected_headers->sender, e->env->sender, false);
+      mutt_addrlist_copy(protected_headers->reply_to, e->env->reply_to, false);
+      mutt_addrlist_copy(protected_headers->mail_followup_to,
+                         e->env->mail_followup_to, false);
+      mutt_addrlist_copy(protected_headers->x_original_to, e->env->x_original_to, false);
       g_queue_copy_tail(protected_headers->references, e->env->references);
       g_queue_copy_tail(protected_headers->in_reply_to, e->env->in_reply_to);
       mutt_env_to_intl(protected_headers, NULL, NULL);
@@ -318,7 +318,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
   {
     if (((WithCrypto & APPLICATION_SMIME) != 0) && (security & APPLICATION_SMIME))
     {
-      tmp_pbody = crypt_smime_sign_message(e->body, &e->env->from);
+      tmp_pbody = crypt_smime_sign_message(e->body, e->env->from);
       if (!tmp_pbody)
         goto bail;
       pbody = tmp_pbody;
@@ -329,7 +329,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
     if (((WithCrypto & APPLICATION_PGP) != 0) && (security & APPLICATION_PGP) &&
         (!(security & (SEC_ENCRYPT | SEC_AUTOCRYPT)) || c_pgp_retainable_sigs))
     {
-      tmp_pbody = crypt_pgp_sign_message(e->body, &e->env->from);
+      tmp_pbody = crypt_pgp_sign_message(e->body, e->env->from);
       if (!tmp_pbody)
         goto bail;
 
@@ -364,7 +364,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
 
     if (((WithCrypto & APPLICATION_PGP) != 0) && (security & APPLICATION_PGP))
     {
-      pbody = crypt_pgp_encrypt_message(e, tmp_pgp_pbody, keylist, sign, &e->env->from);
+      pbody = crypt_pgp_encrypt_message(e, tmp_pgp_pbody, keylist, sign, e->env->from);
       if (!pbody)
       {
         /* did we perform a retainable signature? */
@@ -910,15 +910,15 @@ void crypt_extract_keys_from_messages(struct Mailbox *m, struct EmailArray *ea)
       fflush(fp_out);
 
       const char *mbox = NULL;
-      if (!TAILQ_EMPTY(&e->env->from))
+      if (!g_queue_is_empty(e->env->from))
       {
-        mutt_expand_aliases(&e->env->from);
-        mbox = buf_string(TAILQ_FIRST(&e->env->from)->mailbox);
+        mutt_expand_aliases(e->env->from);
+        mbox = buf_string(((struct Address*)e->env->from->head->data)->mailbox);
       }
-      else if (!TAILQ_EMPTY(&e->env->sender))
+      else if (!g_queue_is_empty(e->env->sender))
       {
-        mutt_expand_aliases(&e->env->sender);
-        mbox = buf_string(TAILQ_FIRST(&e->env->sender)->mailbox);
+        mutt_expand_aliases(e->env->sender);
+        mbox = buf_string(((struct Address*)e->env->sender->head->data)->mailbox);
       }
       if (mbox)
       {
@@ -964,7 +964,7 @@ int crypt_get_keys(struct Email *e, char **keylist, bool oppenc_mode)
   if (!WithCrypto)
     return 0;
 
-  struct AddressList addrlist = TAILQ_HEAD_INITIALIZER(addrlist);
+  AddressList *addrlist = mutt_addrlist_new();
   const char *fqdn = mutt_fqdn(true, NeoMutt->sub);
   const char *self_encrypt = NULL;
 
@@ -985,20 +985,20 @@ int crypt_get_keys(struct Email *e, char **keylist, bool oppenc_mode)
   if (WithCrypto & APPLICATION_PGP)
     OptPgpCheckTrust = true;
 
-  mutt_addrlist_copy(&addrlist, &e->env->to, false);
-  mutt_addrlist_copy(&addrlist, &e->env->cc, false);
-  mutt_addrlist_copy(&addrlist, &e->env->bcc, false);
-  mutt_addrlist_qualify(&addrlist, fqdn);
-  mutt_addrlist_dedupe(&addrlist);
+  mutt_addrlist_copy(addrlist, e->env->to, false);
+  mutt_addrlist_copy(addrlist, e->env->cc, false);
+  mutt_addrlist_copy(addrlist, e->env->bcc, false);
+  mutt_addrlist_qualify(addrlist, fqdn);
+  mutt_addrlist_dedupe(addrlist);
 
   if (oppenc_mode || (e->security & SEC_ENCRYPT))
   {
     if (((WithCrypto & APPLICATION_PGP) != 0) && (e->security & APPLICATION_PGP))
     {
-      *keylist = crypt_pgp_find_keys(&addrlist, oppenc_mode);
+      *keylist = crypt_pgp_find_keys(addrlist, oppenc_mode);
       if (!*keylist)
       {
-        mutt_addrlist_clear(&addrlist);
+        mutt_addrlist_free_full(addrlist);
         return -1;
       }
       OptPgpCheckTrust = false;
@@ -1010,10 +1010,10 @@ int crypt_get_keys(struct Email *e, char **keylist, bool oppenc_mode)
     }
     if (((WithCrypto & APPLICATION_SMIME) != 0) && (e->security & APPLICATION_SMIME))
     {
-      *keylist = crypt_smime_find_keys(&addrlist, oppenc_mode);
+      *keylist = crypt_smime_find_keys(addrlist, oppenc_mode);
       if (!*keylist)
       {
-        mutt_addrlist_clear(&addrlist);
+        mutt_addrlist_free_full(addrlist);
         return -1;
       }
       const bool c_smime_self_encrypt = cs_subset_bool(NeoMutt->sub, "smime_self_encrypt");
@@ -1031,7 +1031,7 @@ int crypt_get_keys(struct Email *e, char **keylist, bool oppenc_mode)
     sprintf(*keylist + keylist_size, " %s", self_encrypt);
   }
 
-  mutt_addrlist_clear(&addrlist);
+  mutt_addrlist_free_full(addrlist);
 
   return 0;
 }
@@ -1147,56 +1147,56 @@ int mutt_protected_headers_handler(struct Body *b_email, struct State *state)
 
     if (!weed || !mutt_matches_ignore("return-path"))
     {
-      mutt_addrlist_write(&b_email->mime_headers->return_path, buf, display);
+      mutt_addrlist_write(b_email->mime_headers->return_path, buf, display);
       mutt_write_one_header(state->fp_out, "Return-Path", buf_string(buf),
                             state->prefix, wraplen, chflags, NeoMutt->sub);
     }
     if (!weed || !mutt_matches_ignore("from"))
     {
       buf_reset(buf);
-      mutt_addrlist_write(&b_email->mime_headers->from, buf, display);
+      mutt_addrlist_write(b_email->mime_headers->from, buf, display);
       mutt_write_one_header(state->fp_out, "From", buf_string(buf),
                             state->prefix, wraplen, chflags, NeoMutt->sub);
     }
     if (!weed || !mutt_matches_ignore("to"))
     {
       buf_reset(buf);
-      mutt_addrlist_write(&b_email->mime_headers->to, buf, display);
+      mutt_addrlist_write(b_email->mime_headers->to, buf, display);
       mutt_write_one_header(state->fp_out, "To", buf_string(buf), state->prefix,
                             wraplen, chflags, NeoMutt->sub);
     }
     if (!weed || !mutt_matches_ignore("cc"))
     {
       buf_reset(buf);
-      mutt_addrlist_write(&b_email->mime_headers->cc, buf, display);
+      mutt_addrlist_write(b_email->mime_headers->cc, buf, display);
       mutt_write_one_header(state->fp_out, "Cc", buf_string(buf), state->prefix,
                             wraplen, chflags, NeoMutt->sub);
     }
     if (!weed || !mutt_matches_ignore("sender"))
     {
       buf_reset(buf);
-      mutt_addrlist_write(&b_email->mime_headers->sender, buf, display);
+      mutt_addrlist_write(b_email->mime_headers->sender, buf, display);
       mutt_write_one_header(state->fp_out, "Sender", buf_string(buf),
                             state->prefix, wraplen, chflags, NeoMutt->sub);
     }
     if (!weed || !mutt_matches_ignore("reply-to"))
     {
       buf_reset(buf);
-      mutt_addrlist_write(&b_email->mime_headers->reply_to, buf, display);
+      mutt_addrlist_write(b_email->mime_headers->reply_to, buf, display);
       mutt_write_one_header(state->fp_out, "Reply-To", buf_string(buf),
                             state->prefix, wraplen, chflags, NeoMutt->sub);
     }
     if (!weed || !mutt_matches_ignore("mail-followup-to"))
     {
       buf_reset(buf);
-      mutt_addrlist_write(&b_email->mime_headers->mail_followup_to, buf, display);
+      mutt_addrlist_write(b_email->mime_headers->mail_followup_to, buf, display);
       mutt_write_one_header(state->fp_out, "Mail-Followup-To", buf_string(buf),
                             state->prefix, wraplen, chflags, NeoMutt->sub);
     }
     if (!weed || !mutt_matches_ignore("x-original-to"))
     {
       buf_reset(buf);
-      mutt_addrlist_write(&b_email->mime_headers->x_original_to, buf, display);
+      mutt_addrlist_write(b_email->mime_headers->x_original_to, buf, display);
       mutt_write_one_header(state->fp_out, "X-Original-To", buf_string(buf),
                             state->prefix, wraplen, chflags, NeoMutt->sub);
     }

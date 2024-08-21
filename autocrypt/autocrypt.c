@@ -171,19 +171,19 @@ int mutt_autocrypt_account_init(bool prompt)
       addr->personal = buf_new(c_real_name);
   }
 
-  struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-  mutt_addrlist_append(&al, addr);
+  AddressList *al = mutt_addrlist_new();
+  mutt_addrlist_append(al, addr);
 
   do
   {
     /* L10N: Autocrypt is asking for the email address to use for the
        autocrypt account.  This will generate a key and add a record
        to the database for use in autocrypt operations.  */
-    if (mutt_edit_address(&al, _("Autocrypt account address: "), false) != 0)
+    if (mutt_edit_address(al, _("Autocrypt account address: "), false) != 0)
       goto cleanup;
 
-    addr = TAILQ_FIRST(&al);
-    if (!addr || !addr->mailbox || TAILQ_NEXT(addr, entries))
+    addr = g_queue_peek_head(al);
+    if (!addr || !addr->mailbox || al->length > 1)
     {
       /* L10N: Autocrypt prompts for an account email address, and requires
          a single address.  This is shown if they entered something invalid,
@@ -197,7 +197,7 @@ int mutt_autocrypt_account_init(bool prompt)
     }
   } while (!done);
 
-  addr = TAILQ_FIRST(&al);
+  addr = g_queue_peek_head(al);
   if (mutt_autocrypt_db_account_get(addr, &account) < 0)
     goto cleanup;
   if (account)
@@ -242,7 +242,7 @@ cleanup:
   }
 
   mutt_autocrypt_db_account_free(&account);
-  mutt_addrlist_clear(&al);
+  mutt_addrlist_free_full(al);
   buf_pool_release(&keyid);
   buf_pool_release(&keydata);
   return rc;
@@ -275,8 +275,8 @@ int mutt_autocrypt_process_autocrypt_header(struct Email *e, struct Envelope *en
     return 0;
 
   /* 1.1 spec says to skip emails with more than one From header */
-  struct Address *from = TAILQ_FIRST(&env->from);
-  if (!from || TAILQ_NEXT(from, entries))
+  struct Address *from = g_queue_peek_head(env->from);
+  if (!from || env->from->length > 1)
     return 0;
 
   /* 1.1 spec also says to skip multipart/report emails */
@@ -424,7 +424,7 @@ int mutt_autocrypt_process_gossip_header(struct Email *e, struct Envelope *prot_
 
   struct Envelope *env = e->env;
 
-  struct Address *from = TAILQ_FIRST(&env->from);
+  struct Address *from = g_queue_peek_head(env->from);
   if (!from)
     return 0;
 
@@ -435,13 +435,13 @@ int mutt_autocrypt_process_gossip_header(struct Email *e, struct Envelope *prot_
 
   struct Buffer *keyid = buf_pool_get();
 
-  struct AddressList recips = TAILQ_HEAD_INITIALIZER(recips);
+  AddressList *recips = mutt_addrlist_new();
 
   /* Normalize the recipient list for comparison */
-  mutt_addrlist_copy(&recips, &env->to, false);
-  mutt_addrlist_copy(&recips, &env->cc, false);
-  mutt_addrlist_copy(&recips, &env->reply_to, false);
-  mutt_autocrypt_db_normalize_addrlist(&recips);
+  mutt_addrlist_copy(recips, env->to, false);
+  mutt_addrlist_copy(recips, env->cc, false);
+  mutt_addrlist_copy(recips, env->reply_to, false);
+  mutt_autocrypt_db_normalize_addrlist(recips);
 
   for (struct AutocryptHeader *ac_hdr = prot_headers->autocrypt_gossip; ac_hdr;
        ac_hdr = ac_hdr->next)
@@ -456,8 +456,9 @@ int mutt_autocrypt_process_gossip_header(struct Email *e, struct Envelope *prot_
     mutt_autocrypt_db_normalize_addr(&ac_hdr_addr);
 
     /* Check to make sure the address is in the recipient list. */
-    TAILQ_FOREACH(peer_addr, &recips, entries)
+    for (GList *np = recips->head; np != NULL; np = np->next)
     {
+      peer_addr = np->data;
       if (buf_str_equal(peer_addr->mailbox, ac_hdr_addr.mailbox))
         break;
     }
@@ -540,7 +541,7 @@ int mutt_autocrypt_process_gossip_header(struct Email *e, struct Envelope *prot_
 
 cleanup:
   FREE(&ac_hdr_addr.mailbox);
-  mutt_addrlist_clear(&recips);
+  mutt_addrlist_free_full(g_steal_pointer(&recips));
   mutt_autocrypt_db_peer_free(&peer);
   mutt_autocrypt_db_gossip_history_free(&gossip_hist);
   buf_pool_release(&keyid);
@@ -562,10 +563,9 @@ enum AutocryptRec mutt_autocrypt_ui_recommendation(const struct Email *e, char *
   enum AutocryptRec rc = AUTOCRYPT_REC_OFF;
   struct AutocryptAccount *account = NULL;
   struct AutocryptPeer *peer = NULL;
-  struct Address *recip = NULL;
   bool all_encrypt = true, has_discourage = false;
   const char *matching_key = NULL;
-  struct AddressList recips = TAILQ_HEAD_INITIALIZER(recips);
+  AddressList *recips = mutt_addrlist_new();
   struct Buffer *keylist_buf = NULL;
 
   const bool c_autocrypt = cs_subset_bool(NeoMutt->sub, "autocrypt");
@@ -580,8 +580,8 @@ enum AutocryptRec mutt_autocrypt_ui_recommendation(const struct Email *e, char *
     return AUTOCRYPT_REC_OFF;
   }
 
-  struct Address *from = TAILQ_FIRST(&e->env->from);
-  if (!from || TAILQ_NEXT(from, entries))
+  struct Address *from = g_queue_peek_head(e->env->from);
+  if (!from || e->env->from->length > 1)
   {
     if (keylist)
       mutt_message(_("Autocrypt is not available"));
@@ -611,16 +611,17 @@ enum AutocryptRec mutt_autocrypt_ui_recommendation(const struct Email *e, char *
   keylist_buf = buf_pool_get();
   buf_addstr(keylist_buf, account->keyid);
 
-  mutt_addrlist_copy(&recips, &e->env->to, false);
-  mutt_addrlist_copy(&recips, &e->env->cc, false);
-  mutt_addrlist_copy(&recips, &e->env->bcc, false);
+  mutt_addrlist_copy(recips, e->env->to, false);
+  mutt_addrlist_copy(recips, e->env->cc, false);
+  mutt_addrlist_copy(recips, e->env->bcc, false);
 
   rc = AUTOCRYPT_REC_NO;
-  if (TAILQ_EMPTY(&recips))
+  if (g_queue_is_empty(recips))
     goto cleanup;
 
-  TAILQ_FOREACH(recip, &recips, entries)
+  for (GList *np = recips->head; np != NULL; np = np->next)
   {
+    struct Address *recip = np->data;
     if (mutt_autocrypt_db_peer_get(recip, &peer) <= 0)
     {
       if (keylist)
@@ -684,7 +685,7 @@ enum AutocryptRec mutt_autocrypt_ui_recommendation(const struct Email *e, char *
 
 cleanup:
   mutt_autocrypt_db_account_free(&account);
-  mutt_addrlist_clear(&recips);
+  mutt_addrlist_free_full(g_steal_pointer(&recips));
   mutt_autocrypt_db_peer_free(&peer);
   buf_pool_release(&keylist_buf);
   return rc;
@@ -705,8 +706,8 @@ int mutt_autocrypt_set_sign_as_default_key(struct Email *e)
   if (!c_autocrypt || mutt_autocrypt_init(false) || !e)
     return -1;
 
-  struct Address *from = TAILQ_FIRST(&e->env->from);
-  if (!from || TAILQ_NEXT(from, entries))
+  struct Address *from = g_queue_peek_head(e->env->from);
+  if (!from || e->env->from->length > 1)
     return -1;
 
   if (mutt_autocrypt_db_account_get(from, &account) <= 0)
@@ -771,8 +772,8 @@ int mutt_autocrypt_write_autocrypt_header(struct Envelope *env, FILE *fp)
   if (!c_autocrypt || mutt_autocrypt_init(false) || !env)
     return -1;
 
-  struct Address *from = TAILQ_FIRST(&env->from);
-  if (!from || TAILQ_NEXT(from, entries))
+  struct Address *from = g_queue_peek_head(env->from);
+  if (!from || env->from->length > 1)
     return -1;
 
   if (mutt_autocrypt_db_account_get(from, &account) <= 0)
@@ -827,7 +828,6 @@ int mutt_autocrypt_generate_gossip_list(struct Email *e)
   int rc = -1;
   struct AutocryptPeer *peer = NULL;
   struct AutocryptAccount *account = NULL;
-  struct Address *recip = NULL;
 
   const bool c_autocrypt = cs_subset_bool(NeoMutt->sub, "autocrypt");
   if (!c_autocrypt || mutt_autocrypt_init(false) || !e)
@@ -838,13 +838,14 @@ int mutt_autocrypt_generate_gossip_list(struct Email *e)
     mime_headers = e->body->mime_headers = mutt_env_new();
   mutt_autocrypthdr_free(&mime_headers->autocrypt_gossip);
 
-  struct AddressList recips = TAILQ_HEAD_INITIALIZER(recips);
+  AddressList *recips = mutt_addrlist_new();
 
-  mutt_addrlist_copy(&recips, &e->env->to, false);
-  mutt_addrlist_copy(&recips, &e->env->cc, false);
+  mutt_addrlist_copy(recips, e->env->to, false);
+  mutt_addrlist_copy(recips, e->env->cc, false);
 
-  TAILQ_FOREACH(recip, &recips, entries)
+  for (GList *np = recips->head; np != NULL; np = np->next)
   {
+    struct Address *recip = np->data;
     /* At this point, we just accept missing keys and include what we can. */
     if (mutt_autocrypt_db_peer_get(recip, &peer) <= 0)
       continue;
@@ -867,8 +868,9 @@ int mutt_autocrypt_generate_gossip_list(struct Email *e)
     mutt_autocrypt_db_peer_free(&peer);
   }
 
-  TAILQ_FOREACH(recip, &e->env->reply_to, entries)
+  for (GList *np = e->env->reply_to->head; np != NULL; np = np->next)
   {
+    struct Address *recip = np->data;
     const char *addr = NULL;
     const char *keydata = NULL;
     if (mutt_autocrypt_db_account_get(recip, &account) > 0)
@@ -897,7 +899,7 @@ int mutt_autocrypt_generate_gossip_list(struct Email *e)
     mutt_autocrypt_db_peer_free(&peer);
   }
 
-  mutt_addrlist_clear(&recips);
+  mutt_addrlist_free_full(g_steal_pointer(&recips));
   mutt_autocrypt_db_account_free(&account);
   mutt_autocrypt_db_peer_free(&peer);
   return rc;

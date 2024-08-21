@@ -502,7 +502,7 @@ static int op_compose_to_sender(struct IndexSharedData *shared,
 static int op_create_alias(struct IndexSharedData *shared,
                            struct IndexPrivateData *priv, int op)
 {
-  struct AddressList *al = NULL;
+  AddressList *al;
   if (shared->email && shared->email->env)
     al = mutt_get_address(shared->email->env, NULL);
   alias_create(al, shared->sub);

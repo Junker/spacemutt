@@ -45,7 +45,7 @@ struct TestCase
   const char *expected;
 };
 
-// size_t mutt_addrlist_write_wrap(const struct AddressList *al, struct Buffer *buf, const char *header)
+// size_t mutt_addrlist_write_wrap(const AddressList *al, struct Buffer *buf, const char *header)
 void test_mutt_addrlist_write_wrap(void)
 {
   static const struct TestCase tests[] = {
@@ -70,20 +70,20 @@ void test_mutt_addrlist_write_wrap(void)
     {
       TEST_CASE(test_name(tests[i].address_list));
 
-      struct AddressList al = { 0 };
+      AddressList *al = NULL;
       if (tests[i].address_list)
       {
-        struct AddressList parsed = TAILQ_HEAD_INITIALIZER(parsed);
-        mutt_addrlist_parse(&parsed, tests[i].address_list);
+        AddressList *parsed = mutt_addrlist_new();
+        mutt_addrlist_parse(parsed, tests[i].address_list);
         al = parsed;
       }
 
       struct Buffer *buf = buf_pool_get();
-      int buf_len = mutt_addrlist_write_wrap(&al, buf, tests[i].header);
+      int buf_len = mutt_addrlist_write_wrap(al, buf, tests[i].header);
       TEST_CHECK(buf_len == tests[i].ret_num);
       TEST_CHECK_STR_EQ(buf_string(buf), tests[i].expected);
       buf_pool_release(&buf);
-      mutt_addrlist_clear(&al);
+      mutt_addrlist_free_full(al);
     }
   }
 }

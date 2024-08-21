@@ -33,7 +33,7 @@
 #include "email/lib.h"
 #include "test_common.h"
 
-static void check_addrlist(struct AddressList *list, const char *const exp[], size_t num)
+static void check_addrlist(AddressList *list, const char *const exp[], size_t num)
 {
   struct Buffer *parsed = buf_pool_get();
   if (mutt_addrlist_write(list, parsed, false) == 0)
@@ -93,8 +93,8 @@ void test_mutt_parse_mailto(void)
       TEST_MSG("Expected: parsed <%s>", mailto);
       TEST_MSG("Actual  : NULL");
     }
-    check_addrlist(&env->to, to, mutt_array_size(to));
-    check_addrlist(&env->cc, cc, mutt_array_size(cc));
+    check_addrlist(env->to, to, mutt_array_size(to));
+    check_addrlist(env->cc, cc, mutt_array_size(cc));
     TEST_CHECK_STR_EQ(parsed_body, body);
     FREE(&parsed_body);
     mutt_env_free(&env);

@@ -27,9 +27,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include "lib.h"
+#include "address/address.h"
 
 struct Address;
-struct AddressList;
 struct Body;
 struct Email;
 struct Envelope;
@@ -135,7 +135,7 @@ struct CryptModuleSpecs
    * If oppenc_mode is true, only keys that can be determined without prompting
    * will be used.
    */
-  char *(*find_keys)(const struct AddressList *addrlist, bool oppenc_mode);
+  char *(*find_keys)(const AddressList *addrlist, bool oppenc_mode);
 
   /**
    * @defgroup crypto_sign_message sign_message()
@@ -147,7 +147,7 @@ struct CryptModuleSpecs
    * @retval ptr  New encrypted Body
    * @retval NULL Error
    */
-  struct Body *(*sign_message)(struct Body *b, const struct AddressList *from);
+  struct Body *(*sign_message)(struct Body *b, const AddressList *from);
 
   /**
    * @defgroup crypto_verify_one verify_one()
@@ -195,7 +195,7 @@ struct CryptModuleSpecs
    *
    * Encrypt the mail body to all the given keys.
    */
-  struct Body *(*pgp_encrypt_message)(struct Body *b, char *keylist, bool sign, const struct AddressList *from);
+  struct Body *(*pgp_encrypt_message)(struct Body *b, char *keylist, bool sign, const AddressList *from);
 
   /**
    * @defgroup crypto_pgp_make_key_attachment pgp_make_key_attachment()

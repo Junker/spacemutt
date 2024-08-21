@@ -76,11 +76,11 @@ bool mutt_is_subscribed_list(const struct Address *addr)
  * Search for a mailing list in the list of addresses pointed to by addr.
  * If one is found, print pfx and the name of the list into buf.
  */
-bool check_for_mailing_list(struct AddressList *al, const char *pfx, char *buf, int buflen)
+bool check_for_mailing_list(AddressList *al, const char *pfx, char *buf, int buflen)
 {
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     if (mutt_is_subscribed_list(a))
     {
       if (pfx && buf && buflen)
@@ -100,11 +100,11 @@ bool check_for_mailing_list(struct AddressList *al, const char *pfx, char *buf, 
  *
  * If one is found, print the address of the list into buf.
  */
-bool check_for_mailing_list_addr(struct AddressList *al, char *buf, int buflen)
+bool check_for_mailing_list_addr(AddressList *al, char *buf, int buflen)
 {
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     if (mutt_is_subscribed_list(a))
     {
       if (buf && buflen)
@@ -122,11 +122,11 @@ bool check_for_mailing_list_addr(struct AddressList *al, char *buf, int buflen)
  * @param al     AddressList
  * @retval true A mailing list was found
  */
-bool first_mailing_list(char *buf, size_t buflen, struct AddressList *al)
+bool first_mailing_list(char *buf, size_t buflen, AddressList *al)
 {
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     if (mutt_is_subscribed_list(a))
     {
       mutt_save_path(buf, buflen, a);

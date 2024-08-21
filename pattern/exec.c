@@ -406,10 +406,10 @@ static int match_addrlist(struct Pattern *pat, bool match_personal, int n, ...)
   va_start(ap, n);
   while (n-- > 0)
   {
-    struct AddressList *al = va_arg(ap, struct AddressList *);
-    struct Address *a = NULL;
-    TAILQ_FOREACH(a, al, entries)
+    AddressList *al = va_arg(ap, AddressList *);
+    for (GList *np = al->head; np != NULL; np = np->next)
     {
+      struct Address *a = np->data;
       if (pat->all_addr ^
           ((!pat->is_alias || alias_reverse_lookup(a)) &&
            ((a->mailbox && patmatch(pat, buf_string(a->mailbox))) ||
@@ -453,13 +453,13 @@ static bool match_reference(struct Pattern *pat, GQueue *refs)
  */
 static bool mutt_is_predicate_recipient(bool all_addr, struct Envelope *env, addr_predicate_t p)
 {
-  struct AddressList *als[] = { &env->to, &env->cc };
+  AddressList *als[] = { env->to, env->cc };
   for (size_t i = 0; i < mutt_array_size(als); ++i)
   {
-    struct AddressList *al = als[i];
-    struct Address *a = NULL;
-    TAILQ_FOREACH(a, al, entries)
+    AddressList *al = als[i];
+    for (GList *np = al->head; np != NULL; np = np->next)
     {
+      struct Address *a = np->data;
       if (all_addr ^ p(a))
         return !all_addr;
     }
@@ -509,10 +509,10 @@ static int match_user(bool all_addr, int n, ...)
   va_start(ap, n);
   while (n-- > 0)
   {
-    struct AddressList *al = va_arg(ap, struct AddressList *);
-    struct Address *a = NULL;
-    TAILQ_FOREACH(a, al, entries)
+    AddressList *al = va_arg(ap, AddressList *);
+    for (GList *np = al->head; np != NULL; np = np->next)
     {
+      struct Address *a = np->data;
       if (all_addr ^ mutt_addr_is_user(a))
       {
         va_end(ap);

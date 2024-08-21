@@ -58,7 +58,6 @@ struct Envelope;
 #endif
 
 struct Address;
-struct AddressList;
 
 #ifdef CRYPT_BACKEND_CLASSIC_PGP
 extern const struct CryptModuleSpecs CryptModPgpClassic;
@@ -312,7 +311,7 @@ struct Body *crypt_pgp_make_key_attachment(void)
 /**
  * crypt_pgp_find_keys - Wrapper for CryptModuleSpecs::find_keys()
  */
-char *crypt_pgp_find_keys(struct AddressList *addrlist, bool oppenc_mode)
+char *crypt_pgp_find_keys(AddressList *addrlist, bool oppenc_mode)
 {
   if (CRYPT_MOD_CALL_CHECK(PGP, find_keys))
     return CRYPT_MOD_CALL(PGP, find_keys)(addrlist, oppenc_mode);
@@ -323,7 +322,7 @@ char *crypt_pgp_find_keys(struct AddressList *addrlist, bool oppenc_mode)
 /**
  * crypt_pgp_sign_message - Wrapper for CryptModuleSpecs::sign_message()
  */
-struct Body *crypt_pgp_sign_message(struct Body *b, const struct AddressList *from)
+struct Body *crypt_pgp_sign_message(struct Body *b, const AddressList *from)
 {
   if (CRYPT_MOD_CALL_CHECK(PGP, sign_message))
     return CRYPT_MOD_CALL(PGP, sign_message)(b, from);
@@ -335,7 +334,7 @@ struct Body *crypt_pgp_sign_message(struct Body *b, const struct AddressList *fr
  * crypt_pgp_encrypt_message - Wrapper for CryptModuleSpecs::pgp_encrypt_message()
  */
 struct Body *crypt_pgp_encrypt_message(struct Email *e, struct Body *b, char *keylist,
-                                       int sign, const struct AddressList *from)
+                                       int sign, const AddressList *from)
 {
 #ifdef USE_AUTOCRYPT
   if (e->security & SEC_AUTOCRYPT)
@@ -471,7 +470,7 @@ int crypt_smime_verify_sender(struct Email *e, struct Message *msg)
 /**
  * crypt_smime_find_keys - Wrapper for CryptModuleSpecs::find_keys()
  */
-char *crypt_smime_find_keys(struct AddressList *addrlist, bool oppenc_mode)
+char *crypt_smime_find_keys(AddressList *addrlist, bool oppenc_mode)
 {
   if (CRYPT_MOD_CALL_CHECK(SMIME, find_keys))
     return CRYPT_MOD_CALL(SMIME, find_keys)(addrlist, oppenc_mode);
@@ -482,7 +481,7 @@ char *crypt_smime_find_keys(struct AddressList *addrlist, bool oppenc_mode)
 /**
  * crypt_smime_sign_message - Wrapper for CryptModuleSpecs::sign_message()
  */
-struct Body *crypt_smime_sign_message(struct Body *b, const struct AddressList *from)
+struct Body *crypt_smime_sign_message(struct Body *b, const AddressList *from)
 {
   if (CRYPT_MOD_CALL_CHECK(SMIME, sign_message))
     return CRYPT_MOD_CALL(SMIME, sign_message)(b, from);

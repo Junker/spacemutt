@@ -28,13 +28,12 @@
 #include <stdio.h>
 #include "email/lib.h"
 
-struct AddressList;
 struct ConfigSubset;
 struct Mailbox;
 
 #define MUTT_RANDTAG_LEN 16
 
-int              mutt_bounce_message     (FILE *fp, struct Mailbox *m, struct Email *e, struct AddressList *to, struct ConfigSubset *sub);
+int              mutt_bounce_message     (FILE *fp, struct Mailbox *m, struct Email *e, AddressList *to, struct ConfigSubset *sub);
 const char *     mutt_fqdn               (bool may_hide_host, const struct ConfigSubset *sub);
 enum ContentType mutt_lookup_mime_type   (struct Body *b, const char *path);
 struct Body *    mutt_make_file_attach   (const char *path, struct ConfigSubset *sub);

@@ -37,11 +37,11 @@
 #include "attach/lib.h"
 #include "ncrypt/lib.h"
 
-void dump_addr_list(char *buf, size_t buflen, const struct AddressList *al, const char *name)
+void dump_addr_list(char *buf, size_t buflen, const AddressList *al, const char *name)
 {
   if (!buf || !al)
     return;
-  if (TAILQ_EMPTY(al))
+  if (g_queue_is_empty(al))
     return;
 
   buf[0] = '\0';
@@ -53,7 +53,7 @@ void dump_addr_list(char *buf, size_t buflen, const struct AddressList *al, cons
   mutt_debug(LL_DEBUG1, "\t%s: %s\n", name, buf);
 }
 
-void dump_gqueue(const GQueue *list, const char *name)
+void dump_gqueue(GQueue *list, const char *name)
 {
   if (!list || !name)
     return;
@@ -94,7 +94,7 @@ void dump_envelope(const struct Envelope *env)
 #undef ADD_FLAG
   mutt_debug(LL_DEBUG1, "\tchanged: %s\n", buf_is_empty(buf) ? "[NONE]" : buf_string(buf));
 
-#define ADDR_LIST(AL) dump_addr_list(arr, sizeof(arr), &env->AL, #AL)
+#define ADDR_LIST(AL) dump_addr_list(arr, sizeof(arr), env->AL, #AL)
   ADDR_LIST(return_path);
   ADDR_LIST(from);
   ADDR_LIST(to);

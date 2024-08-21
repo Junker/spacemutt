@@ -1133,16 +1133,16 @@ static int address_header_decode(char **h)
       return 0;
   }
 
-  struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-  mutt_addrlist_parse(&al, s + l);
-  if (TAILQ_EMPTY(&al))
+  AddressList *al = mutt_addrlist_new();
+  mutt_addrlist_parse(al, s + l);
+  if (g_queue_is_empty(al))
     return 0;
 
-  mutt_addrlist_to_local(&al);
-  rfc2047_decode_addrlist(&al);
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, &al, entries)
+  mutt_addrlist_to_local(al);
+  rfc2047_decode_addrlist(al);
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     if (a->personal)
     {
       buf_dequote_comment(a->personal);
@@ -1159,12 +1159,12 @@ static int address_header_decode(char **h)
   {
     struct Buffer buf = { 0 };
     (*h)[l - 1] = '\0';
-    mutt_addrlist_write_wrap(&al, &buf, *h);
+    mutt_addrlist_write_wrap(al, &buf, *h);
     buf_addch(&buf, '\n');
     *h = buf.data;
   }
 
-  mutt_addrlist_clear(&al);
+  mutt_addrlist_free_full(al);
 
   FREE(&s);
   return 1;

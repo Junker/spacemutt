@@ -56,15 +56,15 @@ struct AutocryptHeader
  */
 struct Envelope
 {
-  struct AddressList return_path;      ///< Return path for the Email
-  struct AddressList from;             ///< Email's 'From' list
-  struct AddressList to;               ///< Email's 'To' list
-  struct AddressList cc;               ///< Email's 'Cc' list
-  struct AddressList bcc;              ///< Email's 'Bcc' list
-  struct AddressList sender;           ///< Email's sender
-  struct AddressList reply_to;         ///< Email's 'reply-to'
-  struct AddressList mail_followup_to; ///< Email's 'mail-followup-to'
-  struct AddressList x_original_to;    ///< Email's 'X-Original-to'
+  AddressList *return_path;      ///< Return path for the Email
+  AddressList *from;             ///< Email's 'From' list
+  AddressList *to;               ///< Email's 'To' list
+  AddressList *cc;               ///< Email's 'Cc' list
+  AddressList *bcc;              ///< Email's 'Bcc' list
+  AddressList *sender;           ///< Email's sender
+  AddressList *reply_to;         ///< Email's 'reply-to'
+  AddressList *mail_followup_to; ///< Email's 'mail-followup-to'
+  AddressList *x_original_to;    ///< Email's 'X-Original-to'
   char *list_post;                     ///< This stores a mailto URL, or nothing
   char *list_subscribe;                ///< This stores a mailto URL, or nothing
   char *list_unsubscribe;              ///< This stores a mailto URL, or nothing

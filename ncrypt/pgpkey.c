@@ -422,11 +422,11 @@ struct PgpKeyInfo *pgp_getkeybyaddr(struct Address *a, KeyFlags abilities,
 
     for (q = k->address; q; q = q->next)
     {
-      struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-      mutt_addrlist_parse(&al, NONULL(q->addr));
-      struct Address *qa = NULL;
-      TAILQ_FOREACH(qa, &al, entries)
+      AddressList *al = mutt_addrlist_new();
+      mutt_addrlist_parse(al, NONULL(q->addr));
+      for (GList *np = al->head; np != NULL; np = np->next)
       {
+        struct Address *qa = np->data;
         PgpKeyValidFlags validity = pgp_id_matches_addr(a, qa, q);
 
         if (validity & PGP_KV_MATCH) /* something matches */
@@ -447,7 +447,7 @@ struct PgpKeyInfo *pgp_getkeybyaddr(struct Address *a, KeyFlags abilities,
         }
       }
 
-      mutt_addrlist_clear(&al);
+      mutt_addrlist_free_full(al);
     }
 
     if (match)

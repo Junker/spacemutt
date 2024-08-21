@@ -43,6 +43,6 @@ void test_email_header_update(void)
     TEST_CHECK(got == n);                    /* returns updated node */
     TEST_CHECK_STR_EQ(got->data, new_value); /* node updated to new value */
   }
-  g_free(n->data);
+  FREE(&n->data);
   g_list_free_1(n);
 }

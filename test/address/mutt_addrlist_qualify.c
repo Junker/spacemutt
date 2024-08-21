@@ -31,7 +31,7 @@
 
 void test_mutt_addrlist_qualify(void)
 {
-  // void mutt_addrlist_qualify(struct AddressList *al, const char *host);
+  // void mutt_addrlist_qualify(AddressList *al, const char *host);
 
   {
     mutt_addrlist_qualify(NULL, "example.com");
@@ -39,25 +39,26 @@ void test_mutt_addrlist_qualify(void)
   }
 
   {
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-    mutt_addrlist_qualify(&al, NULL);
-    TEST_CHECK_(1, "mutt_addrlist_qualify(&addr, NULL)");
+    AddressList *al = mutt_addrlist_new();
+    mutt_addrlist_qualify(al, NULL);
+    TEST_CHECK_(1, "mutt_addrlist_qualify(addr, NULL)");
+    mutt_addrlist_free_full(al);
   }
 
   {
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-    mutt_addrlist_parse(&al, "john@doe.org, user1, user2, test@example.com");
-    mutt_addrlist_qualify(&al, "local.domain");
-    struct Address *a = TAILQ_FIRST(&al);
+    AddressList *al = mutt_addrlist_new();
+    mutt_addrlist_parse(al, "john@doe.org, user1, user2, test@example.com");
+    mutt_addrlist_qualify(al, "local.domain");
+    struct Address *a = g_queue_peek_nth(al, 0);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "john@doe.org");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 1);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "user1@local.domain");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 2);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "user2@local.domain");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 3);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "test@example.com");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(al, 4);
     TEST_CHECK(a == NULL);
-    mutt_addrlist_clear(&al);
+    mutt_addrlist_free_full(al);
   }
 }

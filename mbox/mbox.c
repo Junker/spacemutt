@@ -309,11 +309,11 @@ static enum MxOpenReturns mmdf_parse_mailbox(struct Mailbox *m)
         e->body->length = loc - e->body->offset;
       }
 
-      if (TAILQ_EMPTY(&e->env->return_path) && return_path[0])
-        mutt_addrlist_parse(&e->env->return_path, return_path);
+      if (g_queue_is_empty(e->env->return_path) && return_path[0])
+        mutt_addrlist_parse(e->env->return_path, return_path);
 
-      if (TAILQ_EMPTY(&e->env->from))
-        mutt_addrlist_copy(&e->env->from, &e->env->return_path, false);
+      if (g_queue_is_empty(e->env->from))
+        mutt_addrlist_copy(e->env->from, e->env->return_path, false);
 
       m->msg_count++;
     }
@@ -491,13 +491,13 @@ static enum MxOpenReturns mbox_parse_mailbox(struct Mailbox *m)
 
       m->msg_count++;
 
-      if (TAILQ_EMPTY(&e_cur->env->return_path) && return_path[0])
+      if (g_queue_is_empty(e_cur->env->return_path) && return_path[0])
       {
-        mutt_addrlist_parse(&e_cur->env->return_path, return_path);
+        mutt_addrlist_parse(e_cur->env->return_path, return_path);
       }
 
-      if (TAILQ_EMPTY(&e_cur->env->from))
-        mutt_addrlist_copy(&e_cur->env->from, &e_cur->env->return_path, false);
+      if (g_queue_is_empty(e_cur->env->from))
+        mutt_addrlist_copy(e_cur->env->from, e_cur->env->return_path, false);
 
       lines = 0;
     }

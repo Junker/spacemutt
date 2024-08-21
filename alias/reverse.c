@@ -66,11 +66,11 @@ void alias_reverse_add(struct Alias *alias)
   /* Note that the address mailbox should be converted to intl form
    * before using as a key in the hash.  This is currently done
    * by all callers, but added here mostly as documentation. */
-  mutt_addrlist_to_intl(&alias->addr, NULL);
+  mutt_addrlist_to_intl(alias->addr, NULL);
 
-  struct Address *addr = NULL;
-  TAILQ_FOREACH(addr, &alias->addr, entries)
+  for (GList *np = alias->addr->head; np != NULL; np = np->next)
   {
+    struct Address *addr = np->data;
     if (!addr->group && addr->mailbox)
       mutt_hash_insert(ReverseAliases, buf_string(addr->mailbox), addr);
   }
@@ -87,11 +87,11 @@ void alias_reverse_delete(struct Alias *alias)
 
   /* If the alias addresses were converted to local form, they won't
    * match the hash entries. */
-  mutt_addrlist_to_intl(&alias->addr, NULL);
+  mutt_addrlist_to_intl(alias->addr, NULL);
 
-  struct Address *addr = NULL;
-  TAILQ_FOREACH(addr, &alias->addr, entries)
+  for (GList *np = alias->addr->head; np != NULL; np = np->next)
   {
+    struct Address *addr = np->data;
     if (!addr->group && addr->mailbox)
       mutt_hash_delete(ReverseAliases, buf_string(addr->mailbox), addr);
   }

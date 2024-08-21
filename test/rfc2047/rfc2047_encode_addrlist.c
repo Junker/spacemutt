@@ -52,8 +52,9 @@ void test_rfc2047_encode_addrlist(void)
   }
 
   {
-    struct AddressList address = TAILQ_HEAD_INITIALIZER(address);
-    rfc2047_encode_addrlist(&address, NULL);
-    TEST_CHECK_(1, "rfc2047_encode_addrlist(&address, NULL)");
+    AddressList *address = mutt_addrlist_new();
+    rfc2047_encode_addrlist(address, NULL);
+    TEST_CHECK_(1, "rfc2047_encode_addrlist(address, NULL)");
+    mutt_addrlist_free_full(address);
   }
 }

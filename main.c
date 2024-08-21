@@ -802,12 +802,12 @@ main
 
     for (GSList *np = bcc_list; np != NULL; np = np->next)
     {
-      mutt_addrlist_parse(&e->env->bcc, np->data);
+      mutt_addrlist_parse(e->env->bcc, np->data);
     }
 
     for (GSList *np = cc_list; np != NULL; np = np->next)
     {
-      mutt_addrlist_parse(&e->env->cc, np->data);
+      mutt_addrlist_parse(e->env->cc, np->data);
     }
 
     g_slist_free_full(g_steal_pointer(&bcc_list), g_free);
@@ -915,7 +915,7 @@ main
     alias_queries = g_slist_append(alias_queries, mutt_str_dup(argv[optind]));
     for (GSList *np = alias_queries; np != NULL; np = np->next)
     {
-      struct AddressList *al = alias_lookup(np->data);
+      AddressList *al = alias_lookup(np->data);
       if (al)
       {
         /* output in machine-readable form */
@@ -1032,13 +1032,13 @@ main
       }
       else
       {
-        mutt_addrlist_parse(&e->env->to, argv[i]);
+        mutt_addrlist_parse(e->env->to, argv[i]);
       }
     }
 
     const bool c_auto_edit = cs_subset_bool(NeoMutt->sub, "auto_edit");
-    if (!draft_file && c_auto_edit && TAILQ_EMPTY(&e->env->to) &&
-        TAILQ_EMPTY(&e->env->cc))
+    if (!draft_file && c_auto_edit && g_queue_is_empty(e->env->to) &&
+        g_queue_is_empty(e->env->cc))
     {
       mutt_error(_("No recipients specified"));
       email_free(&e);
@@ -1187,9 +1187,9 @@ main
           np = next;
         }
 
-        mutt_addrlist_copy(&e->env->to, &opts_env->to, false);
-        mutt_addrlist_copy(&e->env->cc, &opts_env->cc, false);
-        mutt_addrlist_copy(&e->env->bcc, &opts_env->bcc, false);
+        mutt_addrlist_copy(e->env->to, opts_env->to, false);
+        mutt_addrlist_copy(e->env->cc, opts_env->cc, false);
+        mutt_addrlist_copy(e->env->bcc, opts_env->bcc, false);
         if (opts_env->subject)
           mutt_env_set_subject(e->env, opts_env->subject);
 

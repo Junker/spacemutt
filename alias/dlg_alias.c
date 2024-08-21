@@ -177,7 +177,7 @@ void alias_r(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   const struct AliasView *av = data;
   const struct Alias *alias = av->alias;
 
-  mutt_addrlist_write(&alias->addr, buf, true);
+  mutt_addrlist_write(alias->addr, buf, true);
 }
 
 /**
@@ -534,7 +534,7 @@ int alias_complete(struct Buffer *buf, struct ConfigSubset *sub)
     if (!avp->is_tagged)
       continue;
 
-    mutt_addrlist_write(&avp->alias->addr, tmpbuf, true);
+    mutt_addrlist_write(avp->alias->addr, tmpbuf, true);
     buf_addstr(tmpbuf, ", ");
   }
   buf_copy(buf, tmpbuf);
@@ -590,11 +590,11 @@ void alias_dialog(struct Mailbox *m, struct ConfigSubset *sub)
     if (!avp->is_tagged)
       continue;
 
-    struct AddressList al_copy = TAILQ_HEAD_INITIALIZER(al_copy);
-    if (alias_to_addrlist(&al_copy, avp->alias))
+    AddressList *al_copy = mutt_addrlist_new();
+    if (alias_to_addrlist(al_copy, avp->alias))
     {
-      mutt_addrlist_copy(&e->env->to, &al_copy, false);
-      mutt_addrlist_clear(&al_copy);
+      mutt_addrlist_copy(e->env->to, al_copy, false);
+      mutt_addrlist_free_full(g_steal_pointer(&al_copy));
     }
   }
 

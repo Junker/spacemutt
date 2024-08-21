@@ -34,7 +34,7 @@
 struct Alias
 {
   char              *name;        ///< Short name
-  struct AddressList addr;        ///< List of Addresses the Alias expands to
+  AddressList       *addr;        ///< List of Addresses the Alias expands to
   char              *comment;     ///< Free-form comment string
   struct TagList     tags;        ///< Tags
   TAILQ_ENTRY(Alias) entries;     ///< Linked list

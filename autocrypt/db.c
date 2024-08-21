@@ -176,14 +176,14 @@ void mutt_autocrypt_db_normalize_addr(struct Address *a)
  * mutt_autocrypt_db_normalize_addrlist - Normalise a list of Email Addresses
  * @param al List of Addresses to normalise
  */
-void mutt_autocrypt_db_normalize_addrlist(struct AddressList *al)
+void mutt_autocrypt_db_normalize_addrlist(AddressList *al)
 {
   mutt_addrlist_to_local(al);
 
-  struct Address *np = NULL;
-  TAILQ_FOREACH(np, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
-    buf_lower(np->mailbox);
+    struct Address *a = np->data;
+    buf_lower(a->mailbox);
   }
 
   mutt_addrlist_to_intl(al, NULL);

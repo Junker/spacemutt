@@ -1075,11 +1075,11 @@ struct Message *mx_msg_open_new(struct Mailbox *m, const struct Email *e, MsgOpe
     {
       if (e)
       {
-        p = TAILQ_FIRST(&e->env->return_path);
+        p = g_queue_peek_head(e->env->return_path);
         if (!p)
-          p = TAILQ_FIRST(&e->env->sender);
+          p = g_queue_peek_head(e->env->sender);
         if (!p)
-          p = TAILQ_FIRST(&e->env->from);
+          p = g_queue_peek_head(e->env->from);
       }
 
       // Use C locale for the date, so that day/month names are in English
@@ -1425,14 +1425,14 @@ int mx_path_canon(struct Buffer *path, const char *folder, enum MailboxType *typ
     else if (buf_at(path, 0) == '@')
     {
       /* elm compatibility, @ expands alias to user name */
-      struct AddressList *al = alias_lookup(buf_string(path));
-      if (!al || TAILQ_EMPTY(al))
+      AddressList *al = alias_lookup(buf_string(path));
+      if (!al || g_queue_is_empty(al))
         break;
 
       struct Email *e = email_new();
       e->env = mutt_env_new();
-      mutt_addrlist_copy(&e->env->from, al, false);
-      mutt_addrlist_copy(&e->env->to, al, false);
+      mutt_addrlist_copy(e->env->from, al, false);
+      mutt_addrlist_copy(e->env->to, al, false);
       mutt_default_save(path, e);
       email_free(&e);
       break;

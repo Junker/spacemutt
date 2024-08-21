@@ -70,8 +70,8 @@ static int alias_sort_address(const void *a, const void *b, void *sdata)
   const struct AliasView *av_b = b;
   const bool sort_reverse = *(bool *) sdata;
 
-  const struct AddressList *al_a = &av_a->alias->addr;
-  const struct AddressList *al_b = &av_b->alias->addr;
+  const AddressList *al_a = av_a->alias->addr;
+  const AddressList *al_b = av_b->alias->addr;
 
   if (av_a->is_visible != av_b->is_visible)
     return av_a->is_visible ? -1 : 1;
@@ -94,8 +94,8 @@ static int alias_sort_address(const void *a, const void *b, void *sdata)
   }
   else
   {
-    const struct Address *addr_a = TAILQ_FIRST(al_a);
-    const struct Address *addr_b = TAILQ_FIRST(al_b);
+    const struct Address *addr_a = g_queue_peek_head(al_a);
+    const struct Address *addr_b = g_queue_peek_head(al_b);
     if (addr_a && addr_a->personal)
     {
       if (addr_b && addr_b->personal)

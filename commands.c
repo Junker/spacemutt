@@ -319,23 +319,26 @@ static enum CommandResult parse_group(struct Buffer *buf, struct Buffer *s,
         case GS_ADDR:
         {
           char *estr = NULL;
-          struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-          mutt_addrlist_parse2(&al, buf->data);
-          if (TAILQ_EMPTY(&al))
+          AddressList *al = mutt_addrlist_new();
+          mutt_addrlist_parse2(al, buf->data);
+          if (g_queue_is_empty(al))
+          {
+            mutt_addrlist_free_full(g_steal_pointer(&al));
             goto bail;
-          if (mutt_addrlist_to_intl(&al, &estr))
+          };
+          if (mutt_addrlist_to_intl(al, &estr))
           {
             buf_printf(err, _("%sgroup: warning: bad IDN '%s'"),
                        (data == 1) ? "un" : "", estr);
-            mutt_addrlist_clear(&al);
+            mutt_addrlist_free_full(g_steal_pointer(&al));
             FREE(&estr);
             goto bail;
           }
           if (data == MUTT_GROUP)
-            mutt_grouplist_add_addrlist(&gl, &al);
+            mutt_grouplist_add_addrlist(&gl, al);
           else if (data == MUTT_UNGROUP)
-            mutt_grouplist_remove_addrlist(&gl, &al);
-          mutt_addrlist_clear(&al);
+            mutt_grouplist_remove_addrlist(&gl, al);
+          mutt_addrlist_free_full(al);
           break;
         }
       }

@@ -270,14 +270,14 @@ static void add_args_one(struct SendmailArgArray *args, const struct Address *ad
  * @param[in, out] args    Array to add to
  * @param[in]  al      Addresses to add
  */
-static void add_args(struct SendmailArgArray *args, struct AddressList *al)
+static void add_args(struct SendmailArgArray *args, AddressList *al)
 {
   if (!al)
     return;
 
-  struct Address *a = NULL;
-  TAILQ_FOREACH(a, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     add_args_one(args, a);
   }
 }
@@ -297,9 +297,9 @@ static void add_args(struct SendmailArgArray *args, struct AddressList *al)
  *
  * @sa $inews
  */
-int mutt_invoke_sendmail(struct Mailbox *m, struct AddressList *from,
-                         struct AddressList *to, struct AddressList *cc,
-                         struct AddressList *bcc, const char *msg,
+int mutt_invoke_sendmail(struct Mailbox *m, AddressList *from,
+                         AddressList *to, AddressList *cc,
+                         AddressList *bcc, const char *msg,
                          bool eightbit, struct ConfigSubset *sub)
 {
   char *ps = NULL, *path = NULL, *s = NULL, *childout = NULL;
@@ -387,7 +387,7 @@ int mutt_invoke_sendmail(struct Mailbox *m, struct AddressList *from,
         ARRAY_ADD(&args, "-f");
         add_args_one(&args, c_envelope_from_address);
       }
-      else if (!TAILQ_EMPTY(from) && !TAILQ_NEXT(TAILQ_FIRST(from), entries))
+      else if (from->length > 1)
       {
         ARRAY_ADD(&args, "-f");
         add_args(&args, from);

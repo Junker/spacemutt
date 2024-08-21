@@ -91,10 +91,10 @@ static int address_string_set(const struct ConfigSet *cs, void *var, struct Conf
   if (var && value)
   {
     // TODO - config can only store one
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-    mutt_addrlist_parse(&al, value);
-    addr = mutt_addr_copy(TAILQ_FIRST(&al));
-    mutt_addrlist_clear(&al);
+    AddressList *al = mutt_addrlist_new();
+    mutt_addrlist_parse(al, value);
+    addr = mutt_addr_copy(g_queue_peek_head(al));
+    mutt_addrlist_free_full(g_steal_pointer(&al));
   }
 
   if (var)

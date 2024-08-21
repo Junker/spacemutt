@@ -123,9 +123,9 @@ void mutt_auto_subscribe(const char *mailto)
 
   struct Envelope *lpenv = mutt_env_new(); /* parsed envelope from the List-Post mailto: URL */
 
-  if (mutt_parse_mailto(lpenv, NULL, mailto) && !TAILQ_EMPTY(&lpenv->to))
+  if (mutt_parse_mailto(lpenv, NULL, mailto) && !g_queue_is_empty(lpenv->to))
   {
-    const char *mailbox = buf_string(TAILQ_FIRST(&lpenv->to)->mailbox);
+    const char *mailbox = buf_string(((struct Address*)g_queue_peek_head(lpenv->to))->mailbox);
     if (mailbox && !mutt_regexlist_match(&SubscribedLists, mailbox) &&
         !mutt_regexlist_match(&UnMailLists, mailbox) &&
         !mutt_regexlist_match(&UnSubscribedLists, mailbox))
@@ -691,12 +691,12 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
     case 'a':
       if ((name_len == 13) && eqi12(name + 1, "pparently-to"))
       {
-        mutt_addrlist_parse(&env->to, body);
+        mutt_addrlist_parse(env->to, body);
         matched = true;
       }
       else if ((name_len == 15) && eqi14(name + 1, "pparently-from"))
       {
-        mutt_addrlist_parse(&env->from, body);
+        mutt_addrlist_parse(env->from, body);
         matched = true;
       }
 #ifdef USE_AUTOCRYPT
@@ -724,7 +724,7 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
     case 'b':
       if ((name_len == 3) && eqi2(name + 1, "cc"))
       {
-        mutt_addrlist_parse(&env->bcc, body);
+        mutt_addrlist_parse(env->bcc, body);
         matched = true;
       }
       break;
@@ -732,7 +732,7 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
     case 'c':
       if ((name_len == 2) && eqi1(name + 1, "c"))
       {
-        mutt_addrlist_parse(&env->cc, body);
+        mutt_addrlist_parse(env->cc, body);
         matched = true;
       }
       else
@@ -819,7 +819,7 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
     case 'f':
       if ((name_len == 4) && eqi4(name, "from"))
       {
-        mutt_addrlist_parse(&env->from, body);
+        mutt_addrlist_parse(env->from, body);
         matched = true;
       }
       else if ((name_len == 11) && eqi10(name + 1, "ollowup-to"))
@@ -919,13 +919,13 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
           if ((name_len == 13) && eqi8(name + 5, "reply-to"))
           {
             /* override the Reply-To: field */
-            mutt_addrlist_clear(&env->reply_to);
-            mutt_addrlist_parse(&env->reply_to, body);
+            mutt_addrlist_clear(env->reply_to);
+            mutt_addrlist_parse(env->reply_to, body);
             matched = true;
           }
           else if ((name_len == 16) && eqi11(name + 5, "followup-to"))
           {
-            mutt_addrlist_parse(&env->mail_followup_to, body);
+            mutt_addrlist_parse(env->mail_followup_to, body);
             matched = true;
           }
         }
@@ -960,12 +960,12 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
       }
       else if ((name_len == 8) && eqi8(name, "reply-to"))
       {
-        mutt_addrlist_parse(&env->reply_to, body);
+        mutt_addrlist_parse(env->reply_to, body);
         matched = true;
       }
       else if ((name_len == 11) && eqi10(name + 1, "eturn-path"))
       {
-        mutt_addrlist_parse(&env->return_path, body);
+        mutt_addrlist_parse(env->return_path, body);
         matched = true;
       }
       else if ((name_len == 8) && eqi8(name, "received"))
@@ -992,7 +992,7 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
       }
       else if ((name_len == 6) && eqi5(name + 1, "ender"))
       {
-        mutt_addrlist_parse(&env->sender, body);
+        mutt_addrlist_parse(env->sender, body);
         matched = true;
       }
       else if ((name_len == 6) && eqi5(name + 1, "tatus"))
@@ -1031,7 +1031,7 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
     case 't':
       if ((name_len == 2) && eqi1(name + 1, "o"))
       {
-        mutt_addrlist_parse(&env->to, body);
+        mutt_addrlist_parse(env->to, body);
         matched = true;
       }
       break;
@@ -1082,7 +1082,7 @@ int mutt_rfc822_parse_line(struct Envelope *env, struct Email *e,
       }
       else if ((name_len == 13) && eqi12(name + 1, "-original-to"))
       {
-        mutt_addrlist_parse(&env->x_original_to, body);
+        mutt_addrlist_parse(env->x_original_to, body);
         matched = true;
       }
       break;
@@ -1768,7 +1768,7 @@ bool mutt_parse_mailto(struct Envelope *env, char **body, const char *src)
     return false;
   }
 
-  mutt_addrlist_parse(&env->to, url->path);
+  mutt_addrlist_parse(env->to, url->path);
 
   struct UrlQuery *np;
   STAILQ_FOREACH(np, &url->query_strings, entries)

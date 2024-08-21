@@ -156,18 +156,19 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
   /* address list */
   parse_extract_token(buf, s, TOKEN_QUOTE | TOKEN_SPACE | TOKEN_SEMICOLON);
   mutt_debug(LL_DEBUG5, "Second token is '%s'\n", buf->data);
-  struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
-  int parsed = mutt_addrlist_parse2(&al, buf->data);
+  AddressList *al = mutt_addrlist_new();
+  int parsed = mutt_addrlist_parse2(al, buf->data);
   if (parsed == 0)
   {
     buf_printf(err, _("Warning: Bad address '%s' in alias '%s'"), buf->data, name);
+    g_queue_free(al);
     FREE(&name);
     goto bail;
   }
 
   /* IDN */
   char *estr = NULL;
-  if (mutt_addrlist_to_intl(&al, &estr))
+  if (mutt_addrlist_to_intl(al, &estr))
   {
     buf_printf(err, _("Warning: Bad IDN '%s' in alias '%s'"), estr, name);
     FREE(&name);
@@ -187,7 +188,7 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
     FREE(&name);
     alias_reverse_delete(tmp);
     /* override the previous value */
-    mutt_addrlist_clear(&tmp->addr);
+    mutt_addrlist_clear(tmp->addr);
     FREE(&tmp->comment);
     event = NT_ALIAS_CHANGE;
   }
@@ -201,15 +202,15 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
   }
   tmp->addr = al;
 
-  mutt_grouplist_add_addrlist(&gl, &tmp->addr);
+  mutt_grouplist_add_addrlist(&gl, tmp->addr);
 
   const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
   if (c_debug_level > LL_DEBUG4)
   {
     /* A group is terminated with an empty address, so check a->mailbox */
-    struct Address *a = NULL;
-    TAILQ_FOREACH(a, &tmp->addr, entries)
+    for (GList *np = tmp->addr->head; np != NULL; np = np->next)
     {
+      struct Address *a = np->data;
       if (!a->mailbox)
         break;
 

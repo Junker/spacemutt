@@ -48,9 +48,9 @@
 #include <stdint.h>
 #include "core/lib.h"
 #include "complete/lib.h"
+#include "address/address.h"
 
 struct Address;
-struct AddressList;
 struct Alias;
 struct Buffer;
 struct ConfigSubset;
@@ -63,13 +63,13 @@ extern const struct CompleteOps CompleteAliasOps;
 void alias_init   (void);
 void alias_cleanup(void);
 
-void                alias_create           (struct AddressList *al, const struct ConfigSubset *sub);
-struct AddressList *alias_lookup           (const char *name);
+void                alias_create           (AddressList *al, const struct ConfigSubset *sub);
+AddressList        *alias_lookup           (const char *name);
 
 bool                mutt_addr_is_user      (const struct Address *addr);
 void                mutt_expand_aliases_env(struct Envelope *env);
-void                mutt_expand_aliases    (struct AddressList *al);
-struct AddressList *mutt_get_address       (struct Envelope *env, const char **prefix);
+void                mutt_expand_aliases    (AddressList *al);
+AddressList        *mutt_get_address       (struct Envelope *env, const char **prefix);
 
 enum CommandResult parse_alias  (struct Buffer *buf, struct Buffer *s, intptr_t data, struct Buffer *err);
 enum CommandResult parse_unalias(struct Buffer *buf, struct Buffer *s, intptr_t data, struct Buffer *err);

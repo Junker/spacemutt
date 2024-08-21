@@ -32,59 +32,61 @@
 
 void test_mutt_addrlist_parse2(void)
 {
-  // int mutt_addrlist_parse2(struct AddressList *al, const char *s);
+  // int mutt_addrlist_parse2(AddressList *al, const char *s);
 
   {
-    struct AddressList alist = TAILQ_HEAD_INITIALIZER(alist);
-    int parsed = mutt_addrlist_parse2(&alist, NULL);
+    AddressList *alist = mutt_addrlist_new();
+    int parsed = mutt_addrlist_parse2(alist, NULL);
     TEST_CHECK(parsed == 0);
-    TEST_CHECK(TAILQ_EMPTY(&alist));
+    TEST_CHECK(g_queue_is_empty(alist));
+    mutt_addrlist_free_full(alist);
   }
 
   {
-    struct AddressList alist = TAILQ_HEAD_INITIALIZER(alist);
-    int parsed = mutt_addrlist_parse2(&alist, "");
+    AddressList *alist = mutt_addrlist_new();
+    int parsed = mutt_addrlist_parse2(alist, "");
     TEST_CHECK(parsed == 0);
-    TEST_CHECK(TAILQ_EMPTY(&alist));
+    TEST_CHECK(g_queue_is_empty(alist));
+    mutt_addrlist_free_full(alist);
   }
 
   {
-    struct AddressList alist = TAILQ_HEAD_INITIALIZER(alist);
-    int parsed = mutt_addrlist_parse2(&alist, "apple");
+    AddressList *alist = mutt_addrlist_new();
+    int parsed = mutt_addrlist_parse2(alist, "apple");
     TEST_CHECK(parsed == 1);
-    TEST_CHECK(!TAILQ_EMPTY(&alist));
-    TEST_CHECK_STR_EQ(buf_string(TAILQ_FIRST(&alist)->mailbox), "apple");
-    mutt_addrlist_clear(&alist);
+    TEST_CHECK(!g_queue_is_empty(alist));
+    TEST_CHECK_STR_EQ(buf_string(((struct Address*)g_queue_peek_head(alist))->mailbox), "apple");
+    mutt_addrlist_free_full(alist);
   }
 
   {
     /* Not extremely nice, but this is the way it works... */
-    struct AddressList alist = TAILQ_HEAD_INITIALIZER(alist);
-    int parsed = mutt_addrlist_parse2(&alist, "test@example.com John Doe <john@doe.org>");
+    AddressList *alist = mutt_addrlist_new();
+    int parsed = mutt_addrlist_parse2(alist, "test@example.com John Doe <john@doe.org>");
     TEST_CHECK(parsed == 1);
-    TEST_CHECK(!TAILQ_EMPTY(&alist));
-    struct Address *a = TAILQ_FIRST(&alist);
+    TEST_CHECK(!g_queue_is_empty(alist));
+    struct Address *a = g_queue_peek_head(alist);
     TEST_CHECK_STR_EQ(buf_string(a->personal), "test@example.com John Doe");
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "john@doe.org");
-    mutt_addrlist_clear(&alist);
+    mutt_addrlist_free_full(alist);
   }
 
   {
-    struct AddressList alist = TAILQ_HEAD_INITIALIZER(alist);
-    int parsed = mutt_addrlist_parse2(&alist, "test@example.com john@doe.org foo@bar.baz");
+    AddressList *alist = mutt_addrlist_new();
+    int parsed = mutt_addrlist_parse2(alist, "test@example.com john@doe.org foo@bar.baz");
     TEST_CHECK(parsed == 3);
-    TEST_CHECK(!TAILQ_EMPTY(&alist));
-    struct Address *a = TAILQ_FIRST(&alist);
+    TEST_CHECK(!g_queue_is_empty(alist));
+    struct Address *a = g_queue_peek_nth(alist, 0);
     TEST_CHECK(a->personal == NULL);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "test@example.com");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(alist, 1);
     TEST_CHECK(a->personal == NULL);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "john@doe.org");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(alist, 2);
     TEST_CHECK(a->personal == NULL);
     TEST_CHECK_STR_EQ(buf_string(a->mailbox), "foo@bar.baz");
-    a = TAILQ_NEXT(a, entries);
+    a = g_queue_peek_nth(alist, 3);
     TEST_CHECK(a == NULL);
-    mutt_addrlist_clear(&alist);
+    mutt_addrlist_free_full(alist);
   }
 }

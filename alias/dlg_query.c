@@ -118,16 +118,16 @@ static const struct Mapping QueryHelp[] = {
  * @param alias Alias to use
  * @retval true Success
  */
-bool alias_to_addrlist(struct AddressList *al, struct Alias *alias)
+bool alias_to_addrlist(AddressList *al, struct Alias *alias)
 {
-  if (!al || !TAILQ_EMPTY(al) || !alias)
+  if (!al || !g_queue_is_empty(al) || !alias)
     return false;
 
-  mutt_addrlist_copy(al, &alias->addr, false);
-  if (!TAILQ_EMPTY(al))
+  mutt_addrlist_copy(al, alias->addr, false);
+  if (!g_queue_is_empty(al))
   {
-    struct Address *first = TAILQ_FIRST(al);
-    struct Address *second = TAILQ_NEXT(first, entries);
+    struct Address *first = g_queue_peek_head(al);
+    struct Address *second = g_queue_peek_nth(al, 1);
     if (!second && !first->personal)
     {
       first->personal = buf_new(alias->name);
@@ -149,7 +149,7 @@ void query_a(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   const struct Alias *alias = av->alias;
 
   struct Buffer *addrs = buf_pool_get();
-  mutt_addrlist_write(&alias->addr, addrs, true);
+  mutt_addrlist_write(alias->addr, addrs, true);
 
   buf_printf(buf, "<%s>", buf_string(addrs));
 }
@@ -311,7 +311,7 @@ int query_run(const char *s, bool verbose, struct AliasList *al, const struct Co
 
     struct Alias *alias = alias_new();
 
-    mutt_addrlist_parse(&alias->addr, tok);
+    mutt_addrlist_parse(alias->addr, tok);
 
     if (next_tok)
     {
@@ -499,13 +499,13 @@ int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
   struct Alias *a_first = TAILQ_FIRST(&al);
   if (!TAILQ_NEXT(a_first, entries)) // only one response?
   {
-    struct AddressList addr = TAILQ_HEAD_INITIALIZER(addr);
-    if (alias_to_addrlist(&addr, a_first))
+    AddressList *addr = mutt_addrlist_new();
+    if (alias_to_addrlist(addr, a_first))
     {
-      mutt_addrlist_to_local(&addr);
+      mutt_addrlist_to_local(addr);
       buf_reset(buf);
-      mutt_addrlist_write(&addr, buf, false);
-      mutt_addrlist_clear(&addr);
+      mutt_addrlist_write(addr, buf, false);
+      mutt_addrlist_free_full(g_steal_pointer(&addr));
       mutt_clear_error();
     }
     goto done;
@@ -536,12 +536,12 @@ int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
     }
 
     first = false;
-    struct AddressList al_copy = TAILQ_HEAD_INITIALIZER(al_copy);
-    if (alias_to_addrlist(&al_copy, avp->alias))
+    AddressList *al_copy = mutt_addrlist_new();
+    if (alias_to_addrlist(al_copy, avp->alias))
     {
-      mutt_addrlist_to_local(&al_copy);
-      mutt_addrlist_write(&al_copy, buf, false);
-      mutt_addrlist_clear(&al_copy);
+      mutt_addrlist_to_local(al_copy);
+      mutt_addrlist_write(al_copy, buf, false);
+      mutt_addrlist_free_full(g_steal_pointer(&al_copy));
     }
   }
 
@@ -603,11 +603,11 @@ void query_index(struct Mailbox *m, struct ConfigSubset *sub)
     if (!avp->is_tagged)
       continue;
 
-    struct AddressList al_copy = TAILQ_HEAD_INITIALIZER(al_copy);
-    if (alias_to_addrlist(&al_copy, avp->alias))
+    AddressList *al_copy = mutt_addrlist_new();
+    if (alias_to_addrlist(al_copy, avp->alias))
     {
-      mutt_addrlist_copy(&e->env->to, &al_copy, false);
-      mutt_addrlist_clear(&al_copy);
+      mutt_addrlist_copy(e->env->to, al_copy, false);
+      mutt_addrlist_free_full(g_steal_pointer(&al_copy));
     }
   }
 

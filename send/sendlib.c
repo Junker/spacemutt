@@ -780,15 +780,15 @@ void mutt_prepare_envelope(struct Envelope *env, bool final, struct ConfigSubset
 {
   if (final)
   {
-    if (!TAILQ_EMPTY(&env->bcc) && TAILQ_EMPTY(&env->to) && TAILQ_EMPTY(&env->cc))
+    if (!g_queue_is_empty(env->bcc) && g_queue_is_empty(env->to) && g_queue_is_empty(env->cc))
     {
       /* some MTA's will put an Apparently-To: header field showing the Bcc:
        * recipients if there is no To: or Cc: field, so attempt to suppress
        * it by using an empty To: field.  */
       struct Address *to = mutt_addr_new();
       to->group = true;
-      mutt_addrlist_append(&env->to, to);
-      mutt_addrlist_append(&env->to, mutt_addr_new());
+      mutt_addrlist_append(env->to, to);
+      mutt_addrlist_append(env->to, mutt_addr_new());
 
       char buf[1024] = { 0 };
       buf[0] = '\0';
@@ -822,7 +822,7 @@ void mutt_unprepare_envelope(struct Envelope *env)
     rfc2047_decode((char**)&item->data);
   }
 
-  mutt_addrlist_clear(&env->mail_followup_to);
+  mutt_addrlist_clear(env->mail_followup_to);
 
   /* back conversions */
   rfc2047_decode_envelope(env);
@@ -841,8 +841,8 @@ void mutt_unprepare_envelope(struct Envelope *env)
  * @retval -1 Failure
  */
 static int bounce_message(FILE *fp, struct Mailbox *m, struct Email *e,
-                          struct AddressList *to, const char *resent_from,
-                          struct AddressList *env_from, struct ConfigSubset *sub)
+                          AddressList *to, const char *resent_from,
+                          AddressList *env_from, struct ConfigSubset *sub)
 {
   if (!e)
     return -1;
@@ -913,17 +913,17 @@ static int bounce_message(FILE *fp, struct Mailbox *m, struct Email *e,
  * @retval -1 Failure
  */
 int mutt_bounce_message(FILE *fp, struct Mailbox *m, struct Email *e,
-                        struct AddressList *to, struct ConfigSubset *sub)
+                        AddressList *to, struct ConfigSubset *sub)
 {
-  if (!fp || !e || !to || TAILQ_EMPTY(to))
+  if (!fp || !e || !to || g_queue_is_empty(to))
     return -1;
 
   const char *fqdn = mutt_fqdn(true, sub);
   char *err = NULL;
 
   struct Address *from = mutt_default_from(sub);
-  struct AddressList from_list = TAILQ_HEAD_INITIALIZER(from_list);
-  mutt_addrlist_append(&from_list, from);
+  AddressList *from_list = mutt_addrlist_new();
+  mutt_addrlist_append(from_list, from);
 
   /* mutt_default_from() does not use $real_name if the real name is not set
    * in $from, so we add it here.  The reason it is not added in
@@ -937,30 +937,30 @@ int mutt_bounce_message(FILE *fp, struct Mailbox *m, struct Email *e,
       from->personal = buf_new(c_real_name);
   }
 
-  mutt_addrlist_qualify(&from_list, fqdn);
+  mutt_addrlist_qualify(from_list, fqdn);
 
-  rfc2047_encode_addrlist(&from_list, "Resent-From");
-  if (mutt_addrlist_to_intl(&from_list, &err))
+  rfc2047_encode_addrlist(from_list, "Resent-From");
+  if (mutt_addrlist_to_intl(from_list, &err))
   {
     mutt_error(_("Bad IDN %s while preparing resent-from"), err);
     FREE(&err);
-    mutt_addrlist_clear(&from_list);
+    mutt_addrlist_free_full(from_list);
     return -1;
   }
   struct Buffer *resent_from = buf_pool_get();
-  mutt_addrlist_write(&from_list, resent_from, false);
+  mutt_addrlist_write(from_list, resent_from, false);
 
   OptNewsSend = false;
 
   /* prepare recipient list. idna conversion appears to happen before this
    * function is called, since the user receives confirmation of the address
    * list being bounced to.  */
-  struct AddressList resent_to = TAILQ_HEAD_INITIALIZER(resent_to);
-  mutt_addrlist_copy(&resent_to, to, false);
-  rfc2047_encode_addrlist(&resent_to, "Resent-To");
-  int rc = bounce_message(fp, m, e, &resent_to, buf_string(resent_from), &from_list, sub);
-  mutt_addrlist_clear(&resent_to);
-  mutt_addrlist_clear(&from_list);
+  AddressList *resent_to = mutt_addrlist_new();
+  mutt_addrlist_copy(resent_to, to, false);
+  rfc2047_encode_addrlist(resent_to, "Resent-To");
+  int rc = bounce_message(fp, m, e, resent_to, buf_string(resent_from), from_list, sub);
+  mutt_addrlist_free_full(resent_to);
+  mutt_addrlist_free_full(from_list);
   buf_pool_release(&resent_from);
   return rc;
 }

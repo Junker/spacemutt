@@ -24,15 +24,16 @@
 #ifndef MUTT_EMAIL_RFC2047_H
 #define MUTT_EMAIL_RFC2047_H
 
-struct AddressList;
+#include "address/address.h"
+
 struct Envelope;
 struct Slist;
 
 void rfc2047_decode(char **pd);
 void rfc2047_encode(char **pd, const char *specials, int col, const struct Slist *charsets);
 
-void rfc2047_decode_addrlist(struct AddressList *al);
-void rfc2047_encode_addrlist(struct AddressList *al, const char *tag);
+void rfc2047_decode_addrlist(AddressList *al);
+void rfc2047_encode_addrlist(AddressList *al, const char *tag);
 void rfc2047_decode_envelope(struct Envelope *env);
 void rfc2047_encode_envelope(struct Envelope *env);
 

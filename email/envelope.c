@@ -48,15 +48,15 @@
 struct Envelope *mutt_env_new(void)
 {
   struct Envelope *env = mutt_mem_calloc(1, sizeof(struct Envelope));
-  TAILQ_INIT(&env->return_path);
-  TAILQ_INIT(&env->from);
-  TAILQ_INIT(&env->to);
-  TAILQ_INIT(&env->cc);
-  TAILQ_INIT(&env->bcc);
-  TAILQ_INIT(&env->sender);
-  TAILQ_INIT(&env->reply_to);
-  TAILQ_INIT(&env->mail_followup_to);
-  TAILQ_INIT(&env->x_original_to);
+  env->return_path = mutt_addrlist_new();
+  env->from = mutt_addrlist_new();
+  env->to = mutt_addrlist_new();
+  env->cc = mutt_addrlist_new();
+  env->bcc = mutt_addrlist_new();
+  env->sender = mutt_addrlist_new();
+  env->reply_to = mutt_addrlist_new();
+  env->mail_followup_to = mutt_addrlist_new();
+  env->x_original_to = mutt_addrlist_new();
   env->references = g_queue_new();
   env->in_reply_to = g_queue_new();
   env->userhdrs = g_queue_new();
@@ -132,15 +132,15 @@ void mutt_env_free(struct Envelope **ptr)
 
   struct Envelope *env = *ptr;
 
-  mutt_addrlist_clear(&env->return_path);
-  mutt_addrlist_clear(&env->from);
-  mutt_addrlist_clear(&env->to);
-  mutt_addrlist_clear(&env->cc);
-  mutt_addrlist_clear(&env->bcc);
-  mutt_addrlist_clear(&env->sender);
-  mutt_addrlist_clear(&env->reply_to);
-  mutt_addrlist_clear(&env->mail_followup_to);
-  mutt_addrlist_clear(&env->x_original_to);
+  mutt_addrlist_free_full(env->return_path);
+  mutt_addrlist_free_full(env->from);
+  mutt_addrlist_free_full(env->to);
+  mutt_addrlist_free_full(env->cc);
+  mutt_addrlist_free_full(env->bcc);
+  mutt_addrlist_free_full(env->sender);
+  mutt_addrlist_free_full(env->reply_to);
+  mutt_addrlist_free_full(env->mail_followup_to);
+  mutt_addrlist_free_full(env->x_original_to);
 
   FREE(&env->list_post);
   FREE(&env->list_subscribe);
@@ -220,9 +220,9 @@ void mutt_env_merge(struct Envelope *base, struct Envelope **extra)
   }
   
 #define MOVE_ADDRESSLIST(member)                                               \
-  if (TAILQ_EMPTY(&base->member))                                              \
+  if (g_queue_is_empty(base->member))                                          \
   {                                                                            \
-    TAILQ_SWAP(&base->member, &(*extra)->member, Address, entries);            \
+    GQUEUE_SWAP(base->member, (*extra)->member);                               \
   }
 
 #define MOVE_BUFFER(member)                                                    \
@@ -297,11 +297,11 @@ bool mutt_env_cmp_strict(const struct Envelope *e1, const struct Envelope *e2)
     if (!mutt_str_equal(e1->message_id, e2->message_id) ||
         !mutt_str_equal(e1->subject, e2->subject) ||
         !g_queue_equal_custom(e1->references, e2->references, (GCompareFunc)mutt_str_cmp) ||
-        !mutt_addrlist_equal(&e1->from, &e2->from) ||
-        !mutt_addrlist_equal(&e1->sender, &e2->sender) ||
-        !mutt_addrlist_equal(&e1->reply_to, &e2->reply_to) ||
-        !mutt_addrlist_equal(&e1->to, &e2->to) || !mutt_addrlist_equal(&e1->cc, &e2->cc) ||
-        !mutt_addrlist_equal(&e1->return_path, &e2->return_path))
+        !mutt_addrlist_equal(e1->from, e2->from) ||
+        !mutt_addrlist_equal(e1->sender, e2->sender) ||
+        !mutt_addrlist_equal(e1->reply_to, e2->reply_to) ||
+        !mutt_addrlist_equal(e1->to, e2->to) || !mutt_addrlist_equal(e1->cc, e2->cc) ||
+        !mutt_addrlist_equal(e1->return_path, e2->return_path))
     {
       return false;
     }
@@ -327,13 +327,13 @@ void mutt_env_to_local(struct Envelope *env)
   if (!env)
     return;
 
-  mutt_addrlist_to_local(&env->return_path);
-  mutt_addrlist_to_local(&env->from);
-  mutt_addrlist_to_local(&env->to);
-  mutt_addrlist_to_local(&env->cc);
-  mutt_addrlist_to_local(&env->bcc);
-  mutt_addrlist_to_local(&env->reply_to);
-  mutt_addrlist_to_local(&env->mail_followup_to);
+  mutt_addrlist_to_local(env->return_path);
+  mutt_addrlist_to_local(env->from);
+  mutt_addrlist_to_local(env->to);
+  mutt_addrlist_to_local(env->cc);
+  mutt_addrlist_to_local(env->bcc);
+  mutt_addrlist_to_local(env->reply_to);
+  mutt_addrlist_to_local(env->mail_followup_to);
 }
 
 /* Note that 'member' in the 'env->member' expression is macro argument, not
@@ -342,7 +342,7 @@ void mutt_env_to_local(struct Envelope *env)
  * Note that #member escapes and double quotes the argument.
  */
 #define H_TO_INTL(member)                                                      \
-  if (mutt_addrlist_to_intl(&env->member, err) && (rc == 0))                   \
+  if (mutt_addrlist_to_intl(env->member, err) && (rc == 0))                    \
   {                                                                            \
     if (tag)                                                                   \
       *tag = #member;                                                          \

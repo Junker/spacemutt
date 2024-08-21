@@ -204,8 +204,8 @@ static int email_to_file(struct Message *msg, struct Buffer *tempfile,
   {
     if (e->security & APPLICATION_PGP)
     {
-      if (!TAILQ_EMPTY(&e->env->from))
-        crypt_pgp_invoke_getkeys(TAILQ_FIRST(&e->env->from));
+      if (!g_queue_is_empty(e->env->from))
+        crypt_pgp_invoke_getkeys(g_queue_peek_head(e->env->from));
 
       crypt_invoke_message(APPLICATION_PGP);
     }

@@ -103,7 +103,7 @@ static void autocrypt_compose_menu(struct Email *e, const struct ConfigSubset *s
  * @param[in,out] al    AddressList to edit
  * @retval true The address list was changed
  */
-static bool edit_address_list(enum HeaderField field, struct AddressList *al)
+static bool edit_address_list(enum HeaderField field, AddressList *al)
 {
   struct Buffer *old_list = buf_pool_get();
   struct Buffer *new_list = buf_pool_get();
@@ -191,7 +191,7 @@ static int op_envelope_edit_bcc(struct EnvelopeWindowData *wdata, int op)
 {
   if (wdata->is_news)
     return FR_NO_ACTION;
-  if (!edit_address_list(HDR_BCC, &wdata->email->env->bcc))
+  if (!edit_address_list(HDR_BCC, wdata->email->env->bcc))
     return FR_NO_ACTION;
 
   update_crypt_info(wdata);
@@ -206,7 +206,7 @@ static int op_envelope_edit_cc(struct EnvelopeWindowData *wdata, int op)
 {
   if (wdata->is_news)
     return FR_NO_ACTION;
-  if (!edit_address_list(HDR_CC, &wdata->email->env->cc))
+  if (!edit_address_list(HDR_CC, wdata->email->env->cc))
     return FR_NO_ACTION;
 
   update_crypt_info(wdata);
@@ -248,7 +248,7 @@ done:
  */
 static int op_envelope_edit_from(struct EnvelopeWindowData *wdata, int op)
 {
-  if (!edit_address_list(HDR_FROM, &wdata->email->env->from))
+  if (!edit_address_list(HDR_FROM, wdata->email->env->from))
     return FR_NO_ACTION;
 
   update_crypt_info(wdata);
@@ -261,7 +261,7 @@ static int op_envelope_edit_from(struct EnvelopeWindowData *wdata, int op)
  */
 static int op_envelope_edit_reply_to(struct EnvelopeWindowData *wdata, int op)
 {
-  if (!edit_address_list(HDR_REPLYTO, &wdata->email->env->reply_to))
+  if (!edit_address_list(HDR_REPLYTO, wdata->email->env->reply_to))
     return FR_NO_ACTION;
 
   mutt_env_notify_send(wdata->email, NT_ENVELOPE_REPLY_TO);
@@ -301,7 +301,7 @@ static int op_envelope_edit_to(struct EnvelopeWindowData *wdata, int op)
 {
   if (wdata->is_news)
     return FR_NO_ACTION;
-  if (!edit_address_list(HDR_TO, &wdata->email->env->to))
+  if (!edit_address_list(HDR_TO, wdata->email->env->to))
     return FR_NO_ACTION;
 
   update_crypt_info(wdata);

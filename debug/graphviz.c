@@ -1199,12 +1199,12 @@ void dot_gqueue(FILE *fp, const char *name, GQueue *list)
   buf_pool_release(&buf);
 }
 
-void dot_addr_list(FILE *fp, const char *name, const struct AddressList *al,
+void dot_addr_list(FILE *fp, const char *name, const AddressList *al,
                    GSList **links)
 {
   if (!al)
     return;
-  if (TAILQ_EMPTY(al))
+  if (g_queue_is_empty(al))
     return;
 
   struct Buffer *buf = buf_pool_get();
@@ -1227,7 +1227,7 @@ void dot_envelope(FILE *fp, struct Envelope *env, GSList **links)
 #undef ADD_BOOL
   dot_type_string(fp, "changed", buf_is_empty(buf) ? "[NONE]" : buf_string(buf), true);
 
-#define ADDR_LIST(AL) dot_addr_list(fp, #AL, &env->AL, links)
+#define ADDR_LIST(AL) dot_addr_list(fp, #AL, env->AL, links)
   ADDR_LIST(return_path);
   ADDR_LIST(from);
   ADDR_LIST(to);

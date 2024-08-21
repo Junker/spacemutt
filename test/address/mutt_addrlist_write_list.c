@@ -42,22 +42,21 @@ void test_mutt_addrlist_write_list(void)
 {
   {
     TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
-    struct AddressList al = TAILQ_HEAD_INITIALIZER(al);
+    AddressList *al = mutt_addrlist_new();
     const char in[] = "some-group: first@example.com,second@example.com; John Doe <john@doe.org>, \"Foo J. Bar\" <foo-j-bar@baz.com>";
-    mutt_addrlist_parse(&al, in);
-    struct ListHead l = STAILQ_HEAD_INITIALIZER(l);
-    const size_t written = mutt_addrlist_write_list(&al, &l);
+    mutt_addrlist_parse(al, in);
+    GSList *l = NULL;
+    const size_t written = mutt_addrlist_write_list(al, &l);
     TEST_CHECK(written == 5);
 
     char out[1024] = { 0 };
     size_t off = 0;
-    struct ListNode *ln = NULL;
-    STAILQ_FOREACH(ln, &l, entries)
+    for (GSList *ln = l; ln != NULL; ln = ln->next)
     {
-      off += snprintf(out + off, sizeof(out) - off, "|%s|", ln->data);
+      off += snprintf(out + off, sizeof(out) - off, "|%s|", (char*)ln->data);
     }
     TEST_CHECK_STR_EQ(out, "|some-group: ||first@example.com||second@example.com||John Doe <john@doe.org>||\"Foo J. Bar\" <foo-j-bar@baz.com>|");
-    mutt_addrlist_clear(&al);
-    mutt_list_free(&l);
+    mutt_addrlist_free_full(al);
+    g_slist_free_full(l, g_free);
   }
 }

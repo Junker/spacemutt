@@ -764,17 +764,17 @@ done:
  * @note rfc2047_encode() may realloc the data pointer it's given,
  *       so work on a copy to avoid breaking the Buffer
  */
-void rfc2047_encode_addrlist(struct AddressList *al, const char *tag)
+void rfc2047_encode_addrlist(AddressList *al, const char *tag)
 {
   if (!al)
     return;
 
   int col = tag ? strlen(tag) + 2 : 32;
-  struct Address *a = NULL;
   char *data = NULL;
   const struct Slist *const c_send_charset = cs_subset_slist(NeoMutt->sub, "send_charset");
-  TAILQ_FOREACH(a, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     if (a->personal)
     {
       data = buf_strdup(a->personal);
@@ -799,16 +799,16 @@ void rfc2047_encode_addrlist(struct AddressList *al, const char *tag)
  * @note rfc2047_decode() may realloc the data pointer it's given,
  *       so work on a copy to avoid breaking the Buffer
  */
-void rfc2047_decode_addrlist(struct AddressList *al)
+void rfc2047_decode_addrlist(AddressList *al)
 {
   if (!al)
     return;
 
   const bool assumed = !slist_is_empty(cc_assumed_charset());
-  struct Address *a = NULL;
   char *data = NULL;
-  TAILQ_FOREACH(a, al, entries)
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Address *a = np->data;
     if (a->personal && ((buf_find_string(a->personal, "=?")) || assumed))
     {
       data = buf_strdup(a->personal);
@@ -834,14 +834,14 @@ void rfc2047_decode_envelope(struct Envelope *env)
 {
   if (!env)
     return;
-  rfc2047_decode_addrlist(&env->from);
-  rfc2047_decode_addrlist(&env->to);
-  rfc2047_decode_addrlist(&env->cc);
-  rfc2047_decode_addrlist(&env->bcc);
-  rfc2047_decode_addrlist(&env->reply_to);
-  rfc2047_decode_addrlist(&env->mail_followup_to);
-  rfc2047_decode_addrlist(&env->return_path);
-  rfc2047_decode_addrlist(&env->sender);
+  rfc2047_decode_addrlist(env->from);
+  rfc2047_decode_addrlist(env->to);
+  rfc2047_decode_addrlist(env->cc);
+  rfc2047_decode_addrlist(env->bcc);
+  rfc2047_decode_addrlist(env->reply_to);
+  rfc2047_decode_addrlist(env->mail_followup_to);
+  rfc2047_decode_addrlist(env->return_path);
+  rfc2047_decode_addrlist(env->sender);
   rfc2047_decode(&env->x_label);
 
   char *subj = env->subject;
@@ -859,13 +859,13 @@ void rfc2047_encode_envelope(struct Envelope *env)
 {
   if (!env)
     return;
-  rfc2047_encode_addrlist(&env->from, "From");
-  rfc2047_encode_addrlist(&env->to, "To");
-  rfc2047_encode_addrlist(&env->cc, "Cc");
-  rfc2047_encode_addrlist(&env->bcc, "Bcc");
-  rfc2047_encode_addrlist(&env->reply_to, "Reply-To");
-  rfc2047_encode_addrlist(&env->mail_followup_to, "Mail-Followup-To");
-  rfc2047_encode_addrlist(&env->sender, "Sender");
+  rfc2047_encode_addrlist(env->from, "From");
+  rfc2047_encode_addrlist(env->to, "To");
+  rfc2047_encode_addrlist(env->cc, "Cc");
+  rfc2047_encode_addrlist(env->bcc, "Bcc");
+  rfc2047_encode_addrlist(env->reply_to, "Reply-To");
+  rfc2047_encode_addrlist(env->mail_followup_to, "Mail-Followup-To");
+  rfc2047_encode_addrlist(env->sender, "Sender");
   const struct Slist *const c_send_charset = cs_subset_slist(NeoMutt->sub, "send_charset");
   rfc2047_encode(&env->x_label, NULL, sizeof("X-Label:"), c_send_charset);
 

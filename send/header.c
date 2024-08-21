@@ -570,19 +570,19 @@ int mutt_rfc822_write_header(FILE *fp, struct Envelope *env, struct Body *b,
 
   /* UseFrom is not consulted here so that we can still write a From:
    * field if the user sets it with the 'my_hdr' command */
-  if (!TAILQ_EMPTY(&env->from) && !privacy)
+  if (!g_queue_is_empty(env->from) && !privacy)
   {
-    mutt_addrlist_write_file(&env->from, fp, "From");
+    mutt_addrlist_write_file(env->from, fp, "From");
   }
 
-  if (!TAILQ_EMPTY(&env->sender) && !privacy)
+  if (!g_queue_is_empty(env->sender) && !privacy)
   {
-    mutt_addrlist_write_file(&env->sender, fp, "Sender");
+    mutt_addrlist_write_file(env->sender, fp, "Sender");
   }
 
-  if (!TAILQ_EMPTY(&env->to))
+  if (!g_queue_is_empty(env->to))
   {
-    mutt_addrlist_write_file(&env->to, fp, "To");
+    mutt_addrlist_write_file(env->to, fp, "To");
   }
   else if (mode == MUTT_WRITE_HEADER_EDITHDRS)
   {
@@ -590,9 +590,9 @@ int mutt_rfc822_write_header(FILE *fp, struct Envelope *env, struct Body *b,
       fputs("To:\n", fp);
   }
 
-  if (!TAILQ_EMPTY(&env->cc))
+  if (!g_queue_is_empty(env->cc))
   {
-    mutt_addrlist_write_file(&env->cc, fp, "Cc");
+    mutt_addrlist_write_file(env->cc, fp, "Cc");
   }
   else if (mode == MUTT_WRITE_HEADER_EDITHDRS)
   {
@@ -600,7 +600,7 @@ int mutt_rfc822_write_header(FILE *fp, struct Envelope *env, struct Body *b,
       fputs("Cc:\n", fp);
   }
 
-  if (!TAILQ_EMPTY(&env->bcc))
+  if (!g_queue_is_empty(env->bcc))
   {
     const bool c_write_bcc = cs_subset_bool(sub, "write_bcc");
 
@@ -608,7 +608,7 @@ int mutt_rfc822_write_header(FILE *fp, struct Envelope *env, struct Body *b,
         (mode == MUTT_WRITE_HEADER_EDITHDRS) || (mode == MUTT_WRITE_HEADER_FCC) ||
         ((mode == MUTT_WRITE_HEADER_NORMAL) && c_write_bcc))
     {
-      mutt_addrlist_write_file(&env->bcc, fp, "Bcc");
+      mutt_addrlist_write_file(env->bcc, fp, "Bcc");
     }
   }
   else if (mode == MUTT_WRITE_HEADER_EDITHDRS)
@@ -657,20 +657,20 @@ int mutt_rfc822_write_header(FILE *fp, struct Envelope *env, struct Body *b,
   if (env->message_id && !privacy)
     fprintf(fp, "Message-ID: %s\n", env->message_id);
 
-  if (!TAILQ_EMPTY(&env->reply_to))
+  if (!g_queue_is_empty(env->reply_to))
   {
-    mutt_addrlist_write_file(&env->reply_to, fp, "Reply-To");
+    mutt_addrlist_write_file(env->reply_to, fp, "Reply-To");
   }
   else if (mode == MUTT_WRITE_HEADER_EDITHDRS)
   {
     fputs("Reply-To:\n", fp);
   }
 
-  if (!TAILQ_EMPTY(&env->mail_followup_to))
+  if (!g_queue_is_empty(env->mail_followup_to))
   {
     if (!OptNewsSend)
     {
-      mutt_addrlist_write_file(&env->mail_followup_to, fp, "Mail-Followup-To");
+      mutt_addrlist_write_file(env->mail_followup_to, fp, "Mail-Followup-To");
     }
   }
 
