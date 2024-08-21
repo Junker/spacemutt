@@ -860,21 +860,22 @@ void dot_account(FILE *fp, struct Account *a, GSList **links)
   dot_mailbox_list(fp, &a->mailboxes, links, false);
 }
 
-void dot_account_list(FILE *fp, struct AccountList *al, GSList **links)
+void dot_account_list(FILE *fp, AccountList *al, GSList **links)
 {
   struct Account *prev = NULL;
-  struct Account *np = NULL;
-  TAILQ_FOREACH(np, al, entries)
+
+  for (GList *np = al->head; np != NULL; np = np->next)
   {
+    struct Account *acc = np->data;
 #ifdef GV_HIDE_MBOX
-    if (np->type == MUTT_MBOX)
+    if (acc->type == MUTT_MBOX)
       continue;
 #endif
-    dot_account(fp, np, links);
+    dot_account(fp, acc, links);
     if (prev)
-      dot_add_link(links, prev, np, "Account->next", NULL, false, NULL);
+      dot_add_link(links, prev, acc, "Account->next", NULL, false, NULL);
 
-    prev = np;
+    prev = acc;
   }
 }
 
@@ -918,7 +919,7 @@ void dump_graphviz(const char *title, struct MailboxView *mv)
 
 #ifndef GV_HIDE_NEOMUTT
   dot_node(fp, NeoMutt, "NeoMutt", "#ffa500");
-  dot_add_link(&links, NeoMutt, TAILQ_FIRST(&NeoMutt->accounts),
+  dot_add_link(&links, NeoMutt, g_queue_peek_head(NeoMutt->accounts),
                "NeoMutt->accounts", NULL, false, NULL);
 #ifndef GV_HIDE_CONFIG
   dot_config(fp, (const char *) NeoMutt->sub, 0, NeoMutt->sub, &links);
@@ -934,7 +935,7 @@ void dump_graphviz(const char *title, struct MailboxView *mv)
 #endif
 #endif
 
-  dot_account_list(fp, &NeoMutt->accounts, &links);
+  dot_account_list(fp, NeoMutt->accounts, &links);
 
 #ifndef GV_HIDE_MVIEW
   if (mv)
@@ -955,14 +956,14 @@ void dump_graphviz(const char *title, struct MailboxView *mv)
 #endif
 
   fprintf(fp, "\t{ rank=same ");
-  struct Account *np = NULL;
-  TAILQ_FOREACH(np, &NeoMutt->accounts, entries)
+  for (GList *np = NeoMutt->accounts->head; np != NULL; np = np->next)
   {
+    struct Account *acc = np->data;
 #ifdef GV_HIDE_MBOX
-    if (np->type == MUTT_MBOX)
+    if (acc->type == MUTT_MBOX)
       continue;
 #endif
-    dot_ptr_name(name, sizeof(name), np);
+    dot_ptr_name(name, sizeof(name), acc);
     fprintf(fp, "%s ", name);
   }
   fprintf(fp, "}\n");

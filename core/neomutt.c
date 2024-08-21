@@ -54,7 +54,7 @@ struct NeoMutt *neomutt_new(struct ConfigSet *cs)
 
   struct NeoMutt *n = mutt_mem_calloc(1, sizeof(*NeoMutt));
 
-  TAILQ_INIT(&n->accounts);
+  n->accounts = g_queue_new();
   n->notify = notify_new();
   n->sub = cs_subset_new(NULL, NULL, n->notify);
   n->sub->cs = cs;
@@ -91,6 +91,8 @@ void neomutt_free(struct NeoMutt **ptr)
   struct NeoMutt *n = *ptr;
 
   neomutt_account_remove(n, NULL);
+  if (n->accounts)
+    g_queue_free(n->accounts);
   cs_subset_free(&n->sub);
   notify_free(&n->notify_resize);
   notify_free(&n->notify_timeout);
@@ -112,7 +114,7 @@ bool neomutt_account_add(struct NeoMutt *n, struct Account *a)
   if (!n || !a)
     return false;
 
-  TAILQ_INSERT_TAIL(&n->accounts, a, entries);
+  g_queue_push_tail(n->accounts, a);
   notify_set_parent(a->notify, n->notify);
 
   mutt_debug(LL_NOTIFY, "NT_ACCOUNT_ADD: %s %p\n",
@@ -132,7 +134,7 @@ bool neomutt_account_add(struct NeoMutt *n, struct Account *a)
  */
 bool neomutt_account_remove(struct NeoMutt *n, const struct Account *a)
 {
-  if (!n || TAILQ_EMPTY(&n->accounts))
+  if (!n || !n->accounts || g_queue_is_empty(n->accounts))
     return false;
 
   if (!a)
@@ -143,15 +145,14 @@ bool neomutt_account_remove(struct NeoMutt *n, const struct Account *a)
   }
 
   bool result = false;
-  struct Account *np = NULL;
-  struct Account *tmp = NULL;
-  TAILQ_FOREACH_SAFE(np, &n->accounts, entries, tmp)
+  for (GList *np = n->accounts->head; np != NULL; np = np->next)
   {
-    if (a && (np != a))
+    struct Account *acc = np->data;
+    if (a && (acc != a))
       continue;
 
-    TAILQ_REMOVE(&n->accounts, np, entries);
-    account_free(&np);
+    g_queue_remove(n->accounts, acc);
+    account_free(&acc);
     result = true;
     if (a)
       break;
@@ -195,11 +196,11 @@ size_t neomutt_mailboxlist_get_all(struct MailboxList *head, struct NeoMutt *n,
     return 0;
 
   size_t count = 0;
-  struct Account *a = NULL;
   struct MailboxNode *mn = NULL;
 
-  TAILQ_FOREACH(a, &n->accounts, entries)
+  for (GList *np = n->accounts->head; np != NULL; np = np->next)
   {
+    struct Account *a = np->data;
     if ((type > MUTT_UNKNOWN) && (a->type != type))
       continue;
 

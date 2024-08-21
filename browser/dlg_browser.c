@@ -862,7 +862,7 @@ int examine_mailboxes(struct Mailbox *m, struct Menu *menu, struct BrowserState 
   {
     init_state(state, menu);
 
-    if (TAILQ_EMPTY(&NeoMutt->accounts))
+    if (g_queue_is_empty(NeoMutt->accounts))
       return -1;
     mailbox = buf_pool_get();
     md = buf_pool_get();

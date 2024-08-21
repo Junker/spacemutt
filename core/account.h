@@ -52,9 +52,8 @@ struct Account
    */
   void (*adata_free)(void **ptr);
 
-  TAILQ_ENTRY(Account) entries;   ///< Linked list
 };
-TAILQ_HEAD(AccountList, Account);
+typedef GQueue AccountList;
 
 /**
  * enum NotifyAccount - Types of Account Event

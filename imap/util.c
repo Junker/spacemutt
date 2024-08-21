@@ -80,13 +80,13 @@ int imap_adata_find(const char *path, struct ImapAccountData **adata,
   if (imap_parse_path(path, &cac, tmp, sizeof(tmp)) < 0)
     return -1;
 
-  struct Account *np = NULL;
-  TAILQ_FOREACH(np, &NeoMutt->accounts, entries)
+  for (GList *np = NeoMutt->accounts->head; np != NULL; np = np->next)
   {
-    if (np->type != MUTT_IMAP)
+    struct Account *acc = np->data;
+    if (acc->type != MUTT_IMAP)
       continue;
 
-    tmp_adata = np->adata;
+    tmp_adata = acc->adata;
     if (!tmp_adata)
       continue;
     if (imap_account_match(&tmp_adata->conn->account, &cac))
@@ -956,14 +956,14 @@ void imap_unmunge_mbox_name(bool unicode, char *s)
 void imap_keep_alive(void)
 {
   time_t now = mutt_date_now();
-  struct Account *np = NULL;
   const short c_imap_keep_alive = cs_subset_number(NeoMutt->sub, "imap_keep_alive");
-  TAILQ_FOREACH(np, &NeoMutt->accounts, entries)
+  for (GList *np = NeoMutt->accounts->head; np != NULL; np = np->next)
   {
-    if (np->type != MUTT_IMAP)
+    struct Account *acc = NULL;
+    if (acc->type != MUTT_IMAP)
       continue;
 
-    struct ImapAccountData *adata = np->adata;
+    struct ImapAccountData *adata = acc->adata;
     if (!adata || !adata->mailbox)
       continue;
 
