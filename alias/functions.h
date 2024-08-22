@@ -27,7 +27,6 @@
 #include "address/address.h"
 
 struct Alias;
-struct AliasList;
 struct AliasMenuData;
 struct AliasViewArray;
 struct ConfigSubset;

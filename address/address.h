@@ -41,8 +41,6 @@ struct Address
   bool is_intl : 1;             ///< International Domain Name
   bool intl_checked : 1;        ///< Checked for IDN?
 };
-/* TAILQ_HEAD(AddressList, Address); */
-
 typedef GQueue AddressList;
 
 extern const char AddressSpecials[];

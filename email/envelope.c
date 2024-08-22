@@ -207,12 +207,6 @@ void mutt_env_merge(struct Envelope *base, struct Envelope **extra)
     (*extra)->member = NULL;                                                   \
   }
 
-#define MOVE_STAILQ(member)                                                    \
-  if (STAILQ_EMPTY(&base->member))                                             \
-  {                                                                            \
-    STAILQ_SWAP(&base->member, &(*extra)->member, ListNode);                   \
-  }
-
 #define MOVE_GQUEUE(member)                                                    \
   if (g_queue_is_empty(base->member))                                         \
   {                                                                            \

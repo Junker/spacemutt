@@ -53,7 +53,7 @@ GSList *AlternativeOrderList = NULL;///< List of preferred mime types to display
 GSList *AutoViewList = NULL;        ///< List of mime types to auto view
 GSList *HeaderOrderList = NULL;     ///< List of header fields in the order they should be displayed
 GSList *MimeLookupList = NULL;      ///< List of mime types that that shouldn't use the mailcap entry
-GQueue *UserHeader = NULL;
+GQueue *UserHeader = NULL;          ///< List of custom headers to add to outgoing emails
 // clang-format on
 
 /* pseudo options */
