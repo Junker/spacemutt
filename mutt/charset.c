@@ -76,12 +76,11 @@ struct Lookup
   enum LookupType type;        ///< Lookup type
   struct Regex regex;          ///< Regular expression
   char *replacement;           ///< Alternative charset to use
-  TAILQ_ENTRY(Lookup) entries; ///< Linked list
 };
-TAILQ_HEAD(LookupList, Lookup);
+typedef GSList LookupList;
 
 /// Lookup table of preferred character set names
-static struct LookupList Lookups = TAILQ_HEAD_INITIALIZER(Lookups);
+static LookupList *Lookups = NULL;
 
 /**
  * struct IconvCacheEntry - Cached iconv conversion descriptor
@@ -306,10 +305,9 @@ static const char *lookup_charset(enum LookupType type, const char *cs)
   if (!cs)
     return NULL;
 
-  struct Lookup *l = NULL;
-
-  TAILQ_FOREACH(l, &Lookups, entries)
+  for (GSList *np = Lookups; np != NULL; np = np->next)
   {
+    struct Lookup *l = np->data;
     if (l->type != type)
       continue;
     if (mutt_regex_match(&l->regex, cs))
@@ -528,7 +526,7 @@ bool mutt_ch_lookup_add(enum LookupType type, const char *pat,
   l->regex.regex = rx;
   l->regex.pat_not = false;
 
-  TAILQ_INSERT_TAIL(&Lookups, l, entries);
+  Lookups = g_slist_append(Lookups, l);
 
   return true;
 }
@@ -540,14 +538,11 @@ bool mutt_ch_lookup_add(enum LookupType type, const char *pat,
  */
 void mutt_ch_lookup_remove(void)
 {
-  struct Lookup *l = NULL;
-  struct Lookup *tmp = NULL;
-
-  TAILQ_FOREACH_SAFE(l, &Lookups, entries, tmp)
+  for (GSList *np = Lookups; np != NULL; np = np->next)
   {
-    TAILQ_REMOVE(&Lookups, l, entries);
-    lookup_free(&l);
+    lookup_free((struct Lookup**)&np->data);
   }
+  g_slist_free(g_steal_pointer(&Lookups));
 }
 
 /**
