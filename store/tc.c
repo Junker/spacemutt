@@ -50,7 +50,7 @@ static StoreHandle *store_tokyocabinet_open(const char *path, bool create)
   if (!tcbdbopen(db, path, BDBOWRITER | (create ? BDBOCREAT : 0)))
   {
     int ecode = tcbdbecode(db);
-    mutt_debug(LL_DEBUG2, "tcbdbopen failed for %s: %s (ecode %d)\n", path,
+    log_debug2("tcbdbopen failed for %s: %s (ecode %d)", path,
                tcbdberrmsg(ecode), ecode);
     tcbdbdel(db);
     return NULL;
@@ -135,7 +135,7 @@ static void store_tokyocabinet_close(StoreHandle **ptr)
   if (!tcbdbclose(db))
   {
     int ecode = tcbdbecode(db);
-    mutt_debug(LL_DEBUG2, "tcbdbclose failed: %s (ecode %d)\n", tcbdberrmsg(ecode), ecode);
+    log_debug2("tcbdbclose failed: %s (ecode %d)", tcbdberrmsg(ecode), ecode);
   }
   tcbdbdel(db);
   *ptr = NULL;

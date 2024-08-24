@@ -124,7 +124,7 @@ static void append_signature(FILE *fp, struct ConfigSubset *sub)
   if (!fp_tmp)
   {
     if (notify_missing)
-      mutt_perror("%s", c_signature);
+      log_perror("%s", c_signature);
     return;
   }
 
@@ -216,7 +216,7 @@ int mutt_edit_address(AddressList *al, const char *field, bool expand_aliases)
     idna_ok = mutt_addrlist_to_intl(al, &err);
     if (idna_ok != 0)
     {
-      mutt_error(_("Bad IDN: '%s'"), err);
+      log_fault(_("Bad IDN: '%s'"), err);
       FREE(&err);
     }
   } while (idna_ok != 0);
@@ -305,7 +305,7 @@ static int edit_envelope(struct Envelope *en, SendFlags flags, struct ConfigSubs
 
     if (g_queue_is_empty(en->to) && g_queue_is_empty(en->cc) && g_queue_is_empty(en->bcc))
     {
-      mutt_warning(_("No recipients specified"));
+      log_warning(_("No recipients specified"));
       goto done;
     }
 
@@ -347,7 +347,7 @@ static int edit_envelope(struct Envelope *en, SendFlags flags, struct ConfigSubs
       (buf_is_empty(buf) &&
        (query_quadoption(_("No subject, abort?"), sub, "abort_nosubject") != MUTT_NO)))
   {
-    mutt_message(_("No subject, aborting"));
+    log_message(_("No subject, aborting"));
     goto done;
   }
   mutt_env_set_subject(en, buf_string(buf));
@@ -1184,7 +1184,7 @@ static int envelope_defaults(struct Envelope *env, struct EmailArray *ea,
 
     if ((flags & SEND_LIST_REPLY) && g_queue_is_empty(env->to))
     {
-      mutt_error(_("No mailing lists found"));
+      log_fault(_("No mailing lists found"));
       return -1;
     }
 
@@ -1232,14 +1232,14 @@ static int generate_body(FILE *fp_tmp, struct Email *e, SendFlags flags,
 
     if (ans == MUTT_YES)
     {
-      mutt_message(_("Including quoted message..."));
+      log_message(_("Including quoted message..."));
       struct Email **ep = NULL;
       size_t count = ARRAY_SIZE(ea) - 1;
       ARRAY_FOREACH(ep, ea)
       {
         if (include_reply(m, *ep, fp_tmp, sub) == -1)
         {
-          mutt_error(_("Could not include all requested messages"));
+          log_fault(_("Could not include all requested messages"));
           return -1;
         }
         if (ARRAY_FOREACH_IDX < count)
@@ -1256,7 +1256,7 @@ static int generate_body(FILE *fp_tmp, struct Email *e, SendFlags flags,
     {
       struct Body *last = e->body;
 
-      mutt_message(_("Preparing forwarded message..."));
+      log_message(_("Preparing forwarded message..."));
 
       while (last && last->next)
         last = last->next;
@@ -1518,7 +1518,7 @@ static int invoke_mta(struct Mailbox *m, struct Email *e, struct ConfigSubset *s
 
   if (mutt_file_fclose(&fp_tmp) != 0)
   {
-    mutt_perror("%s", buf_string(tempfile));
+    log_perror("%s", buf_string(tempfile));
     unlink(buf_string(tempfile));
     goto cleanup;
   }
@@ -1745,13 +1745,13 @@ static int save_fcc(struct Mailbox *m, struct Email *e, struct Buffer *fcc,
   if ((flags & SEND_BATCH) && !buf_is_empty(fcc) &&
       (imap_path_probe(buf_string(fcc), NULL) == MUTT_IMAP))
   {
-    mutt_error(_("Warning: Fcc to an IMAP mailbox is not supported in batch mode"));
+    log_fault(_("Warning: Fcc to an IMAP mailbox is not supported in batch mode"));
     /* L10N: Printed after the "Fcc to an IMAP mailbox is not supported" message.
        To make it clearer that the message doesn't mean NeoMutt is aborting
        sending the mail too.
        %s is the full mailbox URL, including imap(s)://
     */
-    mutt_error(_("Skipping Fcc to %s"), buf_string(fcc));
+    log_fault(_("Skipping Fcc to %s"), buf_string(fcc));
     buf_reset(fcc);
     return rc;
   }
@@ -1930,7 +1930,7 @@ static int postpone_message(struct Email *e_post, struct Email *e_cur,
   const char *const c_postponed = cs_subset_string(sub, "postponed");
   if (!c_postponed)
   {
-    mutt_error(_("Can't postpone.  $postponed is unset"));
+    log_fault(_("Can't postpone.  $postponed is unset"));
     return -1;
   }
 
@@ -1967,7 +1967,7 @@ static int postpone_message(struct Email *e_post, struct Email *e_cur,
         if (mutt_istr_equal(e_post->body->subtype, "mixed"))
           e_post->body = mutt_remove_multipart(e_post->body);
         decode_descriptions(e_post->body);
-        mutt_error(_("Error encrypting message. Check your crypt settings."));
+        log_fault(_("Error encrypting message. Check your crypt settings."));
         return -1;
       }
       encrypt_as = AutocryptDefaultKey;
@@ -1984,7 +1984,7 @@ static int postpone_message(struct Email *e_post, struct Email *e_cur,
         if (mutt_istr_equal(e_post->body->subtype, "mixed"))
           e_post->body = mutt_remove_multipart(e_post->body);
         decode_descriptions(e_post->body);
-        mutt_error(_("Error encrypting message. Check your crypt settings."));
+        log_fault(_("Error encrypting message. Check your crypt settings."));
         return -1;
       }
 
@@ -2078,7 +2078,7 @@ static bool abort_for_missing_attachments(const struct Body *b, struct ConfigSub
 
   if (c_abort_noattach == MUTT_YES)
   {
-    mutt_error(_("Message contains text matching \"$abort_noattach_regex\". Not sending."));
+    log_fault(_("Message contains text matching \"$abort_noattach_regex\". Not sending."));
     return true;
   }
 
@@ -2194,7 +2194,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
       fp_tmp = mutt_file_fopen(b->filename, "a+");
       if (!fp_tmp)
       {
-        mutt_perror("%s", b->filename);
+        log_perror("%s", b->filename);
         goto cleanup;
       }
     }
@@ -2257,9 +2257,9 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
 
     if (!fp_tmp)
     {
-      mutt_debug(LL_DEBUG1, "can't create tempfile %s (errno=%d)\n",
+      log_debug1("can't create tempfile %s (errno=%d)",
                  e_templ->body->filename, errno);
-      mutt_perror("%s", e_templ->body->filename);
+      log_perror("%s", e_templ->body->filename);
       goto cleanup;
     }
   }
@@ -2276,7 +2276,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
 
     if (!g_queue_is_empty(e_templ->env->from))
     {
-      mutt_debug(LL_DEBUG5, "e_templ->env->from before set_reverse_name: %s\n",
+      log_debug5("e_templ->env->from before set_reverse_name: %s",
                  buf_string(((struct Address*)g_queue_peek_head(e_templ->env->from))->mailbox));
       mutt_addrlist_clear(e_templ->env->from);
     }
@@ -2297,7 +2297,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
     if (!g_queue_is_empty(e_cur->env->x_original_to) && g_queue_is_empty(e_templ->env->from))
     {
       mutt_addrlist_copy(e_templ->env->from, e_cur->env->x_original_to, false);
-      mutt_debug(LL_DEBUG5, "e_templ->env->from extracted from X-Original-To: header: %s\n",
+      log_debug5("e_templ->env->from extracted from X-Original-To: header: %s",
                  buf_string(((struct Address*)g_queue_peek_head(e_templ->env->from))->mailbox));
     }
   }
@@ -2386,7 +2386,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
     {
       if (mutt_file_copy_stream(stdin, fp_tmp) < 0)
       {
-        mutt_error(_("Error sending message"));
+        log_fault(_("Error sending message"));
         goto cleanup;
       }
     }
@@ -2456,7 +2456,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
     mtime = mutt_file_decrease_mtime(b->filename, NULL);
     if (mtime == (time_t) -1)
     {
-      mutt_perror("%s", b->filename);
+      log_perror("%s", b->filename);
       goto cleanup;
     }
 
@@ -2503,7 +2503,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
         }
         else
         {
-          mutt_perror("%s", b->filename);
+          log_perror("%s", b->filename);
         }
       }
 
@@ -2518,13 +2518,13 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
         if ((mtime == st.st_mtime) && !e_templ->body->next &&
             (query_quadoption(_("Abort unmodified message?"), sub, "abort_unmodified") == MUTT_YES))
         {
-          mutt_message(_("Aborted unmodified message"));
+          log_message(_("Aborted unmodified message"));
           goto cleanup;
         }
       }
       else
       {
-        mutt_perror("%s", e_templ->body->filename);
+        log_perror("%s", e_templ->body->filename);
       }
     }
   }
@@ -2660,7 +2660,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
    * $crypt_use_gpgme is unset.  */
   if (e_templ->security && !crypt_has_module_backend(e_templ->security))
   {
-    mutt_error(_("No crypto backend configured.  Disabling message security setting."));
+    log_fault(_("No crypto backend configured.  Disabling message security setting."));
     e_templ->security = SEC_NO_FLAGS;
   }
 
@@ -2700,16 +2700,16 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
     {
       /* abort */
       if (flags & SEND_NEWS)
-        mutt_message(_("Article not posted"));
+        log_message(_("Article not posted"));
       else
-        mutt_message(_("Mail not sent"));
+        log_message(_("Mail not sent"));
       goto cleanup;
     }
     else if (i == 1)
     {
       if (postpone_message(e_templ, e_cur, buf_string(fcc), flags, sub) != 0)
         goto main_loop;
-      mutt_message(_("Message postponed"));
+      log_message(_("Message postponed"));
       rc = 1;
       goto cleanup;
     }
@@ -2727,14 +2727,14 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
         goto cleanup;
       }
 
-      mutt_warning(_("No recipients specified"));
+      log_warning(_("No recipients specified"));
       goto main_loop;
     }
   }
 
   if (mutt_env_to_intl(e_templ->env, &tag, &err))
   {
-    mutt_error(_("Bad IDN in '%s': '%s'"), tag, err);
+    log_fault(_("Bad IDN in '%s': '%s'"), tag, err);
     FREE(&err);
     if (flags & SEND_BATCH)
       goto cleanup;
@@ -2748,19 +2748,19 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
   {
     /* if the abort is automatic, print an error message */
     if (c_abort_nosubject == MUTT_YES)
-      mutt_error(_("No subject specified"));
+      log_fault(_("No subject specified"));
     goto main_loop;
   }
 
   if ((flags & SEND_NEWS) && !e_templ->env->subject)
   {
-    mutt_error(_("No subject specified"));
+    log_fault(_("No subject specified"));
     goto main_loop;
   }
 
   if ((flags & SEND_NEWS) && !e_templ->env->newsgroups)
   {
-    mutt_error(_("No newsgroup specified"));
+    log_fault(_("No newsgroup specified"));
     goto main_loop;
   }
 
@@ -2805,7 +2805,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
 
         if (flags & SEND_BATCH)
         {
-          mutt_message(_("Missing encryption key; mail not sent"));
+          log_message(_("Missing encryption key; mail not sent"));
           rc = -1;
           goto cleanup;
         }
@@ -2829,7 +2829,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
   }
 
   if (!OptNoCurses)
-    mutt_message(_("Sending message..."));
+    log_message(_("Sending message..."));
 
   mutt_prepare_envelope(e_templ->env, true, sub);
 
@@ -2885,7 +2885,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
 
   if (!OptNoCurses)
   {
-    mutt_message((i != 0)            ? _("Sending in background") :
+    log_message((i != 0)            ? _("Sending in background") :
                  (flags & SEND_NEWS) ? _("Article posted") :
                                        _("Mail sent"));
 #ifdef USE_NOTMUCH
@@ -2968,7 +2968,7 @@ static bool send_simple_email(struct Mailbox *m, struct EmailArray *ea,
   }
   if (g_queue_is_empty(e->env->to) && !mutt_addrlist_parse(e->env->to, NULL))
   {
-    mutt_warning(_("No recipient specified"));
+    log_warning(_("No recipient specified"));
   }
 
   /* body */
@@ -3015,7 +3015,7 @@ bool mutt_send_list_subscribe(struct Mailbox *m, struct Email *e)
   const char *mailto = e->env->list_subscribe;
   if (!mailto)
   {
-    mutt_warning(_("No List-Subscribe header found"));
+    log_warning(_("No List-Subscribe header found"));
     return false;
   }
 
@@ -3044,7 +3044,7 @@ bool mutt_send_list_unsubscribe(struct Mailbox *m, struct Email *e)
   const char *mailto = e->env->list_unsubscribe;
   if (!mailto)
   {
-    mutt_warning(_("No List-Unsubscribe header found"));
+    log_warning(_("No List-Unsubscribe header found"));
     return false;
   }
 

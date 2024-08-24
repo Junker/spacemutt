@@ -308,8 +308,8 @@ int mutt_write_mime_body(struct Body *b, FILE *fp, struct ConfigSubset *sub)
     const char *p = mutt_param_get(&b->parameter, "boundary");
     if (!p)
     {
-      mutt_debug(LL_DEBUG1, "no boundary parameter found\n");
-      mutt_error(_("No boundary parameter found [report this error]"));
+      log_debug1("no boundary parameter found");
+      log_fault(_("No boundary parameter found [report this error]"));
       return -1;
     }
     char boundary[128] = { 0 };
@@ -339,8 +339,8 @@ int mutt_write_mime_body(struct Body *b, FILE *fp, struct ConfigSubset *sub)
   fp_in = mutt_file_fopen(b->filename, "r");
   if (!fp_in)
   {
-    mutt_debug(LL_DEBUG1, "%s no longer exists\n", b->filename);
-    mutt_error(_("%s no longer exists"), b->filename);
+    log_debug1("%s no longer exists", b->filename);
+    log_fault(_("%s no longer exists"), b->filename);
     return -1;
   }
 

@@ -176,7 +176,7 @@ static bool eat_query(struct Pattern *pat, PatternCompFlags flags,
   if (m)
   {
     char *escaped_folder = mutt_path_escape(mailbox_path(m));
-    mutt_debug(LL_DEBUG2, "escaped folder path: %s\n", escaped_folder);
+    log_debug2("escaped folder path: %s", escaped_folder);
     buf_addch(cmd_buf, '\'');
     buf_addstr(cmd_buf, escaped_folder);
     buf_addch(cmd_buf, '\'');
@@ -188,7 +188,7 @@ static bool eat_query(struct Pattern *pat, PatternCompFlags flags,
   buf_addch(cmd_buf, ' ');
   buf_addstr(cmd_buf, tok_buf->data);
 
-  mutt_message(_("Running search command: %s ..."), cmd_buf->data);
+  log_message(_("Running search command: %s ..."), cmd_buf->data);
   pat->is_multi = true;
   g_slist_free(g_steal_pointer(&pat->p.multi_cases));
   pid_t pid = filter_create(cmd_buf->data, NULL, &fp, NULL, EnvList);

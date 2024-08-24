@@ -349,13 +349,13 @@ static int query_save_attachment(FILE *fp, struct Body *b, struct Email *e, char
       }
     }
 
-    mutt_message(_("Saving..."));
+    log_message(_("Saving..."));
     if (save_attachment_flowed_helper(fp, b, buf_string(tfile), opt,
                                       (e || !is_message) ? e : b->email) == 0)
     {
       // This uses ngettext to avoid duplication of messages
       int num = 1;
-      mutt_message(ngettext("Attachment saved", "%d attachments saved", num), num);
+      log_message(ngettext("Attachment saved", "%d attachments saved", num), num);
       rc = 0;
       goto cleanup;
     }
@@ -530,7 +530,7 @@ void mutt_save_attachment_list(struct AttachCtx *actx, FILE *fp, bool tag,
 
     if (!c_attach_split || c_attach_save_without_prompting)
     {
-      mutt_message(ngettext("Attachment saved", "%d attachments saved", saved_attachments),
+      log_message(ngettext("Attachment saved", "%d attachments saved", saved_attachments),
                    saved_attachments);
     }
   }
@@ -572,7 +572,7 @@ static void query_pipe_attachment(const char *command, FILE *fp, struct Body *b,
       mutt_file_unlink(b->filename);
       mutt_file_rename(buf_string(tfile), b->filename);
       mutt_update_encoding(b, NeoMutt->sub);
-      mutt_message(_("Attachment filtered"));
+      log_message(_("Attachment filtered"));
     }
   }
   else
@@ -615,7 +615,7 @@ static void pipe_attachment(FILE *fp, struct Body *b, struct State *state)
       fp_unstuff = mutt_file_fopen(buf_string(unstuff_tempfile), "w");
       if (!fp_unstuff)
       {
-        mutt_perror("mutt_file_fopen");
+        log_perror("mutt_file_fopen");
         goto bail;
       }
       unlink_unstuff = true;
@@ -629,7 +629,7 @@ static void pipe_attachment(FILE *fp, struct Body *b, struct State *state)
       fp_unstuff = mutt_file_fopen(buf_string(unstuff_tempfile), "r");
       if (!fp_unstuff)
       {
-        mutt_perror("mutt_file_fopen");
+        log_perror("mutt_file_fopen");
         goto bail;
       }
       mutt_file_copy_stream(fp_unstuff, filter_fp);
@@ -660,7 +660,7 @@ static void pipe_attachment(FILE *fp, struct Body *b, struct State *state)
     fp_in = mutt_file_fopen(infile, "r");
     if (!fp_in)
     {
-      mutt_perror("fopen");
+      log_perror("fopen");
       goto bail;
     }
     mutt_file_copy_stream(fp_in, state->fp_out);
@@ -793,7 +793,7 @@ static bool can_print(struct AttachCtx *actx, struct Body *b, bool tag)
           {
             /* L10N: s gets replaced by a MIME type, e.g. "text/plain" or
                application/octet-stream.  */
-            mutt_error(_("I don't know how to print %s attachments"), type);
+            log_fault(_("I don't know how to print %s attachments"), type);
             return false;
           }
         }
@@ -851,7 +851,7 @@ static void print_attachment_list(struct AttachCtx *actx, FILE *fp, bool tag,
           {
             if (!state->fp_out)
             {
-              mutt_error("BUG in print_attachment_list().  Please report this. ");
+              log_fault("BUG in print_attachment_list().  Please report this. ");
               return;
             }
 
@@ -939,7 +939,7 @@ void recvattach_edit_content_type(struct AttachCtx *actx, struct Menu *menu, str
    * made to a decrypted cur_att->body, so warn the user. */
   if (cur_att->decrypted)
   {
-    mutt_message(_("Structural changes to decrypted attachments are not supported"));
+    log_message(_("Structural changes to decrypted attachments are not supported"));
     mutt_sleep(1);
   }
   /* Editing the content type can rewrite the body structure. */
@@ -1157,7 +1157,7 @@ void mutt_generate_recvattach_list(struct AttachCtx *actx, struct Email *e,
   decrypt_failed:
     /* Fall through and show the original parts if decryption fails */
     if (need_secured && !secured)
-      mutt_error(_("Can't decrypt encrypted message"));
+      log_fault(_("Can't decrypt encrypted message"));
 
     struct AttachPtr *ap = mutt_aptr_new();
     mutt_actx_add_attach(actx, ap);

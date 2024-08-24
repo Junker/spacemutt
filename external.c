@@ -106,7 +106,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
     /* RFC5322 mandates a From: header,
      * so warn before bouncing messages without one */
     if (g_queue_is_empty(e->env->from))
-      mutt_error(_("Warning: message contains no From: header"));
+      log_fault(_("Warning: message contains no From: header"));
 
     msg_count++;
   }
@@ -124,7 +124,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
   mutt_addrlist_parse2(al, buf_string(buf));
   if (g_queue_is_empty(al))
   {
-    mutt_error(_("Error parsing address"));
+    log_fault(_("Error parsing address"));
     goto done;
   }
 
@@ -132,7 +132,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
 
   if (mutt_addrlist_to_intl(al, &err) < 0)
   {
-    mutt_error(_("Bad IDN: '%s'"), err);
+    log_fault(_("Bad IDN: '%s'"), err);
     FREE(&err);
     goto done;
   }
@@ -146,7 +146,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
   if (query_quadoption(buf_string(prompt), NeoMutt->sub, "bounce") != MUTT_YES)
   {
     msgwin_clear_text(NULL);
-    mutt_message(ngettext("Message not bounced", "Messages not bounced", msg_count));
+    log_message(ngettext("Message not bounced", "Messages not bounced", msg_count));
     goto done;
   }
 
@@ -172,7 +172,7 @@ void index_bounce_message(struct Mailbox *m, struct EmailArray *ea)
 
   /* If no error, or background, display message. */
   if ((rc == 0) || (rc == S_BKG))
-    mutt_message(ngettext("Message bounced", "Messages bounced", msg_count));
+    log_message(ngettext("Message bounced", "Messages bounced", msg_count));
 
 done:
   mutt_addrlist_free_full(al);
@@ -306,7 +306,7 @@ static int pipe_message(struct Mailbox *m, struct EmailArray *ea, const char *cm
     pid = filter_create(cmd, &fp_out, NULL, NULL, EnvList);
     if (pid < 0)
     {
-      mutt_perror(_("Can't create filter process"));
+      log_perror(_("Can't create filter process"));
       mx_msg_close(m, &msg);
       return 1;
     }
@@ -352,7 +352,7 @@ static int pipe_message(struct Mailbox *m, struct EmailArray *ea, const char *cm
         pid = filter_create(cmd, &fp_out, NULL, NULL, EnvList);
         if (pid < 0)
         {
-          mutt_perror(_("Can't create filter process"));
+          log_perror(_("Can't create filter process"));
           return 1;
         }
         OptKeepQuiet = true;
@@ -372,7 +372,7 @@ static int pipe_message(struct Mailbox *m, struct EmailArray *ea, const char *cm
       pid = filter_create(cmd, &fp_out, NULL, NULL, EnvList);
       if (pid < 0)
       {
-        mutt_perror(_("Can't create filter process"));
+        log_perror(_("Can't create filter process"));
         return 1;
       }
       OptKeepQuiet = true;
@@ -444,7 +444,7 @@ void mutt_print_message(struct Mailbox *m, struct EmailArray *ea)
   const char *const c_print_command = cs_subset_string(NeoMutt->sub, "print_command");
   if (c_print && !c_print_command)
   {
-    mutt_message(_("No printing command has been defined"));
+    log_message(_("No printing command has been defined"));
     return;
   }
 
@@ -459,11 +459,11 @@ void mutt_print_message(struct Mailbox *m, struct EmailArray *ea)
   const bool c_print_split = cs_subset_bool(NeoMutt->sub, "print_split");
   if (pipe_message(m, ea, c_print_command, c_print_decode, true, c_print_split, "\f") == 0)
   {
-    mutt_message(ngettext("Message printed", "Messages printed", msg_count));
+    log_message(ngettext("Message printed", "Messages printed", msg_count));
   }
   else
   {
-    mutt_message(ngettext("Message could not be printed",
+    log_message(ngettext("Message could not be printed",
                           "Messages could not be printed", msg_count));
   }
 }
@@ -603,7 +603,7 @@ bool mutt_shell_escape(void)
   fflush(stdout);
   int rc2 = mutt_system(buf_string(buf));
   if (rc2 == -1)
-    mutt_debug(LL_DEBUG1, "Error running \"%s\"\n", buf_string(buf));
+    log_debug1("Error running \"%s\"", buf_string(buf));
 
   const bool c_wait_key = cs_subset_bool(NeoMutt->sub, "wait_key");
   if ((rc2 != 0) || c_wait_key)
@@ -636,11 +636,11 @@ void mutt_enter_command(void)
   if (!buf_is_empty(err))
   {
     if (rc == MUTT_CMD_SUCCESS) /* command succeeded with message */
-      mutt_message("%s", buf_string(err));
+      log_message("%s", buf_string(err));
     else if (rc == MUTT_CMD_ERROR)
-      mutt_error("%s", buf_string(err));
+      log_fault("%s", buf_string(err));
     else if (rc == MUTT_CMD_WARNING)
-      mutt_warning("%s", buf_string(err));
+      log_warning("%s", buf_string(err));
   }
 
   if (NeoMutt)
@@ -672,7 +672,7 @@ void mutt_display_address(struct Envelope *env)
    * software.  */
   struct Buffer *buf = buf_pool_get();
   mutt_addrlist_write(al, buf, false);
-  mutt_message("%s: %s", pfx, buf_string(buf));
+  log_message("%s: %s", pfx, buf_string(buf));
   buf_pool_release(&buf);
 }
 
@@ -875,7 +875,7 @@ int mutt_save_message(struct Mailbox *m, struct EmailArray *ea,
     goto errcleanup;
   }
 
-  mutt_message(_("Copying to %s..."), buf_string(buf));
+  log_message(_("Copying to %s..."), buf_string(buf));
 
   enum MailboxType mailbox_type = imap_path_probe(buf_string(buf), NULL);
   if ((m->type == MUTT_IMAP) && (transform_opt == TRANSFORM_NONE) && (mailbox_type == MUTT_IMAP))
@@ -1028,24 +1028,24 @@ errcleanup:
         if (msg_count > 1)
         {
           // L10N: Message when an index tagged save operation fails for some reason
-          mutt_error(_("Error saving tagged messages"));
+          log_fault(_("Error saving tagged messages"));
         }
         else
         {
           // L10N: Message when an index/pager save operation fails for some reason
-          mutt_error(_("Error saving message"));
+          log_fault(_("Error saving message"));
         }
         break;
       case SAVE_COPY:
         if (msg_count > 1)
         {
           // L10N: Message when an index tagged copy operation fails for some reason
-          mutt_error(_("Error copying tagged messages"));
+          log_fault(_("Error copying tagged messages"));
         }
         else
         {
           // L10N: Message when an index/pager copy operation fails for some reason
-          mutt_error(_("Error copying message"));
+          log_fault(_("Error copying message"));
         }
         break;
     }
@@ -1126,12 +1126,12 @@ bool mutt_edit_content_type(struct Email *e, struct Body *b, FILE *fp)
 
   buf_printf(tmp, "%s/%s", TYPE(b), NONULL(b->subtype));
   if (type_changed)
-    mutt_message(_("Content-Type changed to %s"), buf_string(tmp));
+    log_message(_("Content-Type changed to %s"), buf_string(tmp));
   if ((b->type == TYPE_TEXT) && charset_changed)
   {
     if (type_changed)
       mutt_sleep(1);
-    mutt_message(b->noconv ? _("Character set changed to %s; not converting") :
+    log_message(b->noconv ? _("Character set changed to %s; not converting") :
                              _("Character set changed to %s; converting"),
                  mutt_param_get(&b->parameter, "charset"));
   }

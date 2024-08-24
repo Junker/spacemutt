@@ -290,7 +290,7 @@ static int alias_alias_observer(struct NotifyCallback *nc)
 
   menu->max = alias_array_count_visible(&mdata->ava);
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
-  mutt_debug(LL_DEBUG5, "alias done, request WA_RECALC, MENU_REDRAW_FULL\n");
+  log_debug5("alias done, request WA_RECALC, MENU_REDRAW_FULL");
 
   return 0;
 }
@@ -322,7 +322,7 @@ static int alias_window_observer(struct NotifyCallback *nc)
   notify_observer_remove(NeoMutt->sub->notify, alias_config_observer, menu);
   notify_observer_remove(win_menu->notify, alias_window_observer, win_menu);
 
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
   return 0;
 }
 
@@ -372,7 +372,7 @@ static bool dlg_alias(struct Buffer *buf, struct AliasMenuData *mdata)
 {
   if (ARRAY_EMPTY(&mdata->ava))
   {
-    mutt_warning(_("You have no aliases"));
+    log_warning(_("You have no aliases"));
     return false;
   }
 
@@ -404,7 +404,7 @@ static bool dlg_alias(struct Buffer *buf, struct AliasMenuData *mdata)
     window_redraw(NULL);
 
     op = km_dokey(MENU_ALIAS, GETCH_NO_FLAGS);
-    mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+    log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
     if (op < 0)
       continue;
     if (op == OP_NULL)

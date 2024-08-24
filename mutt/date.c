@@ -481,11 +481,11 @@ void mutt_time_now(struct timespec *tp)
 {
 #ifdef HAVE_CLOCK_GETTIME
   if (clock_gettime(CLOCK_REALTIME, tp) != 0)
-    mutt_perror("clock_gettime");
+    log_perror("clock_gettime");
 #else
   struct timeval tv = { 0, 0 };
   if (gettimeofday(&tv, NULL) != 0)
-    mutt_perror("gettimeofday");
+    log_perror("gettimeofday");
   tp->tv_sec = tv.tv_sec;
   tp->tv_nsec = tv.tv_usec * 1000;
 #endif
@@ -725,10 +725,10 @@ time_t mutt_date_parse_date(const char *s, struct Tz *tz_out)
   const regmatch_t *match = mutt_prex_capture(PREX_RFC5322_DATE_LAX, s);
   if (!match)
   {
-    mutt_debug(LL_DEBUG1, "Could not parse date: <%s>\n", s);
+    log_debug1("Could not parse date: <%s>", s);
     return -1;
   }
-  mutt_debug(LL_DEBUG2, "Fallback regex for date: <%s>\n", s);
+  log_debug2("Fallback regex for date: <%s>", s);
 
   struct tm tm = { 0 };
 
@@ -910,7 +910,7 @@ struct tm mutt_date_localtime(time_t t)
   struct tm *ret = localtime_r(&t, &tm);
   if (!ret)
   {
-    mutt_debug(LL_DEBUG1, "Could not convert time_t via localtime_r() to struct tm: time_t = %jd\n",
+    log_debug1("Could not convert time_t via localtime_r() to struct tm: time_t = %jd",
                (intmax_t) t);
     struct tm default_tm = { 0 }; // 1970-01-01 00:00:00
     mktime(&default_tm); // update derived fields making tm into a valid tm.
@@ -931,7 +931,7 @@ struct tm mutt_date_gmtime(time_t t)
   struct tm *ret = gmtime_r(&t, &tm);
   if (!ret)
   {
-    mutt_debug(LL_DEBUG1, "Could not convert time_t via gmtime_r() to struct tm: time_t = %jd\n",
+    log_debug1("Could not convert time_t via gmtime_r() to struct tm: time_t = %jd",
                (intmax_t) t);
     struct tm default_tm = { 0 }; // 1970-01-01 00:00:00
     mktime(&default_tm); // update derived fields making tm into a valid tm.

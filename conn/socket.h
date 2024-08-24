@@ -24,6 +24,7 @@
 #define MUTT_CONN_SOCKET_H
 
 #include <time.h>
+#include <glib.h>
 
 struct Buffer;
 struct Connection;
@@ -45,20 +46,20 @@ int                mutt_socket_open    (struct Connection *conn);
 int                mutt_socket_poll    (struct Connection *conn, time_t wait_secs);
 int                mutt_socket_read    (struct Connection *conn, char *buf, size_t len);
 int                mutt_socket_readchar(struct Connection *conn, char *c);
-int                mutt_socket_readln_d(char *buf, size_t buflen, struct Connection *conn, int dbg);
-int                mutt_socket_write_d (struct Connection *conn, const char *buf, int len, int dbg);
+int                mutt_socket_readln_d(char *buf, size_t buflen, struct Connection *conn, GLogLevelFlags dbg);
+int                mutt_socket_write_d (struct Connection *conn, const char *buf, int len, GLogLevelFlags dbg);
 
 /* logging levels */
-#define MUTT_SOCK_LOG_CMD  2
-#define MUTT_SOCK_LOG_HDR  3
-#define MUTT_SOCK_LOG_FULL 5
+#define MUTT_SOCK_LOG_LEVEL_CMD  LOG_LEVEL_DEBUG2
+#define MUTT_SOCK_LOG_LEVEL_HDR  LOG_LEVEL_DEBUG3
+#define MUTT_SOCK_LOG_LEVEL_FULL LOG_LEVEL_DEBUG5
 
-#define mutt_socket_readln(buf, buflen, conn) mutt_socket_readln_d(buf, buflen, conn, MUTT_SOCK_LOG_CMD)
-#define mutt_socket_send(conn, buf)           mutt_socket_send_d(conn, buf, MUTT_SOCK_LOG_CMD)
+#define mutt_socket_readln(buf, buflen, conn) mutt_socket_readln_d(buf, buflen, conn, MUTT_SOCK_LOG_LEVEL_CMD)
+#define mutt_socket_send(conn, buf)           mutt_socket_send_d(conn, buf, MUTT_SOCK_LOG_LEVEL_CMD)
 #define mutt_socket_send_d(conn, buf, dbg)    mutt_socket_write_d(conn, buf, mutt_str_len(buf), dbg)
-#define mutt_socket_write_n(conn, buf, len)   mutt_socket_write_d(conn, buf, len, MUTT_SOCK_LOG_CMD)
+#define mutt_socket_write_n(conn, buf, len)   mutt_socket_write_d(conn, buf, len, MUTT_SOCK_LOG_LEVEL_CMD)
 
-#define mutt_socket_buffer_readln(buf, conn)  mutt_socket_buffer_readln_d(buf, conn, MUTT_SOCK_LOG_CMD)
-int mutt_socket_buffer_readln_d(struct Buffer *buf, struct Connection *conn, int dbg);
+#define mutt_socket_buffer_readln(buf, conn)  mutt_socket_buffer_readln_d(buf, conn, MUTT_SOCK_LOG_LEVEL_CMD)
+int mutt_socket_buffer_readln_d(struct Buffer *buf, struct Connection *conn, GLogLevelFlags dbg);
 
 #endif /* MUTT_CONN_SOCKET_H */

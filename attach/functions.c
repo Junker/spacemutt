@@ -170,7 +170,7 @@ static bool check_attach(struct AttachPrivateData *priv)
   if (priv->attach_msg)
   {
     mutt_flushinp();
-    mutt_error("%s", _(Function_not_permitted_in_attach_message_mode));
+    log_fault("%s", _(Function_not_permitted_in_attach_message_mode));
     return true;
   }
 
@@ -187,7 +187,7 @@ static bool check_readonly(struct Mailbox *m)
   if (!m || m->readonly)
   {
     mutt_flushinp();
-    mutt_error(_("Mailbox is read-only"));
+    log_fault(_("Mailbox is read-only"));
     return true;
   }
 
@@ -255,7 +255,7 @@ static int op_attachment_collapse(struct AttachPrivateData *priv, int op)
   struct AttachPtr *cur_att = current_attachment(priv->actx, priv->menu);
   if (!cur_att->body->parts)
   {
-    mutt_error(_("There are no subparts to show"));
+    log_fault(_("There are no subparts to show"));
     return FR_NO_ACTION;
   }
   attach_collapse(priv->actx, priv->menu);
@@ -274,25 +274,25 @@ static int op_attachment_delete(struct AttachPrivateData *priv, int op)
   if (priv->mailbox->type == MUTT_POP)
   {
     mutt_flushinp();
-    mutt_error(_("Can't delete attachment from POP server"));
+    log_fault(_("Can't delete attachment from POP server"));
     return FR_ERROR;
   }
 
   if (priv->mailbox->type == MUTT_NNTP)
   {
     mutt_flushinp();
-    mutt_error(_("Can't delete attachment from news server"));
+    log_fault(_("Can't delete attachment from news server"));
     return FR_ERROR;
   }
 
   if ((WithCrypto != 0) && (priv->actx->email->security & SEC_ENCRYPT))
   {
-    mutt_message(_("Deletion of attachments from encrypted messages is unsupported"));
+    log_message(_("Deletion of attachments from encrypted messages is unsupported"));
     return FR_ERROR;
   }
   if ((WithCrypto != 0) && (priv->actx->email->security & (SEC_SIGN | SEC_PARTSIGN)))
   {
-    mutt_message(_("Deletion of attachments from signed messages may invalidate the signature"));
+    log_message(_("Deletion of attachments from signed messages may invalidate the signature"));
   }
 
   if (priv->menu->tag_prefix)
@@ -308,7 +308,7 @@ static int op_attachment_delete(struct AttachPrivateData *priv, int op)
         }
         else
         {
-          mutt_message(_("Only deletion of multipart attachments is supported"));
+          log_message(_("Only deletion of multipart attachments is supported"));
         }
       }
     }
@@ -332,7 +332,7 @@ static int op_attachment_delete(struct AttachPrivateData *priv, int op)
     }
     else
     {
-      mutt_message(_("Only deletion of multipart attachments is supported"));
+      log_message(_("Only deletion of multipart attachments is supported"));
     }
   }
 
@@ -714,7 +714,7 @@ int attach_function_dispatcher(struct MuttWindow *win, int op)
 {
   if (!win)
   {
-    mutt_error("%s", _(Not_available_in_this_menu));
+    log_fault("%s", _(Not_available_in_this_menu));
     return FR_ERROR;
   }
 

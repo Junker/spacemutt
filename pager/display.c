@@ -756,7 +756,7 @@ void buf_strip_formatting(struct Buffer *dest, const char *src, bool strip_marke
     else if (strip_markers && (s[0] == '\033') && (s[1] == ']') &&
              ((check_attachment_marker(s) == 0) || (check_protected_header_marker(s) == 0)))
     {
-      mutt_debug(LL_DEBUG2, "Seen attachment marker\n");
+      log_debug2("Seen attachment marker");
       while (*s++ != '\a')
         ; /* skip pseudo-ANSI sequence */
     }
@@ -884,7 +884,7 @@ static int format_line(struct MuttWindow *win, struct Line **lines, int line_num
     {
       if (k == ICONV_ILLEGAL_SEQ)
         memset(&mbstate, 0, sizeof(mbstate));
-      mutt_debug(LL_DEBUG1, "mbrtowc returned %zu; errno = %d\n", k, errno);
+      log_debug1("mbrtowc returned %zu; errno = %d", k, errno);
       if ((col + 4) > wrap_cols)
         break;
       col += 4;
@@ -901,12 +901,12 @@ static int format_line(struct MuttWindow *win, struct Line **lines, int line_num
       /* zero width space, zero with non-joiner, zero width no-break space */
       if ((wc == 0x200B) || (wc == 0x200C) || (wc == 0xFEFF))
       {
-        mutt_debug(LL_DEBUG3, "skip zero-width character U+%04X\n", (unsigned short) wc);
+        log_debug3("skip zero-width character U+%04X", (unsigned short) wc);
         continue;
       }
       if (mutt_mb_is_display_corrupting_utf8(wc))
       {
-        mutt_debug(LL_DEBUG3, "filtered U+%04X\n", (unsigned short) wc);
+        log_debug3("filtered U+%04X", (unsigned short) wc);
         continue;
       }
     }

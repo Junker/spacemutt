@@ -135,7 +135,7 @@ static int attach_email_observer(struct NotifyCallback *nc)
   struct MuttWindow *win_attach = nc->global_data;
 
   win_attach->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "compose done, request WA_RECALC\n");
+  log_debug5("compose done, request WA_RECALC");
 
   return 0;
 }
@@ -156,7 +156,7 @@ int attach_config_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_attach = nc->global_data;
   win_attach->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "config, request WA_RECALC\n");
+  log_debug5("config, request WA_RECALC");
 
   return 0;
 }
@@ -179,7 +179,7 @@ static int attach_window_observer(struct NotifyCallback *nc)
   if (nc->event_subtype == NT_WINDOW_STATE)
   {
     win_attach->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "window state done, request WA_RECALC\n");
+    log_debug5("window state done, request WA_RECALC");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
@@ -189,7 +189,7 @@ static int attach_window_observer(struct NotifyCallback *nc)
     notify_observer_remove(actx->email->notify, attach_email_observer, win_attach);
     notify_observer_remove(NeoMutt->sub->notify, attach_config_observer, win_attach);
     notify_observer_remove(win_attach->notify, attach_window_observer, win_attach);
-    mutt_debug(LL_DEBUG5, "window delete done\n");
+    log_debug5("window delete done");
   }
 
   return 0;

@@ -114,7 +114,7 @@ static int check_capabilities(struct ImapAccountData *adata)
 
   if (!((adata->capabilities & IMAP_CAP_IMAP4) || (adata->capabilities & IMAP_CAP_IMAP4REV1)))
   {
-    mutt_error(_("This IMAP server is ancient. NeoMutt does not work with it."));
+    log_fault(_("This IMAP server is ancient. NeoMutt does not work with it."));
     return -1;
   }
 
@@ -136,14 +136,14 @@ static char *get_flags(GSList **hflags, char *s)
   const size_t plen = mutt_istr_startswith(s, "FLAGS");
   if (plen == 0)
   {
-    mutt_debug(LL_DEBUG1, "not a FLAGS response: %s\n", s);
+    log_debug1("not a FLAGS response: %s", s);
     return NULL;
   }
   s += plen;
   SKIPWS(s);
   if (*s != '(')
   {
-    mutt_debug(LL_DEBUG1, "bogus FLAGS response: %s\n", s);
+    log_debug1("bogus FLAGS response: %s", s);
     return NULL;
   }
 
@@ -165,7 +165,7 @@ static char *get_flags(GSList **hflags, char *s)
   /* note bad flags response */
   if (*s != ')')
   {
-    mutt_debug(LL_DEBUG1, "Unterminated FLAGS response: %s\n", s);
+    log_debug1("Unterminated FLAGS response: %s", s);
     g_slist_free_full(g_steal_pointer(hflags), g_free);
 
     return NULL;
@@ -443,7 +443,7 @@ int imap_create_mailbox(struct ImapAccountData *adata, const char *mailbox)
 
   if (imap_exec(adata, buf, IMAP_CMD_NO_FLAGS) != IMAP_EXEC_SUCCESS)
   {
-    mutt_error(_("CREATE failed: %s"), imap_cmd_trailer(adata));
+    log_fault(_("CREATE failed: %s"), imap_cmd_trailer(adata));
     return -1;
   }
 
@@ -567,7 +567,7 @@ void imap_logout_all(void)
     if (!conn || (conn->fd < 0))
       continue;
 
-    mutt_message(_("Closing connection to %s..."), conn->account.host);
+    log_message(_("Closing connection to %s..."), conn->account.host);
     imap_logout(acc->adata);
     mutt_clear_error();
   }
@@ -595,16 +595,16 @@ int imap_read_literal(FILE *fp, struct ImapAccountData *adata,
   struct Buffer buf = { 0 }; // Do not allocate, maybe it won't be used
 
   const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
-  if (c_debug_level >= IMAP_LOG_LTRL)
+  if ((c_debug_level) >= log_level_to_debug_level(IMAP_LOG_LEVEL_LTRL))
     buf_alloc(&buf, bytes + 1);
 
-  mutt_debug(LL_DEBUG2, "reading %lu bytes\n", bytes);
+  log_debug2("reading %lu bytes", bytes);
 
   for (unsigned long pos = 0; pos < bytes; pos++)
   {
     if (mutt_socket_readchar(adata->conn, &c) != 1)
     {
-      mutt_debug(LL_DEBUG1, "error during read, %lu bytes read\n", pos);
+      log_debug1("error during read, %lu bytes read", pos);
       adata->status = IMAP_FATAL;
 
       buf_dealloc(&buf);
@@ -628,13 +628,13 @@ int imap_read_literal(FILE *fp, struct ImapAccountData *adata,
 
     if ((pos % 1024) == 0)
       progress_update(progress, pos, -1);
-    if (c_debug_level >= IMAP_LOG_LTRL)
+    if (c_debug_level >= log_level_to_debug_level(IMAP_LOG_LEVEL_LTRL))
       buf_addch(&buf, c);
   }
 
-  if (c_debug_level >= IMAP_LOG_LTRL)
+  if (c_debug_level >= log_level_to_debug_level(IMAP_LOG_LEVEL_LTRL))
   {
-    mutt_debug(IMAP_LOG_LTRL, "\n%s", buf.data);
+    log(IMAP_LOG_LEVEL_LTRL, "\n%s", buf.data);
     buf_dealloc(&buf);
   }
   return 0;
@@ -687,7 +687,7 @@ void imap_expunge_mailbox(struct Mailbox *m, bool resort)
 
     if (e->index == INT_MAX)
     {
-      mutt_debug(LL_DEBUG2, "Expunging message UID %u\n", imap_edata_get(e)->uid);
+      log_debug2("Expunging message UID %u", imap_edata_get(e)->uid);
 
       e->deleted = true;
 
@@ -786,7 +786,7 @@ int imap_open_connection(struct ImapAccountData *adata)
         {
           if (mutt_ssl_starttls(adata->conn))
           {
-            mutt_error(_("Could not negotiate TLS connection"));
+            log_fault(_("Could not negotiate TLS connection"));
             goto bail;
           }
           else
@@ -801,7 +801,7 @@ int imap_open_connection(struct ImapAccountData *adata)
 
     if (c_ssl_force_tls && (adata->conn->ssf == 0))
     {
-      mutt_error(_("Encrypted connection unavailable"));
+      log_fault(_("Encrypted connection unavailable"));
       goto bail;
     }
 #endif
@@ -818,7 +818,7 @@ int imap_open_connection(struct ImapAccountData *adata)
     const bool c_ssl_force_tls = cs_subset_bool(NeoMutt->sub, "ssl_force_tls");
     if ((adata->conn->ssf == 0) && c_ssl_force_tls)
     {
-      mutt_error(_("Encrypted connection unavailable"));
+      log_fault(_("Encrypted connection unavailable"));
       goto bail;
     }
 #endif
@@ -1055,13 +1055,13 @@ enum MxStatus imap_check_mailbox(struct Mailbox *m, bool force)
     {
       if (imap_cmd_step(adata) != IMAP_RES_CONTINUE)
       {
-        mutt_debug(LL_DEBUG1, "Error reading IDLE response\n");
+        log_debug1("Error reading IDLE response");
         return MX_STATUS_ERROR;
       }
     }
     if (rc < 0)
     {
-      mutt_debug(LL_DEBUG1, "Poll failed, disabling IDLE\n");
+      log_debug1("Poll failed, disabling IDLE");
       adata->capabilities &= ~IMAP_CAP_IDLE; // Clear the flag
     }
   }
@@ -1132,7 +1132,7 @@ static int imap_status(struct ImapAccountData *adata, struct ImapMboxData *mdata
   }
   else
   {
-    mutt_debug(LL_DEBUG2, "Server doesn't support STATUS\n");
+    log_debug2("Server doesn't support STATUS");
     return -1;
   }
 
@@ -1142,7 +1142,7 @@ static int imap_status(struct ImapAccountData *adata, struct ImapMboxData *mdata
   int rc = imap_exec(adata, cmd, queue ? IMAP_CMD_QUEUE : IMAP_CMD_POLL);
   if (rc != IMAP_EXEC_SUCCESS)
   {
-    mutt_debug(LL_DEBUG1, "Error queueing command\n");
+    log_debug1("Error queueing command");
     return rc;
   }
   return mdata->messages;
@@ -1228,9 +1228,9 @@ int imap_subscribe(const char *path, bool subscribe)
     return -1;
 
   if (subscribe)
-    mutt_message(_("Subscribing to %s..."), mdata->name);
+    log_message(_("Subscribing to %s..."), mdata->name);
   else
-    mutt_message(_("Unsubscribing from %s..."), mdata->name);
+    log_message(_("Unsubscribing from %s..."), mdata->name);
 
   char buf[2048] = { 0 };
   snprintf(buf, sizeof(buf), "%sSUBSCRIBE %s", subscribe ? "" : "UN", mdata->munge_name);
@@ -1249,14 +1249,14 @@ int imap_subscribe(const char *path, bool subscribe)
     imap_quote_string(mbox + len, sizeof(mbox) - len, path, true);
     struct Buffer *err = buf_pool_get();
     if (parse_rc_line(mbox, err))
-      mutt_debug(LL_DEBUG1, "Error adding subscribed mailbox: %s\n", buf_string(err));
+      log_debug1("Error adding subscribed mailbox: %s", buf_string(err));
     buf_pool_release(&err);
   }
 
   if (subscribe)
-    mutt_message(_("Subscribed to %s"), mdata->name);
+    log_message(_("Subscribed to %s"), mdata->name);
   else
-    mutt_message(_("Unsubscribed from %s"), mdata->name);
+    log_message(_("Unsubscribed from %s"), mdata->name);
   imap_mdata_free((void *) &mdata);
   return 0;
 }
@@ -1371,7 +1371,7 @@ int imap_fast_trash(struct Mailbox *m, const char *dest)
   /* check that the save-to folder is in the same account */
   if (!imap_account_match(&(adata->conn->account), &(dest_adata->conn->account)))
   {
-    mutt_debug(LL_DEBUG3, "%s not same server as %s\n", dest, mailbox_path(m));
+    log_debug3("%s not same server as %s", dest, mailbox_path(m));
     goto out;
   }
 
@@ -1385,7 +1385,7 @@ int imap_fast_trash(struct Mailbox *m, const char *dest)
       rc = imap_sync_message_for_copy(m, e, sync_cmd, &err_continue);
       if (rc < 0)
       {
-        mutt_debug(LL_DEBUG1, "could not sync\n");
+        log_debug1("could not sync");
         goto out;
       }
     }
@@ -1400,18 +1400,18 @@ int imap_fast_trash(struct Mailbox *m, const char *dest)
     rc = imap_exec_msg_set(adata, "UID COPY", dest_mdata->munge_name, &uida);
     if (rc == 0)
     {
-      mutt_debug(LL_DEBUG1, "No messages to trash\n");
+      log_debug1("No messages to trash");
       rc = -1;
       goto out;
     }
     else if (rc < 0)
     {
-      mutt_debug(LL_DEBUG1, "could not queue copy\n");
+      log_debug1("could not queue copy");
       goto out;
     }
     else if (m->verbose)
     {
-      mutt_message(ngettext("Copying %d message to %s...", "Copying %d messages to %s...", rc),
+      log_message(ngettext("Copying %d message to %s...", "Copying %d messages to %s...", rc),
                    rc, dest_mdata->name);
     }
     ARRAY_FREE(&uida);
@@ -1422,13 +1422,13 @@ int imap_fast_trash(struct Mailbox *m, const char *dest)
     {
       if (triedcreate)
       {
-        mutt_debug(LL_DEBUG1, "Already tried to create mailbox %s\n", dest_mdata->name);
+        log_debug1("Already tried to create mailbox %s", dest_mdata->name);
         break;
       }
       /* bail out if command failed for reasons other than nonexistent target */
       if (!mutt_istr_startswith(imap_get_qualifier(adata->buf), "[TRYCREATE]"))
         break;
-      mutt_debug(LL_DEBUG3, "server suggests TRYCREATE\n");
+      log_debug3("server suggests TRYCREATE");
       snprintf(prompt, sizeof(prompt), _("Create %s?"), dest_mdata->name);
       const bool c_confirm_create = cs_subset_bool(NeoMutt->sub, "confirm_create");
       if (c_confirm_create &&
@@ -1480,7 +1480,7 @@ enum MxStatus imap_sync_mailbox(struct Mailbox *m, bool expunge, bool close)
 
   if (adata->state < IMAP_SELECTED)
   {
-    mutt_debug(LL_DEBUG2, "no mailbox selected\n");
+    log_debug2("no mailbox selected");
     return -1;
   }
 
@@ -1502,7 +1502,7 @@ enum MxStatus imap_sync_mailbox(struct Mailbox *m, bool expunge, bool close)
     ARRAY_FREE(&uida);
     if (rc < 0)
     {
-      mutt_error(_("Expunge failed"));
+      log_fault(_("Expunge failed"));
       return rc;
     }
 
@@ -1520,7 +1520,7 @@ enum MxStatus imap_sync_mailbox(struct Mailbox *m, bool expunge, bool close)
       }
       if (m->verbose)
       {
-        mutt_message(ngettext("Marking %d message deleted...",
+        log_message(ngettext("Marking %d message deleted...",
                               "Marking %d messages deleted...", rc),
                      rc);
       }
@@ -1559,7 +1559,7 @@ enum MxStatus imap_sync_mailbox(struct Mailbox *m, bool expunge, bool close)
         /* L10N: The plural is chosen by the last %d, i.e. the total number */
         if (m->verbose)
         {
-          mutt_message(ngettext("Saving changed message... [%d/%d]",
+          log_message(ngettext("Saving changed message... [%d/%d]",
                                 "Saving changed messages... [%d/%d]", m->msg_count),
                        i + 1, m->msg_count);
         }
@@ -1610,7 +1610,7 @@ enum MxStatus imap_sync_mailbox(struct Mailbox *m, bool expunge, bool close)
     }
     else
     {
-      mutt_error(_("Error saving flags"));
+      log_fault(_("Error saving flags"));
     }
     return -1;
   }
@@ -1637,7 +1637,7 @@ enum MxStatus imap_sync_mailbox(struct Mailbox *m, bool expunge, bool close)
   if (expunge && !close && (m->rights & MUTT_ACL_DELETE))
   {
     if (m->verbose)
-      mutt_message(_("Expunging messages from server..."));
+      log_message(_("Expunging messages from server..."));
     /* Set expunge bit so we don't get spurious reopened messages */
     mdata->reopen |= IMAP_EXPUNGE_EXPECTED;
     if (imap_exec(adata, "EXPUNGE", IMAP_CMD_NO_FLAGS) != IMAP_EXEC_SUCCESS)
@@ -1791,7 +1791,7 @@ int imap_login(struct ImapAccountData *adata)
       FREE(&adata->capstr);
       if (adata->conn->ssf != 0)
       {
-        mutt_debug(LL_DEBUG2, "Communication encrypted at %d bits\n",
+        log_debug2("Communication encrypted at %d bits",
                    adata->conn->ssf);
       }
     }
@@ -1811,7 +1811,7 @@ int imap_login(struct ImapAccountData *adata)
     if ((adata->capabilities & IMAP_CAP_COMPRESS) && c_imap_deflate &&
         (imap_exec(adata, "COMPRESS DEFLATE", IMAP_CMD_PASS) == IMAP_EXEC_SUCCESS))
     {
-      mutt_debug(LL_DEBUG2, "IMAP compression is enabled on connection to %s\n",
+      log_debug2("IMAP compression is enabled on connection to %s",
                  adata->conn->account.host);
       mutt_zstrm_wrap_conn(adata->conn);
     }
@@ -1875,7 +1875,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
   struct ImapAccountData *adata = imap_adata_get(m);
   struct ImapMboxData *mdata = imap_mdata_get(m);
 
-  mutt_debug(LL_DEBUG3, "opening %s, saving %s\n", m->pathbuf.data,
+  log_debug3("opening %s, saving %s", m->pathbuf.data,
              (adata->mailbox ? adata->mailbox->pathbuf.data : "(none)"));
   adata->prev_mailbox = adata->mailbox;
   adata->mailbox = m;
@@ -1886,7 +1886,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
   mdata->new_mail_count = 0;
 
   if (m->verbose)
-    mutt_message(_("Selecting %s..."), mdata->name);
+    log_message(_("Selecting %s..."), mdata->name);
 
   /* pipeline ACL test */
   if (adata->capabilities & IMAP_CAP_ACL)
@@ -1936,7 +1936,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
       /* don't override PERMANENTFLAGS */
       if (!mdata->flags)
       {
-        mutt_debug(LL_DEBUG3, "Getting mailbox FLAGS\n");
+        log_debug3("Getting mailbox FLAGS");
         pc = get_flags(&mdata->flags, pc);
         if (!pc)
           goto fail;
@@ -1945,7 +1945,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
     else if (mutt_istr_startswith(pc, "OK [PERMANENTFLAGS"))
     {
       /* PERMANENTFLAGS are massaged to look like FLAGS, then override FLAGS */
-      mutt_debug(LL_DEBUG3, "Getting mailbox PERMANENTFLAGS\n");
+      log_debug3("Getting mailbox PERMANENTFLAGS");
       /* safe to call on NULL */
       g_slist_free_full(g_steal_pointer(&mdata->flags), g_free);
       /* skip "OK [PERMANENT" so syntax is the same as FLAGS */
@@ -1957,7 +1957,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
     else if (mutt_istr_startswith(pc, "OK [UIDVALIDITY"))
     {
       /* save UIDVALIDITY for the header cache */
-      mutt_debug(LL_DEBUG3, "Getting mailbox UIDVALIDITY\n");
+      log_debug3("Getting mailbox UIDVALIDITY");
       pc += 3;
       pc = imap_next_word(pc);
       if (!mutt_str_atoui(pc, &mdata->uidvalidity))
@@ -1965,7 +1965,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
     }
     else if (mutt_istr_startswith(pc, "OK [UIDNEXT"))
     {
-      mutt_debug(LL_DEBUG3, "Getting mailbox UIDNEXT\n");
+      log_debug3("Getting mailbox UIDNEXT");
       pc += 3;
       pc = imap_next_word(pc);
       if (!mutt_str_atoui(pc, &mdata->uid_next))
@@ -1973,7 +1973,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
     }
     else if (mutt_istr_startswith(pc, "OK [HIGHESTMODSEQ"))
     {
-      mutt_debug(LL_DEBUG3, "Getting mailbox HIGHESTMODSEQ\n");
+      log_debug3("Getting mailbox HIGHESTMODSEQ");
       pc += 3;
       pc = imap_next_word(pc);
       if (!mutt_str_atoull(pc, &mdata->modseq))
@@ -1981,7 +1981,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
     }
     else if (mutt_istr_startswith(pc, "OK [NOMODSEQ"))
     {
-      mutt_debug(LL_DEBUG3, "Mailbox has NOMODSEQ set\n");
+      log_debug3("Mailbox has NOMODSEQ set");
       mdata->modseq = 0;
     }
     else
@@ -1999,7 +1999,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
   {
     char *s = imap_next_word(adata->buf); /* skip seq */
     s = imap_next_word(s);                /* Skip response */
-    mutt_error("%s", s);
+    log_fault("%s", s);
     goto fail;
   }
 
@@ -2010,17 +2010,17 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
   if (mutt_istr_startswith(imap_get_qualifier(adata->buf), "[READ-ONLY]") &&
       !(adata->capabilities & IMAP_CAP_ACL))
   {
-    mutt_debug(LL_DEBUG2, "Mailbox is read-only\n");
+    log_debug2("Mailbox is read-only");
     m->readonly = true;
   }
 
   /* dump the mailbox flags we've found */
   const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
-  if (c_debug_level > LL_DEBUG2)
+  if (c_debug_level > 2)
   {
     if (!mdata->flags)
     {
-      mutt_debug(LL_DEBUG3, "No folder flags found\n");
+      log_debug3("No folder flags found");
     }
     else
     {
@@ -2030,7 +2030,7 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
       {
         buf_add_printf(flag_buffer, "[%s] ", (char*)np->data);
       }
-      mutt_debug(LL_DEBUG3, "%s\n", buf_string(flag_buffer));
+      log_debug3("%s", buf_string(flag_buffer));
       buf_pool_release(&flag_buffer);
     }
   }
@@ -2053,11 +2053,11 @@ static enum MxOpenReturns imap_mbox_open(struct Mailbox *m)
 
   if ((count > 0) && (imap_read_headers(m, 1, count, true) < 0))
   {
-    mutt_error(_("Error opening mailbox"));
+    log_fault(_("Error opening mailbox"));
     goto fail;
   }
 
-  mutt_debug(LL_DEBUG2, "msg_count is %d\n", m->msg_count);
+  log_debug2("msg_count is %d", m->msg_count);
   return MX_OPEN_OK;
 
 fail:
@@ -2147,7 +2147,7 @@ static enum MxStatus imap_mbox_close(struct Mailbox *m)
       adata->state = IMAP_AUTHENTICATED;
     }
 
-    mutt_debug(LL_DEBUG3, "closing %s, restoring %s\n", m->pathbuf.data,
+    log_debug3("closing %s, restoring %s", m->pathbuf.data,
                (adata->prev_mailbox ? adata->prev_mailbox->pathbuf.data : "(none)"));
     adata->mailbox = adata->prev_mailbox;
     imap_mbox_select(adata->prev_mailbox);
@@ -2170,7 +2170,7 @@ static bool imap_msg_open_new(struct Mailbox *m, struct Message *msg, const stru
   msg->fp = mutt_file_fopen(buf_string(tmp), "w");
   if (!msg->fp)
   {
-    mutt_perror("%s", buf_string(tmp));
+    log_perror("%s", buf_string(tmp));
     goto cleanup;
   }
 
@@ -2197,7 +2197,7 @@ static int imap_tags_edit(struct Mailbox *m, const char *tags, struct Buffer *bu
   /* Check for \* flags capability */
   if (!imap_has_flag(mdata->flags, NULL))
   {
-    mutt_error(_("IMAP server doesn't support custom flags"));
+    log_fault(_("IMAP server doesn't support custom flags"));
     return -1;
   }
 
@@ -2241,7 +2241,7 @@ static int imap_tags_edit(struct Mailbox *m, const char *tags, struct Buffer *bu
         (*checker == 91) ||                     // [
         (*checker == 93))                       // ]
     {
-      mutt_error(_("Invalid IMAP flags"));
+      log_fault(_("Invalid IMAP flags"));
       return 0;
     }
 
@@ -2320,13 +2320,13 @@ static int imap_tags_commit(struct Mailbox *m, struct Email *e, const char *buf)
     buf_pool_release(&cmd);
     if (rc != IMAP_EXEC_SUCCESS)
     {
-      mutt_debug(LL_DEBUG1, "fail to add new flags\n");
+      log_debug1("fail to add new flags");
       return -1;
     }
   }
 
   /* We are good sync them */
-  mutt_debug(LL_DEBUG1, "NEW TAGS: %s\n", buf);
+  log_debug1("NEW TAGS: %s", buf);
   driver_tags_replace(&e->tags, buf);
   FREE(&imap_edata_get(e)->flags_remote);
   struct Buffer *flags_remote = buf_pool_get();

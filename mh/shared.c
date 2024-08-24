@@ -55,7 +55,7 @@ mode_t mh_umask(struct Mailbox *m)
   struct stat st = { 0 };
   if (stat(mailbox_path(m), &st) != 0)
   {
-    mutt_debug(LL_DEBUG1, "stat failed on %s\n", mailbox_path(m));
+    log_debug1("stat failed on %s", mailbox_path(m));
     return 077;
   }
 
@@ -77,7 +77,7 @@ bool mh_mkstemp(struct Mailbox *m, FILE **fp, char **tgt)
 
   mode_t new_umask = mh_umask(m);
   mode_t old_umask = umask(new_umask);
-  mutt_debug(LL_DEBUG3, "umask set to %03o\n", new_umask);
+  log_debug3("umask set to %03o", new_umask);
 
   while (true)
   {
@@ -88,9 +88,9 @@ bool mh_mkstemp(struct Mailbox *m, FILE **fp, char **tgt)
     {
       if (errno != EEXIST)
       {
-        mutt_perror("%s", path);
+        log_perror("%s", path);
         umask(old_umask);
-        mutt_debug(LL_DEBUG3, "umask set to %03o\n", old_umask);
+        log_debug3("umask set to %03o", old_umask);
         return false;
       }
     }
@@ -101,7 +101,7 @@ bool mh_mkstemp(struct Mailbox *m, FILE **fp, char **tgt)
     }
   }
   umask(old_umask);
-  mutt_debug(LL_DEBUG3, "umask set to %03o\n", old_umask);
+  log_debug3("umask set to %03o", old_umask);
 
   *fp = fdopen(fd, "w");
   if (!*fp)

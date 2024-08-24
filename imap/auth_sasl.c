@@ -58,7 +58,7 @@ enum ImapAuthRes imap_auth_sasl(struct ImapAccountData *adata, const char *metho
 
   if (mutt_sasl_client_new(adata->conn, &saslconn) < 0)
   {
-    mutt_debug(LL_DEBUG1, "Error allocating SASL connection\n");
+    log_debug1("Error allocating SASL connection");
     return IMAP_AUTH_FAILURE;
   }
 
@@ -110,11 +110,11 @@ enum ImapAuthRes imap_auth_sasl(struct ImapAccountData *adata, const char *metho
   {
     if (method)
     {
-      mutt_debug(LL_DEBUG2, "%s unavailable\n", method);
+      log_debug2("%s unavailable", method);
     }
     else
     {
-      mutt_debug(LL_DEBUG1, "Failure starting authentication exchange. No shared mechanisms?\n");
+      log_debug1("Failure starting authentication exchange. No shared mechanisms?");
     }
     /* SASL doesn't support LOGIN, so fall back */
 
@@ -123,7 +123,7 @@ enum ImapAuthRes imap_auth_sasl(struct ImapAccountData *adata, const char *metho
   }
 
   // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_message(_("Authenticating (%s)..."), mech);
+  log_message(_("Authenticating (%s)..."), mech);
 
   bufsize = MAX((olen * 2), 1024);
   buf = mutt_mem_malloc(bufsize);
@@ -135,7 +135,7 @@ enum ImapAuthRes imap_auth_sasl(struct ImapAccountData *adata, const char *metho
     buf[len++] = ' ';
     if (sasl_encode64(pc, olen, buf + len, bufsize - len, &olen) != SASL_OK)
     {
-      mutt_debug(LL_DEBUG1, "#1 error base64-encoding client response\n");
+      log_debug1("#1 error base64-encoding client response");
       goto bail;
     }
     client_start = false;
@@ -175,7 +175,7 @@ enum ImapAuthRes imap_auth_sasl(struct ImapAccountData *adata, const char *metho
          * include space for the trailing null */
         if (sasl_decode64(adata->buf + 2, len, buf, bufsize - 1, &len) != SASL_OK)
         {
-          mutt_debug(LL_DEBUG1, "error base64-decoding server response\n");
+          log_debug1("error base64-decoding server response");
           goto bail;
         }
       }
@@ -208,7 +208,7 @@ enum ImapAuthRes imap_auth_sasl(struct ImapAccountData *adata, const char *metho
       }
       if (sasl_encode64(pc, olen, buf, bufsize, &olen) != SASL_OK)
       {
-        mutt_debug(LL_DEBUG1, "#2 error base64-encoding client response\n");
+        log_debug1("#2 error base64-encoding client response");
         goto bail;
       }
     }
@@ -223,7 +223,7 @@ enum ImapAuthRes imap_auth_sasl(struct ImapAccountData *adata, const char *metho
     if (rc < 0)
     {
       mutt_socket_send(adata->conn, "*\r\n");
-      mutt_debug(LL_DEBUG1, "sasl_client_step error %d\n", rc);
+      log_debug1("sasl_client_step error %d", rc);
     }
 
     olen = 0;
@@ -252,12 +252,12 @@ bail:
 
   if (method)
   {
-    mutt_debug(LL_DEBUG2, "%s failed\n", method);
+    log_debug2("%s failed", method);
     return IMAP_AUTH_UNAVAIL;
   }
 
   // L10N: %s is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_error(_("%s authentication failed"), "SASL ");
+  log_fault(_("%s authentication failed"), "SASL ");
 
   return IMAP_AUTH_FAILURE;
 }

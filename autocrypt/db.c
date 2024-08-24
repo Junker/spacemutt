@@ -68,7 +68,7 @@ static int autocrypt_db_create(const char *db_path)
   {
     /* L10N: autocrypt couldn't open the SQLite database.
              The %s is the full path of the database file.  */
-    mutt_error(_("Unable to open autocrypt database %s"), db_path);
+    log_fault(_("Unable to open autocrypt database %s"), db_path);
     return -1;
   }
   return mutt_autocrypt_schema_init();
@@ -102,7 +102,7 @@ int mutt_autocrypt_db_init(bool can_create)
     {
       /* L10N: autocrypt couldn't open the SQLite database.
                The %s is the full path of the database file.  */
-      mutt_error(_("Unable to open autocrypt database %s"), buf_string(db_path));
+      log_fault(_("Unable to open autocrypt database %s"), buf_string(db_path));
       goto cleanup;
     }
 

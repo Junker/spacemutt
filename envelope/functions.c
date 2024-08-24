@@ -127,7 +127,7 @@ static bool edit_address_list(enum HeaderField field, AddressList *al)
   char *err = NULL;
   if (mutt_addrlist_to_intl(al, &err) != 0)
   {
-    mutt_error(_("Bad IDN: '%s'"), err);
+    log_fault(_("Bad IDN: '%s'"), err);
     mutt_refresh();
     FREE(&err);
   }
@@ -319,7 +319,7 @@ static int op_compose_pgp_menu(struct EnvelopeWindowData *wdata, int op)
     return FR_NOT_IMPL;
   if (!crypt_has_module_backend(APPLICATION_PGP))
   {
-    mutt_error(_("No PGP backend configured"));
+    log_fault(_("No PGP backend configured"));
     return FR_ERROR;
   }
   if (((WithCrypto & APPLICATION_SMIME) != 0) && (wdata->email->security & APPLICATION_SMIME))
@@ -357,7 +357,7 @@ static int op_compose_smime_menu(struct EnvelopeWindowData *wdata, int op)
     return FR_NOT_IMPL;
   if (!crypt_has_module_backend(APPLICATION_SMIME))
   {
-    mutt_error(_("No S/MIME backend configured"));
+    log_fault(_("No S/MIME backend configured"));
     return FR_ERROR;
   }
 
@@ -545,7 +545,7 @@ int env_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return rc;
 }

@@ -111,11 +111,11 @@ int mutt_num_postponed(struct Mailbox *m, bool force)
       if (newpc >= 0)
       {
         PostCount = newpc;
-        mutt_debug(LL_DEBUG3, "%d postponed IMAP messages found\n", PostCount);
+        log_debug3("%d postponed IMAP messages found", PostCount);
       }
       else
       {
-        mutt_debug(LL_DEBUG3, "using old IMAP postponed count\n");
+        log_debug3("using old IMAP postponed count");
       }
     }
     return PostCount;
@@ -231,7 +231,7 @@ SecurityFlags mutt_parse_crypt_hdr(const char *p, bool set_empty_signas, Securit
 
           if (p[0] != '>')
           {
-            mutt_error(_("Illegal S/MIME header"));
+            log_fault(_("Illegal S/MIME header"));
             return SEC_NO_FLAGS;
           }
         }
@@ -263,7 +263,7 @@ SecurityFlags mutt_parse_crypt_hdr(const char *p, bool set_empty_signas, Securit
 
         if (p[0] != '>')
         {
-          mutt_error(_("Illegal crypto header"));
+          log_fault(_("Illegal crypto header"));
           return SEC_NO_FLAGS;
         }
         break;
@@ -302,7 +302,7 @@ SecurityFlags mutt_parse_crypt_hdr(const char *p, bool set_empty_signas, Securit
 
           if (p[0] != '>')
           {
-            mutt_error(_("Illegal crypto header"));
+            log_fault(_("Illegal crypto header"));
             return SEC_NO_FLAGS;
           }
         }
@@ -311,7 +311,7 @@ SecurityFlags mutt_parse_crypt_hdr(const char *p, bool set_empty_signas, Securit
         break;
 
       default:
-        mutt_error(_("Illegal crypto header"));
+        log_fault(_("Illegal crypto header"));
         return SEC_NO_FLAGS;
     }
   }
@@ -324,7 +324,7 @@ SecurityFlags mutt_parse_crypt_hdr(const char *p, bool set_empty_signas, Securit
                                       smime_cryptalg, errmsg);
 
     if ((CSR_RESULT(rc) != CSR_SUCCESS) && !buf_is_empty(errmsg))
-      mutt_error("%s", buf_string(errmsg));
+      log_fault("%s", buf_string(errmsg));
 
     buf_pool_release(&errmsg);
   }
@@ -425,12 +425,12 @@ static int create_tmp_files_for_attachments(FILE *fp_body, struct Buffer *file,
             return -1;
           if (sec_type & APPLICATION_SMIME)
             crypt_smime_getkeys(e_new->env);
-          mutt_message(_("Decrypting message..."));
+          log_message(_("Decrypting message..."));
         }
 
         if (mutt_body_handler(b, &state) < 0)
         {
-          mutt_error(_("Decryption failed"));
+          log_fault(_("Decryption failed"));
           return -1;
         }
 
@@ -531,7 +531,7 @@ int mutt_prepare_template(FILE *fp, struct Mailbox *m, struct Email *e_new,
     if (!crypt_valid_passphrase(sec_type))
       goto bail;
 
-    mutt_message(_("Decrypting message..."));
+    log_message(_("Decrypting message..."));
     int ret = -1;
     if (sec_type & APPLICATION_PGP)
       ret = crypt_pgp_decrypt_mime(fp, &fp_body, e_new->body, &b);
@@ -539,7 +539,7 @@ int mutt_prepare_template(FILE *fp, struct Mailbox *m, struct Email *e_new,
       ret = crypt_smime_decrypt_mime(fp, &fp_body, e_new->body, &b);
     if ((ret == -1) || !b)
     {
-      mutt_error(_("Could not decrypt postponed message"));
+      log_fault(_("Could not decrypt postponed message"));
       goto bail;
     }
 
@@ -672,7 +672,7 @@ int mutt_get_postponed(struct Mailbox *m_cur, struct Email *hdr,
     if (!mx_mbox_open(m, MUTT_NOSORT))
     {
       PostCount = 0;
-      mutt_error(_("No postponed messages"));
+      log_fault(_("No postponed messages"));
       mailbox_free(&m);
       return -1;
     }
@@ -683,7 +683,7 @@ int mutt_get_postponed(struct Mailbox *m_cur, struct Email *hdr,
   if (m->msg_count == 0)
   {
     PostCount = 0;
-    mutt_error(_("No postponed messages"));
+    log_fault(_("No postponed messages"));
     if (m_cur != m)
     {
       mx_fastclose_mailbox(m, false);

@@ -164,7 +164,7 @@ static void parse_parameters(struct ParameterList *pl, const char *s, bool allow
   if (allow_value_spaces)
     buf_alloc(buf, mutt_str_len(s));
 
-  mutt_debug(LL_DEBUG2, "'%s'\n", s);
+  log_debug2("'%s'", s);
 
   const bool assumed = !slist_is_empty(cc_assumed_charset());
   while (*s)
@@ -174,7 +174,7 @@ static void parse_parameters(struct ParameterList *pl, const char *s, bool allow
     p = strpbrk(s, "=;");
     if (!p)
     {
-      mutt_debug(LL_DEBUG1, "malformed parameter: %s\n", s);
+      log_debug1("malformed parameter: %s", s);
       goto bail;
     }
 
@@ -190,7 +190,7 @@ static void parse_parameters(struct ParameterList *pl, const char *s, bool allow
        * over any quoted value that may be present.  */
       if (i == 0)
       {
-        mutt_debug(LL_DEBUG1, "missing attribute: %s\n", s);
+        log_debug1("missing attribute: %s", s);
         pnew = NULL;
       }
       else
@@ -253,7 +253,7 @@ static void parse_parameters(struct ParameterList *pl, const char *s, bool allow
       {
         pnew->value = buf_strdup(buf);
 
-        mutt_debug(LL_DEBUG2, "parse_parameter: '%s' = '%s'\n",
+        log_debug2("parse_parameter: '%s' = '%s'",
                    pnew->attribute ? pnew->attribute : "", pnew->value ? pnew->value : "");
 
         /* Add this parameter to the list */
@@ -262,7 +262,7 @@ static void parse_parameters(struct ParameterList *pl, const char *s, bool allow
     }
     else
     {
-      mutt_debug(LL_DEBUG1, "parameter with no value: %s\n", s);
+      log_debug1("parameter with no value: %s", s);
       s = p;
     }
 
@@ -344,7 +344,7 @@ static void parse_content_language(const char *s, struct Body *b)
   if (!s || !b)
     return;
 
-  mutt_debug(LL_DEBUG2, "RFC8255 >> Content-Language set to %s\n", s);
+  log_debug2("RFC8255 >> Content-Language set to %s", s);
   mutt_str_replace(&b->language, s);
 }
 
@@ -1214,7 +1214,7 @@ struct Envelope *mutt_rfc822_read_header(FILE *fp, struct Email *e, bool user_hd
   LOFF_T loc = e ? e->offset : ftello(fp);
   if (loc < 0)
   {
-    mutt_debug(LL_DEBUG1, "ftello: %s (errno %d)\n", strerror(errno), errno);
+    log_debug1("ftello: %s (errno %d)", strerror(errno), errno);
     loc = 0;
   }
 
@@ -1307,7 +1307,7 @@ struct Envelope *mutt_rfc822_read_header(FILE *fp, struct Email *e, bool user_hd
         }
 
         if (!buf_is_empty(&env->spam))
-          mutt_debug(LL_DEBUG5, "spam = %s\n", env->spam.data);
+          log_debug5("spam = %s", env->spam.data);
       }
     }
 
@@ -1330,14 +1330,14 @@ struct Envelope *mutt_rfc822_read_header(FILE *fp, struct Email *e, bool user_hd
 
     if (e->received < 0)
     {
-      mutt_debug(LL_DEBUG1, "resetting invalid received time to 0\n");
+      log_debug1("resetting invalid received time to 0");
       e->received = 0;
     }
 
     /* check for missing or invalid date */
     if (e->date_sent <= 0)
     {
-      mutt_debug(LL_DEBUG1, "no date found, using received time from msg separator\n");
+      log_debug1("no date found, using received time from msg separator");
       e->date_sent = e->received;
     }
 
@@ -1389,13 +1389,13 @@ struct Body *mutt_read_mime_header(FILE *fp, bool digest)
       c = mutt_str_skip_email_wsp(c + 1);
       if (*c == '\0')
       {
-        mutt_debug(LL_DEBUG1, "skipping empty header field: %s\n", line);
+        log_debug1("skipping empty header field: %s", line);
         continue;
       }
     }
     else
     {
-      mutt_debug(LL_DEBUG1, "bogus MIME header: %s\n", line);
+      log_debug1("bogus MIME header: %s", line);
       break;
     }
 
@@ -1523,7 +1523,7 @@ static void parse_part(FILE *fp, struct Body *b, int *counter)
 
   if (recurse_level >= MUTT_MIME_MAX_DEPTH)
   {
-    mutt_debug(LL_DEBUG1, "recurse level too deep. giving up\n");
+    log_debug1("recurse level too deep. giving up");
     return;
   }
   recurse_level++;
@@ -1592,7 +1592,7 @@ static struct Body *parse_multipart(FILE *fp, const char *boundary,
 
   if (!boundary)
   {
-    mutt_error(_("multipart message has no boundary parameter"));
+    log_fault(_("multipart message has no boundary parameter"));
     return NULL;
   }
 

@@ -73,7 +73,7 @@ static int cc_config_observer(struct NotifyCallback *nc)
                                                                          ev_c->he, NULL);
   }
 
-  mutt_debug(LL_DEBUG5, "config done\n");
+  log_debug5("config done");
   return 0;
 }
 

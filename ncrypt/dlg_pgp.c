@@ -581,7 +581,7 @@ static int pgp_key_config_observer(struct NotifyCallback *nc)
 
   struct Menu *menu = nc->global_data;
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC, MENU_REDRAW_FULL\n");
+  log_debug5("config done, request WA_RECALC, MENU_REDRAW_FULL");
 
   return 0;
 }
@@ -612,7 +612,7 @@ static int pgp_key_window_observer(struct NotifyCallback *nc)
   notify_observer_remove(NeoMutt->sub->notify, pgp_key_config_observer, menu);
   notify_observer_remove(win_menu->notify, pgp_key_window_observer, win_menu);
 
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
   return 0;
 }
 
@@ -664,7 +664,7 @@ struct PgpKeyInfo *dlg_pgp(struct PgpKeyInfo *keys, struct Address *p, const cha
 
   if ((i == 0) && unusable)
   {
-    mutt_error(_("All matching keys are expired, revoked, or disabled"));
+    log_fault(_("All matching keys are expired, revoked, or disabled"));
     return NULL;
   }
 
@@ -728,7 +728,7 @@ struct PgpKeyInfo *dlg_pgp(struct PgpKeyInfo *keys, struct Address *p, const cha
     window_redraw(NULL);
 
     op = km_dokey(MENU_PGP, GETCH_NO_FLAGS);
-    mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+    log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
     if (op < 0)
       continue;
     if (op == OP_NULL)

@@ -164,7 +164,7 @@ static int cbar_recalc(struct MuttWindow *win)
   {
     mutt_str_replace(&cbar_data->compose_format, buf_string(buf));
     win->actions |= WA_REPAINT;
-    mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+    log_debug5("recalc done, request WA_REPAINT");
   }
   buf_pool_release(&buf);
 
@@ -186,7 +186,7 @@ static int cbar_repaint(struct MuttWindow *win)
   mutt_draw_statusline(win, win->state.cols, cbar_data->compose_format,
                        mutt_str_len(cbar_data->compose_format));
   mutt_curses_set_color_by_id(MT_COLOR_NORMAL);
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
 
   return 0;
 }
@@ -212,7 +212,7 @@ int cbar_color_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_cbar = nc->global_data;
   win_cbar->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "color done, request WA_REPAINT\n");
+  log_debug5("color done, request WA_REPAINT");
 
   return 0;
 }
@@ -233,7 +233,7 @@ int cbar_config_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_cbar = nc->global_data;
   win_cbar->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC\n");
+  log_debug5("config done, request WA_RECALC");
 
   return 0;
 }
@@ -250,7 +250,7 @@ static int cbar_email_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_cbar = nc->global_data;
   win_cbar->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "compose done, request WA_RECALC\n");
+  log_debug5("compose done, request WA_RECALC");
 
   return 0;
 }
@@ -273,7 +273,7 @@ static int cbar_window_observer(struct NotifyCallback *nc)
   if (nc->event_subtype == NT_WINDOW_STATE)
   {
     win_cbar->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "window state done, request WA_RECALC\n");
+    log_debug5("window state done, request WA_RECALC");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
@@ -285,7 +285,7 @@ static int cbar_window_observer(struct NotifyCallback *nc)
     notify_observer_remove(shared->email->notify, cbar_email_observer, win_cbar);
     notify_observer_remove(win_cbar->notify, cbar_window_observer, win_cbar);
 
-    mutt_debug(LL_DEBUG5, "window delete done\n");
+    log_debug5("window delete done");
   }
 
   return 0;

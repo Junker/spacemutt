@@ -166,7 +166,7 @@ static int helpbar_recalc(struct MuttWindow *win)
   wdata->help_str = mutt_str_dup(helpstr);
 
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+  log_debug5("recalc done, request WA_REPAINT");
   return 0;
 }
 
@@ -187,7 +187,7 @@ static int helpbar_repaint(struct MuttWindow *win)
   mutt_paddstr(win, win->state.cols, wdata->help_str);
   mutt_curses_set_color_by_id(MT_COLOR_NORMAL);
 
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
   return 0;
 }
 
@@ -216,7 +216,7 @@ static int helpbar_binding_observer(struct NotifyCallback *nc)
     return 0;
 
   win_helpbar->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "binding done, request WA_RECALC\n");
+  log_debug5("binding done, request WA_RECALC");
   return 0;
 }
 
@@ -245,7 +245,7 @@ static int helpbar_color_observer(struct NotifyCallback *nc)
   struct MuttWindow *win_helpbar = nc->global_data;
 
   win_helpbar->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "color done, request WA_REPAINT\n");
+  log_debug5("color done, request WA_REPAINT");
   return 0;
 }
 
@@ -270,7 +270,7 @@ static int helpbar_config_observer(struct NotifyCallback *nc)
   win_helpbar->state.visible = cs_subset_bool(NeoMutt->sub, "help");
 
   mutt_window_reflow(win_helpbar->parent);
-  mutt_debug(LL_DEBUG5, "config done: '%s', request WA_REFLOW on parent\n", ev_c->name);
+  log_debug5("config done: '%s', request WA_REFLOW on parent", ev_c->name);
   return 0;
 }
 
@@ -298,7 +298,7 @@ static int helpbar_window_observer(struct NotifyCallback *nc)
       return 0;
 
     win_helpbar->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "window focus: request WA_RECALC\n");
+    log_debug5("window focus: request WA_RECALC");
     return 0;
   }
 
@@ -310,7 +310,7 @@ static int helpbar_window_observer(struct NotifyCallback *nc)
   if (nc->event_subtype == NT_WINDOW_STATE)
   {
     win_helpbar->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "window state: request WA_RECALC\n");
+    log_debug5("window state: request WA_RECALC");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
@@ -318,7 +318,7 @@ static int helpbar_window_observer(struct NotifyCallback *nc)
     notify_observer_remove(NeoMutt->notify, helpbar_binding_observer, win_helpbar);
     notify_observer_remove(NeoMutt->sub->notify, helpbar_config_observer, win_helpbar);
     notify_observer_remove(RootWindow->notify, helpbar_window_observer, win_helpbar);
-    mutt_debug(LL_DEBUG5, "window delete done\n");
+    log_debug5("window delete done");
   }
 
   return 0;

@@ -152,14 +152,14 @@ char *mutt_idna_intl_to_local(const char *user, const char *domain, uint8_t flag
 
     if (mutt_ch_convert_string(&reversed_user, cc_charset(), "utf-8", MUTT_ICONV_NO_FLAGS) != 0)
     {
-      mutt_debug(LL_DEBUG1, "Not reversible. Charset conv to utf-8 failed for user = '%s'\n",
+      log_debug1("Not reversible. Charset conv to utf-8 failed for user = '%s'",
                  reversed_user);
       goto cleanup;
     }
 
     if (!mutt_istr_equal(user, reversed_user))
     {
-      mutt_debug(LL_DEBUG1, "#1 Not reversible. orig = '%s', reversed = '%s'\n",
+      log_debug1("#1 Not reversible. orig = '%s', reversed = '%s'",
                  user, reversed_user);
       goto cleanup;
     }
@@ -168,7 +168,7 @@ char *mutt_idna_intl_to_local(const char *user, const char *domain, uint8_t flag
 
     if (mutt_ch_convert_string(&reversed_domain, cc_charset(), "utf-8", MUTT_ICONV_NO_FLAGS) != 0)
     {
-      mutt_debug(LL_DEBUG1, "Not reversible. Charset conv to utf-8 failed for domain = '%s'\n",
+      log_debug1("Not reversible. Charset conv to utf-8 failed for domain = '%s'",
                  reversed_domain);
       goto cleanup;
     }
@@ -182,7 +182,7 @@ char *mutt_idna_intl_to_local(const char *user, const char *domain, uint8_t flag
       if (idn2_to_ascii_8z(reversed_domain, &tmp,
                            IDN2_ALLOW_UNASSIGNED | IDN2_NFC_INPUT | IDN2_NONTRANSITIONAL) != IDN2_OK)
       {
-        mutt_debug(LL_DEBUG1, "Not reversible. idn2_to_ascii_8z failed for domain = '%s'\n",
+        log_debug1("Not reversible. idn2_to_ascii_8z failed for domain = '%s'",
                    reversed_domain);
         goto cleanup;
       }
@@ -192,7 +192,7 @@ char *mutt_idna_intl_to_local(const char *user, const char *domain, uint8_t flag
 
     if (!mutt_istr_equal(domain, reversed_domain))
     {
-      mutt_debug(LL_DEBUG1, "#2 Not reversible. orig = '%s', reversed = '%s'\n",
+      log_debug1("#2 Not reversible. orig = '%s', reversed = '%s'",
                  domain, reversed_domain);
       goto cleanup;
     }

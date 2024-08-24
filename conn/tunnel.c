@@ -64,19 +64,19 @@ static int tunnel_socket_open(struct Connection *conn)
   conn->sockdata = tunnel;
 
   const char *const c_tunnel = cs_subset_string(NeoMutt->sub, "tunnel");
-  mutt_message(_("Connecting with \"%s\"..."), c_tunnel);
+  log_message(_("Connecting with \"%s\"..."), c_tunnel);
 
   int rc = pipe(pin);
   if (rc == -1)
   {
-    mutt_perror("pipe");
+    log_perror("pipe");
     FREE(&conn->sockdata);
     return -1;
   }
   rc = pipe(pout);
   if (rc == -1)
   {
-    mutt_perror("pipe");
+    log_perror("pipe");
     close(pin[0]);
     close(pin[1]);
     FREE(&conn->sockdata);
@@ -111,7 +111,7 @@ static int tunnel_socket_open(struct Connection *conn)
 
   if (pid == -1)
   {
-    mutt_perror("fork");
+    log_perror("fork");
     close(pin[0]);
     close(pin[1]);
     close(pout[0]);
@@ -120,7 +120,7 @@ static int tunnel_socket_open(struct Connection *conn)
     return -1;
   }
   if ((close(pin[1]) < 0) || (close(pout[0]) < 0))
-    mutt_perror("close");
+    log_perror("close");
 
   fcntl(pin[0], F_SETFD, FD_CLOEXEC);
   fcntl(pout[1], F_SETFD, FD_CLOEXEC);
@@ -155,7 +155,7 @@ static int tunnel_socket_read(struct Connection *conn, char *buf, size_t count)
 
   if (rc < 0)
   {
-    mutt_error(_("Tunnel error talking to %s: %s"), conn->account.host, strerror(errno));
+    log_fault(_("Tunnel error talking to %s: %s"), conn->account.host, strerror(errno));
     return -1;
   }
 
@@ -180,7 +180,7 @@ static int tunnel_socket_write(struct Connection *conn, const char *buf, size_t 
 
     if (rc < 0)
     {
-      mutt_error(_("Tunnel error talking to %s: %s"), conn->account.host, strerror(errno));
+      log_fault(_("Tunnel error talking to %s: %s"), conn->account.host, strerror(errno));
       return -1;
     }
 
@@ -225,7 +225,7 @@ static int tunnel_socket_close(struct Connection *conn)
   waitpid(tunnel->pid, &status, 0);
   if (!WIFEXITED(status) || WEXITSTATUS(status))
   {
-    mutt_error(_("Tunnel to %s returned error %d (%s)"), conn->account.host,
+    log_fault(_("Tunnel to %s returned error %d (%s)"), conn->account.host,
                WEXITSTATUS(status), NONULL(mutt_str_sysexit(WEXITSTATUS(status))));
   }
   FREE(&conn->sockdata);

@@ -102,7 +102,7 @@ static int ibar_recalc(struct MuttWindow *win)
   {
     mutt_str_replace(&ibar_data->status_format, buf_string(buf));
     win->actions |= WA_REPAINT;
-    mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+    log_debug5("recalc done, request WA_REPAINT");
   }
 
   const bool c_ts_enabled = cs_subset_bool(shared->sub, "ts_enabled");
@@ -115,7 +115,7 @@ static int ibar_recalc(struct MuttWindow *win)
     {
       mutt_str_replace(&ibar_data->ts_status_format, buf_string(buf));
       win->actions |= WA_REPAINT;
-      mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+      log_debug5("recalc done, request WA_REPAINT");
     }
 
     buf_reset(buf);
@@ -125,7 +125,7 @@ static int ibar_recalc(struct MuttWindow *win)
     {
       mutt_str_replace(&ibar_data->ts_icon_format, buf_string(buf));
       win->actions |= WA_REPAINT;
-      mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+      log_debug5("recalc done, request WA_REPAINT");
     }
   }
 
@@ -157,7 +157,7 @@ static int ibar_repaint(struct MuttWindow *win)
     mutt_ts_icon(ibar_data->ts_icon_format);
   }
 
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
   return 0;
 }
 
@@ -182,7 +182,7 @@ static int ibar_color_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_ibar = nc->global_data;
   win_ibar->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "color done, request WA_REPAINT\n");
+  log_debug5("color done, request WA_REPAINT");
 
   return 0;
 }
@@ -213,7 +213,7 @@ static int ibar_config_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_ibar = nc->global_data;
   win_ibar->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC\n");
+  log_debug5("config done, request WA_RECALC");
 
   return 0;
 }
@@ -234,7 +234,7 @@ static int ibar_index_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_ibar = nc->global_data;
   win_ibar->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "index done, request WA_RECALC\n");
+  log_debug5("index done, request WA_RECALC");
 
   return 0;
 }
@@ -251,7 +251,7 @@ static int ibar_menu_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_ibar = nc->global_data;
   win_ibar->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "menu done, request WA_RECALC\n");
+  log_debug5("menu done, request WA_RECALC");
 
   return 0;
 }
@@ -274,7 +274,7 @@ static int ibar_window_observer(struct NotifyCallback *nc)
   if (nc->event_subtype == NT_WINDOW_STATE)
   {
     win_ibar->actions |= WA_REPAINT;
-    mutt_debug(LL_DEBUG5, "window state done, request WA_REPAINT\n");
+    log_debug5("window state done, request WA_REPAINT");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
@@ -287,7 +287,7 @@ static int ibar_window_observer(struct NotifyCallback *nc)
     notify_observer_remove(win_ibar->parent->notify, ibar_menu_observer, win_ibar);
     notify_observer_remove(win_ibar->notify, ibar_window_observer, win_ibar);
 
-    mutt_debug(LL_DEBUG5, "window delete done\n");
+    log_debug5("window delete done");
   }
 
   return 0;

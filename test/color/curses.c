@@ -34,7 +34,7 @@ ARRAY_HEAD(CursesColorArray, struct CursesColor *);
 
 void test_curses_colors(void)
 {
-  MuttLogger = log_disp_null;
+  MuttLogWriter = log_writer_null;
 
   COLOR_PAIRS = 32;
   curses_colors_init();

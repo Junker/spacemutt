@@ -31,7 +31,7 @@ void test_mutt_file_lock(void)
 {
   // int mutt_file_lock(int fd, bool excl, bool timeout);
 
-  MuttLogger = log_disp_null;
+  MuttLogWriter = log_writer_null;
 
   {
     int rc = mutt_file_lock(-1, false, false);

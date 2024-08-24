@@ -140,7 +140,7 @@ static int fold_one_header(FILE *fp, const char *tag, const char *value, size_t 
   int first = 1, col = 0, l = 0;
   const bool display = (chflags & CH_DISPLAY);
 
-  mutt_debug(LL_DEBUG5, "pfx=[%s], tag=[%s], flags=%d value=[%.*s]\n", pfx, tag,
+  log_debug5("pfx=[%s], tag=[%s], flags=%d value=[%.*s]", pfx, tag,
              chflags, (int) ((value[vlen - 1] == '\n') ? vlen - 1 : vlen), value);
 
   if (tag && *tag && (fprintf(fp, "%s%s: ", NONULL(pfx), tag) < 0))
@@ -163,7 +163,7 @@ static int fold_one_header(FILE *fp, const char *tag, const char *value, size_t 
     const int w = mutt_mb_width(buf, col, display);
     const int enc = mutt_str_startswith(buf, "=?");
 
-    mutt_debug(LL_DEBUG5, "word=[%s], col=%d, w=%d, next=[0x0%x]\n",
+    log_debug5("word=[%s], col=%d, w=%d, next=[0x0%x]",
                (buf[0] == '\n' ? "\\n" : buf), col, w, *next);
 
     /* insert a folding \n before the current word's lwsp except for
@@ -299,14 +299,14 @@ static int write_one_header(FILE *fp, int pfxw, int max, int wraplen, const char
   const char *t = strchr(start, ':');
   if (!t || (t >= end))
   {
-    mutt_debug(LL_DEBUG1, "#2 warning: header not in 'key: value' format!\n");
+    log_debug1("#2 warning: header not in 'key: value' format!");
     return 0;
   }
 
   const size_t vallen = end - start;
   const bool short_enough = (pfxw + max <= wraplen);
 
-  mutt_debug((short_enough ? LL_DEBUG2 : LL_DEBUG5), "buf[%s%.*s] %s, max width = %d %s %d\n",
+  log((short_enough ? LOG_LEVEL_DEBUG2 : LOG_LEVEL_DEBUG5), "buf[%s%.*s] %s, max width = %d %s %d\n",
              NONULL(pfx), (int) (vallen - 1) /* skip newline */, start,
              (short_enough ? "short enough" : "too long"), max,
              (short_enough ? "<=" : ">"), wraplen);
@@ -454,7 +454,7 @@ int mutt_write_one_header(FILE *fp, const char *tag, const char *value,
     /* if header is short enough, simply print it */
     if (!display && (mutt_strwidth(tag) + 2 + pfxw + mutt_strnwidth(v, vlen) <= wraplen))
     {
-      mutt_debug(LL_DEBUG5, "buf[%s%s: %s] is short enough\n", NONULL(pfx), tag, v);
+      log_debug5("buf[%s%s: %s] is short enough", NONULL(pfx), tag, v);
       if (fprintf(fp, "%s%s: %s\n", NONULL(pfx), tag, v) <= 0)
         goto out;
       rc = 0;
@@ -856,7 +856,7 @@ int mutt_write_mime_header(struct Body *b, FILE *fp, struct ConfigSubset *sub)
     }
     else
     {
-      mutt_debug(LL_DEBUG1, "ERROR: invalid content-disposition %d\n", b->disposition);
+      log_debug1("ERROR: invalid content-disposition %d", b->disposition);
     }
   }
 

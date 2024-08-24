@@ -120,7 +120,7 @@ static bool lock_realpath(struct Mailbox *m, bool excl)
     ci->fp_lock = mutt_file_fopen(m->realpath, "r");
   if (!ci->fp_lock)
   {
-    mutt_perror("%s", m->realpath);
+    log_perror("%s", m->realpath);
     return false;
   }
 
@@ -221,7 +221,7 @@ static struct Expando *validate_compress_expando(const char *s)
   struct Expando *exp = expando_parse(s, CompressFormatDef, err);
   if (!exp)
   {
-    mutt_error(_("Expando parse error: %s"), buf_string(err));
+    log_fault(_("Expando parse error: %s"), buf_string(err));
   }
 
   buf_pool_release(&err);
@@ -326,7 +326,7 @@ static bool execute_command(struct Mailbox *m, const struct Expando *exp, const 
     return false;
 
   if (m->verbose)
-    mutt_message(progress, m->realpath);
+    log_message(progress, m->realpath);
 
   bool rc = true;
   struct Buffer *sys_cmd = buf_pool_get();
@@ -342,7 +342,7 @@ static bool execute_command(struct Mailbox *m, const struct Expando *exp, const 
   {
     rc = false;
     mutt_any_key_to_continue(NULL);
-    mutt_error(_("Error running \"%s\""), buf_string(sys_cmd));
+    log_fault(_("Error running \"%s\""), buf_string(sys_cmd));
   }
 
   mutt_sig_unblock();
@@ -377,7 +377,7 @@ bool mutt_comp_can_append(struct Mailbox *m)
   if (ci->cmd_append || ci->cmd_close)
     return true;
 
-  mutt_error(_("Can't append without an append-hook or close-hook : %s"), mailbox_path(m));
+  log_fault(_("Can't append without an append-hook or close-hook : %s"), mailbox_path(m));
   return false;
 }
 
@@ -459,7 +459,7 @@ static enum MxOpenReturns comp_mbox_open(struct Mailbox *m)
 
   if (!lock_realpath(m, false))
   {
-    mutt_error(_("Unable to lock mailbox"));
+    log_fault(_("Unable to lock mailbox"));
     goto cmo_fail;
   }
 
@@ -471,14 +471,14 @@ static enum MxOpenReturns comp_mbox_open(struct Mailbox *m)
   m->type = mx_path_probe(mailbox_path(m));
   if (m->type == MUTT_UNKNOWN)
   {
-    mutt_error(_("Can't identify the contents of the compressed file"));
+    log_fault(_("Can't identify the contents of the compressed file"));
     goto cmo_fail;
   }
 
   ci->child_ops = mx_get_ops(m->type);
   if (!ci->child_ops)
   {
-    mutt_error(_("Can't find mailbox ops for mailbox type %d"), m->type);
+    log_fault(_("Can't find mailbox ops for mailbox type %d"), m->type);
     goto cmo_fail;
   }
 
@@ -510,7 +510,7 @@ static bool comp_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
   /* To append we need an append-hook or a close-hook */
   if (!ci->cmd_append && !ci->cmd_close)
   {
-    mutt_error(_("Can't append without an append-hook or close-hook : %s"),
+    log_fault(_("Can't append without an append-hook or close-hook : %s"),
                mailbox_path(m));
     goto cmoa_fail1;
   }
@@ -522,7 +522,7 @@ static bool comp_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
    * It will be unlocked in the close */
   if (!lock_realpath(m, true))
   {
-    mutt_error(_("Unable to lock mailbox"));
+    log_fault(_("Unable to lock mailbox"));
     goto cmoa_fail2;
   }
 
@@ -531,7 +531,7 @@ static bool comp_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
   {
     if (!execute_command(m, ci->cmd_open, _("Decompressing %s")))
     {
-      mutt_error(_("Compress command failed: %s"), ci->cmd_open->string);
+      log_fault(_("Compress command failed: %s"), ci->cmd_open->string);
       goto cmoa_fail2;
     }
     m->type = mx_path_probe(mailbox_path(m));
@@ -544,14 +544,14 @@ static bool comp_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
   /* We can only deal with mbox and mmdf mailboxes */
   if ((m->type != MUTT_MBOX) && (m->type != MUTT_MMDF))
   {
-    mutt_error(_("Unsupported mailbox type for appending"));
+    log_fault(_("Unsupported mailbox type for appending"));
     goto cmoa_fail2;
   }
 
   ci->child_ops = mx_get_ops(m->type);
   if (!ci->child_ops)
   {
-    mutt_error(_("Can't find mailbox ops for mailbox type %d"), m->type);
+    log_fault(_("Can't find mailbox ops for mailbox type %d"), m->type);
     goto cmoa_fail2;
   }
 
@@ -597,7 +597,7 @@ static enum MxStatus comp_mbox_check(struct Mailbox *m)
 
   if (!lock_realpath(m, false))
   {
-    mutt_error(_("Unable to lock mailbox"));
+    log_fault(_("Unable to lock mailbox"));
     return MX_STATUS_ERROR;
   }
 
@@ -625,7 +625,7 @@ static enum MxStatus comp_mbox_sync(struct Mailbox *m)
 
   if (!ci->cmd_close)
   {
-    mutt_error(_("Can't sync a compressed file without a close-hook"));
+    log_fault(_("Can't sync a compressed file without a close-hook"));
     return MX_STATUS_ERROR;
   }
 
@@ -635,7 +635,7 @@ static enum MxStatus comp_mbox_sync(struct Mailbox *m)
 
   if (!lock_realpath(m, true))
   {
-    mutt_error(_("Unable to lock mailbox"));
+    log_fault(_("Unable to lock mailbox"));
     return MX_STATUS_ERROR;
   }
 
@@ -704,13 +704,13 @@ static enum MxStatus comp_mbox_close(struct Mailbox *m)
     if (!execute_command(m, append, msg))
     {
       mutt_any_key_to_continue(NULL);
-      mutt_error(_("Error. Preserving temporary file: %s"), mailbox_path(m));
+      log_fault(_("Error. Preserving temporary file: %s"), mailbox_path(m));
     }
     else
     {
       if (remove(mailbox_path(m)) < 0)
       {
-        mutt_debug(LL_DEBUG1, "remove failed: %s: %s (errno %d)\n",
+        log_debug1("remove failed: %s: %s (errno %d)",
                    mailbox_path(m), strerror(errno), errno);
       }
     }
@@ -727,7 +727,7 @@ static enum MxStatus comp_mbox_close(struct Mailbox *m)
       {
         if (remove(m->realpath) < 0)
         {
-          mutt_debug(LL_DEBUG1, "remove failed: %s: %s (errno %d)\n",
+          log_debug1("remove failed: %s: %s (errno %d)",
                      m->realpath, strerror(errno), errno);
         }
       }
@@ -736,7 +736,7 @@ static enum MxStatus comp_mbox_close(struct Mailbox *m)
     {
       if (remove(mailbox_path(m)) < 0)
       {
-        mutt_debug(LL_DEBUG1, "remove failed: %s: %s (errno %d)\n",
+        log_debug1("remove failed: %s: %s (errno %d)",
                    mailbox_path(m), strerror(errno), errno);
       }
     }

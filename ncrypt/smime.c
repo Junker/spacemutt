@@ -340,7 +340,7 @@ static void smime_command(struct Buffer *buf, struct SmimeCommandContext *cctx,
                           const struct Expando *exp)
 {
   expando_render(exp, SmimeCommandRenderData, cctx, MUTT_FORMAT_NO_FLAGS, buf->dsize, buf);
-  mutt_debug(LL_DEBUG2, "%s\n", buf_string(buf));
+  log_debug2("%s", buf_string(buf));
 }
 
 /**
@@ -497,7 +497,7 @@ static struct SmimeKey *smime_get_candidates(const char *search, bool only_publi
   FILE *fp = mutt_file_fopen(buf_string(index_file), "r");
   if (!fp)
   {
-    mutt_perror("%s", buf_string(index_file));
+    log_perror("%s", buf_string(index_file));
     buf_pool_release(&index_file);
     return NULL;
   }
@@ -705,7 +705,7 @@ static struct SmimeKey *smime_ask_for_key(char *prompt, KeyFlags abilities, bool
     if (key)
       goto done;
 
-    mutt_error(_("No matching keys found for \"%s\""), buf_string(resp));
+    log_fault(_("No matching keys found for \"%s\""), buf_string(resp));
   }
 
 done:
@@ -816,7 +816,7 @@ char *smime_class_find_keys(const AddressList *al, bool oppenc_mode)
     if (!key)
     {
       if (!oppenc_mode)
-        mutt_message(_("No (valid) certificate found for %s"), buf_string(a->mailbox));
+        log_message(_("No (valid) certificate found for %s"), buf_string(a->mailbox));
       FREE(&keylist);
       return NULL;
     }
@@ -853,7 +853,7 @@ static int smime_handle_cert_email(const char *certificate, const char *mailbox,
   FILE *fp_err = mutt_file_mkstemp();
   if (!fp_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     return 1;
   }
 
@@ -861,7 +861,7 @@ static int smime_handle_cert_email(const char *certificate, const char *mailbox,
   if (!fp_out)
   {
     mutt_file_fclose(&fp_err);
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     return 1;
   }
 
@@ -871,7 +871,7 @@ static int smime_handle_cert_email(const char *certificate, const char *mailbox,
                      NULL, NULL, NULL, NULL, NULL, NULL, c_smime_get_cert_email_command);
   if (pid == -1)
   {
-    mutt_message(_("Error: unable to create OpenSSL subprocess"));
+    log_message(_("Error: unable to create OpenSSL subprocess"));
     mutt_file_fclose(&fp_err);
     mutt_file_fclose(&fp_out);
     return 1;
@@ -960,7 +960,7 @@ static char *smime_extract_certificate(const char *infile)
   fp_err = mutt_file_mkstemp();
   if (!fp_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto cleanup;
   }
 
@@ -968,7 +968,7 @@ static char *smime_extract_certificate(const char *infile)
   fp_out = mutt_file_fopen(buf_string(pk7out), "w+");
   if (!fp_out)
   {
-    mutt_perror("%s", buf_string(pk7out));
+    log_perror("%s", buf_string(pk7out));
     goto cleanup;
   }
 
@@ -992,7 +992,7 @@ static char *smime_extract_certificate(const char *infile)
   empty = (fgetc(fp_out) == EOF);
   if (empty)
   {
-    mutt_perror("%s", buf_string(pk7out));
+    log_perror("%s", buf_string(pk7out));
     mutt_file_copy_stream(fp_err, stdout);
     goto cleanup;
   }
@@ -1002,7 +1002,7 @@ static char *smime_extract_certificate(const char *infile)
   fp_cert = mutt_file_fopen(buf_string(certfile), "w+");
   if (!fp_cert)
   {
-    mutt_perror("%s", buf_string(certfile));
+    log_perror("%s", buf_string(certfile));
     mutt_file_unlink(buf_string(pk7out));
     goto cleanup;
   }
@@ -1070,7 +1070,7 @@ static char *smime_extract_signer_certificate(const char *infile)
   FILE *fp_err = mutt_file_mkstemp();
   if (!fp_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     return NULL;
   }
 
@@ -1080,7 +1080,7 @@ static char *smime_extract_signer_certificate(const char *infile)
   if (!fp_out)
   {
     mutt_file_fclose(&fp_err);
-    mutt_perror("%s", buf_string(certfile));
+    log_perror("%s", buf_string(certfile));
     goto cleanup;
   }
 
@@ -1137,14 +1137,14 @@ void smime_class_invoke_import(const char *infile, const char *mailbox)
   FILE *fp_err = mutt_file_mkstemp();
   if (!fp_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto done;
   }
 
   fp_out = mutt_file_mkstemp();
   if (!fp_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto done;
   }
 
@@ -1174,7 +1174,7 @@ void smime_class_invoke_import(const char *infile, const char *mailbox)
                              NULL, NULL, c_smime_import_cert_command);
     if (pid == -1)
     {
-      mutt_message(_("Error: unable to create OpenSSL subprocess"));
+      log_message(_("Error: unable to create OpenSSL subprocess"));
       goto done;
     }
     fputs(buf_string(buf), fp_smime_in);
@@ -1214,7 +1214,7 @@ int smime_class_verify_sender(struct Email *e, struct Message *msg)
   FILE *fp_out = mutt_file_fopen(buf_string(tempfname), "w");
   if (!fp_out)
   {
-    mutt_perror("%s", buf_string(tempfname));
+    log_perror("%s", buf_string(tempfname));
     goto cleanup;
   }
 
@@ -1348,14 +1348,14 @@ struct Body *smime_class_build_smime_entity(struct Body *b, char *certlist)
   fp_out = mutt_file_fopen(buf_string(tempfile), "w+");
   if (!fp_out)
   {
-    mutt_perror("%s", buf_string(tempfile));
+    log_perror("%s", buf_string(tempfile));
     goto cleanup;
   }
 
   fp_smime_err = mutt_file_mkstemp();
   if (!fp_smime_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto cleanup;
   }
 
@@ -1363,7 +1363,7 @@ struct Body *smime_class_build_smime_entity(struct Body *b, char *certlist)
   fp_tmp = mutt_file_fopen(buf_string(smime_infile), "w+");
   if (!fp_tmp)
   {
-    mutt_perror("%s", buf_string(smime_infile));
+    log_perror("%s", buf_string(smime_infile));
     goto cleanup;
   }
 
@@ -1512,7 +1512,7 @@ struct Body *smime_class_sign_message(struct Body *b, const AddressList *from)
   const char *signas = c_smime_sign_as ? c_smime_sign_as : c_smime_default_key;
   if (!signas || (*signas == '\0'))
   {
-    mutt_error(_("Can't sign: No key specified. Use Sign As."));
+    log_fault(_("Can't sign: No key specified. Use Sign As."));
     return NULL;
   }
 
@@ -1525,7 +1525,7 @@ struct Body *smime_class_sign_message(struct Body *b, const AddressList *from)
   fp_sign = mutt_file_fopen(buf_string(filetosign), "w+");
   if (!fp_sign)
   {
-    mutt_perror("%s", buf_string(filetosign));
+    log_perror("%s", buf_string(filetosign));
     goto cleanup;
   }
 
@@ -1533,7 +1533,7 @@ struct Body *smime_class_sign_message(struct Body *b, const AddressList *from)
   fp_smime_out = mutt_file_fopen(buf_string(signedfile), "w+");
   if (!fp_smime_out)
   {
-    mutt_perror("%s", buf_string(signedfile));
+    log_perror("%s", buf_string(signedfile));
     goto cleanup;
   }
 
@@ -1561,7 +1561,7 @@ struct Body *smime_class_sign_message(struct Body *b, const AddressList *from)
                           fileno(fp_smime_out), -1, buf_string(filetosign));
   if (pid == -1)
   {
-    mutt_perror(_("Can't open OpenSSL subprocess"));
+    log_perror(_("Can't open OpenSSL subprocess"));
     mutt_file_unlink(buf_string(filetosign));
     goto cleanup;
   }
@@ -1723,7 +1723,7 @@ int smime_class_verify_one(struct Body *b, struct State *state, const char *temp
   state->fp_out = mutt_file_fopen(buf_string(signedfile), "w");
   if (!state->fp_out)
   {
-    mutt_perror("%s", buf_string(signedfile));
+    log_perror("%s", buf_string(signedfile));
     goto cleanup;
   }
   /* decoding the attachment changes the size and offset, so save a copy
@@ -1755,7 +1755,7 @@ int smime_class_verify_one(struct Body *b, struct State *state, const char *temp
   fp_smime_err = mutt_file_mkstemp();
   if (!fp_smime_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto cleanup;
   }
 
@@ -1834,14 +1834,14 @@ static struct Body *smime_handle_entity(struct Body *b, struct State *state, FIL
   fp_smime_out = mutt_file_mkstemp();
   if (!fp_smime_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto cleanup;
   }
 
   fp_smime_err = mutt_file_mkstemp();
   if (!fp_smime_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto cleanup;
   }
 
@@ -1849,7 +1849,7 @@ static struct Body *smime_handle_entity(struct Body *b, struct State *state, FIL
   fp_tmp = mutt_file_fopen(buf_string(tmpfname), "w+");
   if (!fp_tmp)
   {
-    mutt_perror("%s", buf_string(tmpfname));
+    log_perror("%s", buf_string(tmpfname));
     goto cleanup;
   }
 
@@ -1933,7 +1933,7 @@ static struct Body *smime_handle_entity(struct Body *b, struct State *state, FIL
     /* void the passphrase, even if that wasn't the problem */
     if (fgetc(fp_smime_out) == EOF)
     {
-      mutt_error(_("Decryption failed"));
+      log_fault(_("Decryption failed"));
       smime_class_void_passphrase();
     }
     rewind(fp_smime_out);
@@ -1948,7 +1948,7 @@ static struct Body *smime_handle_entity(struct Body *b, struct State *state, FIL
     fp_out = mutt_file_mkstemp();
     if (!fp_out)
     {
-      mutt_perror(_("Can't create temporary file"));
+      log_perror(_("Can't create temporary file"));
       goto cleanup;
     }
   }
@@ -2078,7 +2078,7 @@ int smime_class_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct 
   FILE *fp_tmp = mutt_file_mkstemp();
   if (!fp_tmp)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     return -1;
   }
 
@@ -2094,7 +2094,7 @@ int smime_class_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct 
   *fp_out = mutt_file_mkstemp();
   if (!*fp_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto bail;
   }
 
@@ -2316,7 +2316,7 @@ SecurityFlags smime_class_send_menu(struct Email *e)
           }
 
           if ((CSR_RESULT(rc) != CSR_SUCCESS) && !buf_is_empty(errmsg))
-            mutt_error("%s", buf_string(errmsg));
+            log_fault("%s", buf_string(errmsg));
 
           buf_pool_release(&errmsg);
         } while (choice == -1);

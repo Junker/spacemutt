@@ -83,7 +83,7 @@ static int menu_recalc(struct MuttWindow *win)
     return 0;
 
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+  log_debug5("recalc done, request WA_REPAINT");
   return 0;
 }
 
@@ -119,7 +119,7 @@ static int menu_repaint(struct MuttWindow *win)
     mutt_window_move(menu->win, menu->win->state.cols - 1, menu->current - menu->top);
   }
 
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
   return 0;
 }
 

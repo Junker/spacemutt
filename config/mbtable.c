@@ -88,7 +88,7 @@ struct MbTable *mbtable_parse(const char *s)
     if ((k == ICONV_ILLEGAL_SEQ) || (k == ICONV_BUF_TOO_SMALL))
     {
       /* XXX put message in err buffer; fail? warning? */
-      mutt_debug(LL_DEBUG1, "mbrtowc returned %zd converting %s in %s\n", k, s, t->orig_str);
+      log_debug1("mbrtowc returned %zd converting %s in %s", k, s, t->orig_str);
       if (k == ICONV_ILLEGAL_SEQ)
         memset(&mbstate, 0, sizeof(mbstate));
       k = (k == ICONV_ILLEGAL_SEQ) ? 1 : slen;

@@ -239,7 +239,7 @@ static enum CommandResult parse_echo(struct Buffer *buf, struct Buffer *s,
   }
   parse_extract_token(buf, s, TOKEN_NO_FLAGS);
   OptForceRefresh = true;
-  mutt_message("%s", buf->data);
+  log_message("%s", buf->data);
   OptForceRefresh = false;
   mutt_sleep(0);
 
@@ -405,7 +405,7 @@ static enum CommandResult parse_ifdef(struct Buffer *buf, struct Buffer *s,
     enum CommandResult rc = parse_rc_line(buf->data, err);
     if (rc == MUTT_CMD_ERROR)
     {
-      mutt_error(_("Error: %s"), buf_string(err));
+      log_fault(_("Error: %s"), buf_string(err));
       return MUTT_CMD_ERROR;
     }
     return rc;
@@ -475,7 +475,7 @@ static enum CommandResult mailbox_add(const char *folder, const char *mailbox,
                                       const char *label, enum TriBool poll,
                                       enum TriBool notify, struct Buffer *err)
 {
-  mutt_debug(LL_DEBUG1, "Adding mailbox: '%s' label '%s', poll %s, notify %s\n",
+  log_debug1("Adding mailbox: '%s' label '%s', poll %s, notify %s",
              mailbox, label ? label : "[NONE]",
              (poll == TB_UNSET) ? "[UNSPECIFIED]" :
              (poll == TB_TRUE)  ? "true" :
@@ -700,13 +700,13 @@ enum CommandResult parse_my_hdr(struct Buffer *buf, struct Buffer *s,
   if (n)
   {
     header_update(n, buf->data);
-    mutt_debug(LL_NOTIFY, "NT_HEADER_CHANGE: %s\n", buf->data);
+    log_notify("NT_HEADER_CHANGE: %s", buf->data);
     notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_CHANGE, &ev_h);
   }
   else
   {
     header_add(UserHeader, buf->data);
-    mutt_debug(LL_NOTIFY, "NT_HEADER_ADD: %s\n", buf->data);
+    log_notify("NT_HEADER_ADD: %s", buf->data);
     notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_ADD, &ev_h);
   }
 
@@ -1076,7 +1076,7 @@ enum CommandResult parse_subscribe_to(struct Buffer *buf, struct Buffer *s,
       buf_expand_path(buf);
       if (imap_subscribe(buf_string(buf), true) == 0)
       {
-        mutt_message(_("Subscribed to %s"), buf->data);
+        log_message(_("Subscribed to %s"), buf->data);
         return MUTT_CMD_SUCCESS;
       }
 
@@ -1084,7 +1084,7 @@ enum CommandResult parse_subscribe_to(struct Buffer *buf, struct Buffer *s,
       return MUTT_CMD_ERROR;
     }
 
-    mutt_debug(LL_DEBUG1, "Corrupted buffer");
+    log_debug1("Corrupted buffer");
     return MUTT_CMD_ERROR;
   }
 
@@ -1122,7 +1122,7 @@ static enum CommandResult parse_tag_formats(struct Buffer *buf, struct Buffer *s
     const char *tmp = mutt_hash_find(TagFormats, fmt);
     if (tmp)
     {
-      mutt_warning(_("tag format '%s' already registered as '%s'"), fmt, tmp);
+      log_warning(_("tag format '%s' already registered as '%s'"), fmt, tmp);
       continue;
     }
 
@@ -1164,7 +1164,7 @@ static enum CommandResult parse_tag_transforms(struct Buffer *buf, struct Buffer
     const char *tmp = mutt_hash_find(TagTransforms, tag);
     if (tmp)
     {
-      mutt_warning(_("tag transform '%s' already registered as '%s'"), tag, tmp);
+      log_warning(_("tag transform '%s' already registered as '%s'"), tag, tmp);
       continue;
     }
 
@@ -1234,7 +1234,7 @@ static void do_unmailboxes(struct Mailbox *m)
   if (m->opened)
   {
     struct EventMailbox ev_m = { NULL };
-    mutt_debug(LL_NOTIFY, "NT_MAILBOX_CHANGE: NULL\n");
+    log_notify("NT_MAILBOX_CHANGE: NULL");
     notify_send(NeoMutt->notify, NT_MAILBOX, NT_MAILBOX_CHANGE, &ev_m);
   }
   else
@@ -1310,7 +1310,7 @@ static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
       /* Clear all headers, send a notification for each header */
       for (GList *np = UserHeader->head; np != NULL; np = np->next)
       {
-        mutt_debug(LL_NOTIFY, "NT_HEADER_DELETE: %s\n", (char*)np->data);
+        log_notify("NT_HEADER_DELETE: %s", (char*)np->data);
         struct EventHeader ev_h = { np->data };
         notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_DELETE, &ev_h);
       }
@@ -1327,7 +1327,7 @@ static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
       GList *next = np->next;
       if (mutt_istrn_equal(buf->data, np->data, l) && (((char*)np->data)[l] == ':'))
       {
-        mutt_debug(LL_NOTIFY, "NT_HEADER_DELETE: %s\n", (char*)np->data);
+        log_notify("NT_HEADER_DELETE: %s", (char*)np->data);
         struct EventHeader ev_h = { np->data };
         notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_DELETE, &ev_h);
 
@@ -1415,7 +1415,7 @@ enum CommandResult parse_unsubscribe_from(struct Buffer *buf, struct Buffer *s,
       buf_expand_path(buf);
       if (imap_subscribe(buf_string(buf), false) == 0)
       {
-        mutt_message(_("Unsubscribed from %s"), buf->data);
+        log_message(_("Unsubscribed from %s"), buf->data);
         return MUTT_CMD_SUCCESS;
       }
 
@@ -1423,7 +1423,7 @@ enum CommandResult parse_unsubscribe_from(struct Buffer *buf, struct Buffer *s,
       return MUTT_CMD_ERROR;
     }
 
-    mutt_debug(LL_DEBUG1, "Corrupted buffer");
+    log_debug1("Corrupted buffer");
     return MUTT_CMD_ERROR;
   }
 

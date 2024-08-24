@@ -48,7 +48,7 @@ void imap_msn_reserve(struct MSNArray *msn, size_t num)
    * if msn_count is this big, we have a serious problem. */
   if (num >= (UINT_MAX / sizeof(struct Email *)))
   {
-    mutt_error("%s", strerror(ENOMEM));
+    log_fault("%s", strerror(ENOMEM));
     mutt_exit(1);
   }
 

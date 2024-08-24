@@ -74,7 +74,7 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
   struct Mailbox *m_fname = mx_path_resolve(buf_string(fname));
   if (!mx_mbox_open(m_fname, MUTT_NEWFOLDER))
   {
-    mutt_error(_("could not create temporary folder: %s"), strerror(errno));
+    log_fault(_("could not create temporary folder: %s"), strerror(errno));
     buf_pool_release(&fname);
     mailbox_free(&m_fname);
     return -1;
@@ -94,14 +94,14 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
 
   if (rc == -1)
   {
-    mutt_error(_("could not write temporary mail folder: %s"), strerror(oerrno));
+    log_fault(_("could not write temporary mail folder: %s"), strerror(oerrno));
     goto bail;
   }
 
   rc = stat(buf_string(fname), &st);
   if (rc == -1)
   {
-    mutt_error(_("Can't stat %s: %s"), buf_string(fname), strerror(errno));
+    log_fault(_("Can't stat %s: %s"), buf_string(fname), strerror(errno));
     goto bail;
   }
 
@@ -113,7 +113,7 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
   if ((st.st_size != 0) && (truncate(buf_string(fname), st.st_size - 1) == -1))
   {
     rc = -1;
-    mutt_error(_("could not truncate temporary mail folder: %s"), strerror(errno));
+    log_fault(_("could not truncate temporary mail folder: %s"), strerror(errno));
     goto bail;
   }
 
@@ -123,7 +123,7 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
     rc = mutt_file_chmod_rm_stat(buf_string(fname), S_IWUSR | S_IWGRP | S_IWOTH, &st);
     if (rc == -1)
     {
-      mutt_debug(LL_DEBUG1, "Could not remove write permissions of %s: %s",
+      log_debug1("Could not remove write permissions of %s: %s",
                  buf_string(fname), strerror(errno));
       /* Do not bail out here as we are checking afterwards if we should adopt
        * changes of the temporary file. */
@@ -134,7 +134,7 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
   rc = stat(buf_string(fname), &st);
   if (rc == -1)
   {
-    mutt_error(_("Can't stat %s: %s"), buf_string(fname), strerror(errno));
+    log_fault(_("Can't stat %s: %s"), buf_string(fname), strerror(errno));
     goto bail;
   }
 
@@ -143,7 +143,7 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
   if (mtime == (time_t) -1)
   {
     rc = -1;
-    mutt_perror("%s", buf_string(fname));
+    log_perror("%s", buf_string(fname));
     goto bail;
   }
 
@@ -153,27 +153,27 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
   rc = stat(buf_string(fname), &st);
   if (rc == -1)
   {
-    mutt_error(_("Can't stat %s: %s"), buf_string(fname), strerror(errno));
+    log_fault(_("Can't stat %s: %s"), buf_string(fname), strerror(errno));
     goto bail;
   }
 
   if (st.st_size == 0)
   {
-    mutt_message(_("Message file is empty"));
+    log_message(_("Message file is empty"));
     rc = 1;
     goto bail;
   }
 
   if ((action == EVM_EDIT) && (st.st_mtime == mtime))
   {
-    mutt_message(_("Message not modified"));
+    log_message(_("Message not modified"));
     rc = 1;
     goto bail;
   }
 
   if ((action == EVM_VIEW) && (st.st_mtime != mtime))
   {
-    mutt_message(_("Message of read-only mailbox modified! Ignoring changes."));
+    log_message(_("Message of read-only mailbox modified! Ignoring changes."));
     rc = 1;
     goto bail;
   }
@@ -189,7 +189,7 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
   if (!fp)
   {
     rc = -1;
-    mutt_error(_("Can't open message file: %s"), strerror(errno));
+    log_fault(_("Can't open message file: %s"), strerror(errno));
     goto bail;
   }
 
@@ -197,7 +197,7 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
   {
     rc = -1;
     /* L10N: %s is from strerror(errno) */
-    mutt_error(_("Can't append to folder: %s"), strerror(errno));
+    log_fault(_("Can't append to folder: %s"), strerror(errno));
     goto bail;
   }
   MsgOpenFlags of = MUTT_MSG_NO_FLAGS;
@@ -227,7 +227,7 @@ static int ev_message(enum EvMessage action, struct Mailbox *m, struct Email *e)
   if (!msg)
   {
     rc = -1;
-    mutt_error(_("Can't append to folder: %s"), strerror(errno));
+    log_fault(_("Can't append to folder: %s"), strerror(errno));
     mx_mbox_close(m);
     goto bail;
   }
@@ -263,7 +263,7 @@ bail:
   }
   else if (rc == -1)
   {
-    mutt_message(_("Error. Preserving temporary file: %s"), buf_string(fname));
+    log_message(_("Error. Preserving temporary file: %s"), buf_string(fname));
   }
 
   m->append = old_append;

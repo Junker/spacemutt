@@ -142,7 +142,7 @@ static int sort_string_get(const struct ConfigSet *cs, void *var,
 
   if (!str)
   {
-    mutt_debug(LL_DEBUG1, "Variable has an invalid value: %d/%d\n", cdef->type, sort);
+    log_debug1("Variable has an invalid value: %d/%d", cdef->type, sort);
     return CSR_ERR_INVALID | CSR_INV_TYPE;
   }
 

@@ -53,7 +53,7 @@ static int mutt_gsasl_callback(Gsasl *ctx, Gsasl_session *sctx, Gsasl_property p
   struct Connection *conn = gsasl_session_hook_get(sctx);
   if (!conn)
   {
-    mutt_debug(LL_DEBUG1, "missing session hook data!\n");
+    log_debug1("missing session hook data!");
     return rc;
   }
 
@@ -134,7 +134,7 @@ static bool mutt_gsasl_init(void)
   if (rc != GSASL_OK)
   {
     MuttGsaslCtx = NULL;
-    mutt_debug(LL_DEBUG1, "libgsasl initialisation failed (%d): %s\n", rc,
+    log_debug1("libgsasl initialisation failed (%d): %s", rc,
                gsasl_strerror(rc));
     return false;
   }
@@ -205,7 +205,7 @@ int mutt_gsasl_client_new(struct Connection *conn, const char *mech, Gsasl_sessi
   if (rc != GSASL_OK)
   {
     *sctx = NULL;
-    mutt_debug(LL_DEBUG1, "gsasl_client_start failed (%d): %s\n", rc, gsasl_strerror(rc));
+    log_debug1("gsasl_client_start failed (%d): %s", rc, gsasl_strerror(rc));
     return -1;
   }
 

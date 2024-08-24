@@ -69,7 +69,7 @@ struct Connection *mutt_conn_new(const struct ConnAccount *cac)
     {
 #ifndef USE_SSL
       /* that's probably why it failed */
-      mutt_error(_("SSL is unavailable, can't connect to %s"), cac->host);
+      log_fault(_("SSL is unavailable, can't connect to %s"), cac->host);
 #endif
     }
   }

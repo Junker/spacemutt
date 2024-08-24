@@ -646,11 +646,11 @@ void mutt_folder_hook(const char *path, const char *desc)
 
     if (match)
     {
-      mutt_debug(LL_DEBUG1, "folder-hook '%s' matches '%s'\n", hook->regex.pattern, match);
-      mutt_debug(LL_DEBUG5, "    %s\n", hook->command);
+      log_debug1("folder-hook '%s' matches '%s'", hook->regex.pattern, match);
+      log_debug5("    %s", hook->command);
       if (parse_rc_line_cwd(hook->command, hook->source_file, err) == MUTT_CMD_ERROR)
       {
-        mutt_error("%s", buf_string(err));
+        log_fault("%s", buf_string(err));
         break;
       }
     }
@@ -709,7 +709,7 @@ void mutt_message_hook(struct Mailbox *m, struct Email *e, HookFlags type)
       {
         if (parse_rc_line_cwd(hook->command, hook->source_file, err) == MUTT_CMD_ERROR)
         {
-          mutt_error("%s", buf_string(err));
+          log_fault("%s", buf_string(err));
           CurrentHookType = MUTT_HOOK_NO_FLAGS;
           buf_pool_release(&err);
 
@@ -896,12 +896,12 @@ void mutt_account_hook(const char *url)
     if (mutt_regex_match(&hook->regex, url))
     {
       inhook = true;
-      mutt_debug(LL_DEBUG1, "account-hook '%s' matches '%s'\n", hook->regex.pattern, url);
-      mutt_debug(LL_DEBUG5, "    %s\n", hook->command);
+      log_debug1("account-hook '%s' matches '%s'", hook->regex.pattern, url);
+      log_debug5("    %s", hook->command);
 
       if (parse_rc_line_cwd(hook->command, hook->source_file, err) == MUTT_CMD_ERROR)
       {
-        mutt_error("%s", buf_string(err));
+        log_fault("%s", buf_string(err));
         buf_pool_release(&err);
 
         inhook = false;
@@ -933,7 +933,7 @@ void mutt_timeout_hook(void)
 
     if (parse_rc_line_cwd(hook->command, hook->source_file, err) == MUTT_CMD_ERROR)
     {
-      mutt_error("%s", buf_string(err));
+      log_fault("%s", buf_string(err));
       buf_reset(err);
 
       /* The hooks should be independent of each other, so even though this on
@@ -965,7 +965,7 @@ void mutt_startup_shutdown_hook(HookFlags type)
 
     if (parse_rc_line_cwd(hook->command, hook->source_file, err) == MUTT_CMD_ERROR)
     {
-      mutt_error("%s", buf_string(err));
+      log_fault("%s", buf_string(err));
       buf_reset(err);
     }
   }

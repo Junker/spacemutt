@@ -291,7 +291,7 @@ bool cs_register_variables(const struct ConfigSet *cs, struct ConfigDef vars[])
   {
     if (!cs_register_variable(cs, &vars[i], err))
     {
-      mutt_debug(LL_DEBUG1, "%s\n", buf_string(err));
+      log_debug1("%s", buf_string(err));
       rc = false;
     }
   }
@@ -470,7 +470,7 @@ int cs_he_initial_set(const struct ConfigSet *cs, struct HashElem *he,
   {
     struct HashElem *he_base = cs_get_base(he);
     cdef = he_base->data;
-    mutt_debug(LL_DEBUG1, "Variable '%s' is inherited type\n", cdef->name);
+    log_debug1("Variable '%s' is inherited type", cdef->name);
     return CSR_ERR_CODE;
   }
 
@@ -481,7 +481,7 @@ int cs_he_initial_set(const struct ConfigSet *cs, struct HashElem *he,
   const struct ConfigSetType *cst = cs_get_type_def(cs, he->type);
   if (!cst)
   {
-    mutt_debug(LL_DEBUG1, "Variable '%s' has an invalid type %d\n", cdef->name, he->type);
+    log_debug1("Variable '%s' has an invalid type %d", cdef->name, he->type);
     return CSR_ERR_CODE;
   }
 
@@ -615,7 +615,7 @@ int cs_he_string_set(const struct ConfigSet *cs, struct HashElem *he,
 
   if (!cst)
   {
-    mutt_debug(LL_DEBUG1, "Variable '%s' has an invalid type %d\n", cdef->name, he->type);
+    log_debug1("Variable '%s' has an invalid type %d", cdef->name, he->type);
     return CSR_ERR_CODE;
   }
 
@@ -732,7 +732,7 @@ int cs_he_native_set(const struct ConfigSet *cs, struct HashElem *he,
 
   if (!cst)
   {
-    mutt_debug(LL_DEBUG1, "Variable '%s' has an invalid type %d\n", cdef->name, he->type);
+    log_debug1("Variable '%s' has an invalid type %d", cdef->name, he->type);
     return CSR_ERR_CODE;
   }
 
@@ -891,7 +891,7 @@ int cs_he_string_plus_equals(const struct ConfigSet *cs, struct HashElem *he,
 
   if (!cst)
   {
-    mutt_debug(LL_DEBUG1, "Variable '%s' has an invalid type %d\n", cdef->name, he->type);
+    log_debug1("Variable '%s' has an invalid type %d", cdef->name, he->type);
     return CSR_ERR_CODE;
   }
 
@@ -950,7 +950,7 @@ int cs_he_string_minus_equals(const struct ConfigSet *cs, struct HashElem *he,
 
   if (!cst)
   {
-    mutt_debug(LL_DEBUG1, "Variable '%s' has an invalid type %d\n", cdef->name, he->type);
+    log_debug1("Variable '%s' has an invalid type %d", cdef->name, he->type);
     return CSR_ERR_CODE;
   }
 

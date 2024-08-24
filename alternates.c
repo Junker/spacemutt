@@ -112,7 +112,7 @@ enum CommandResult parse_alternates(struct Buffer *buf, struct Buffer *s,
 
   mutt_grouplist_destroy(&gl);
 
-  mutt_debug(LL_NOTIFY, "NT_ALTERN_ADD: %s\n", buf->data);
+  log_notify("NT_ALTERN_ADD: %s", buf->data);
   notify_send(AlternatesNotify, NT_ALTERN, NT_ALTERN_ADD, NULL);
 
   return MUTT_CMD_SUCCESS;
@@ -141,7 +141,7 @@ enum CommandResult parse_unalternates(struct Buffer *buf, struct Buffer *s,
 
   } while (MoreArgs(s));
 
-  mutt_debug(LL_NOTIFY, "NT_ALTERN_DELETE: %s\n", buf->data);
+  log_notify("NT_ALTERN_DELETE: %s", buf->data);
   notify_send(AlternatesNotify, NT_ALTERN, NT_ALTERN_DELETE, NULL);
 
   return MUTT_CMD_SUCCESS;
@@ -159,9 +159,9 @@ bool mutt_alternates_match(const char *addr)
 
   if (mutt_regexlist_match(&Alternates, addr))
   {
-    mutt_debug(LL_DEBUG5, "yes, %s matched by alternates\n", addr);
+    log_debug5("yes, %s matched by alternates", addr);
     if (mutt_regexlist_match(&UnAlternates, addr))
-      mutt_debug(LL_DEBUG5, "but, %s matched by unalternates\n", addr);
+      log_debug5("but, %s matched by unalternates", addr);
     else
       return true;
   }

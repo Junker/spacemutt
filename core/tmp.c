@@ -55,10 +55,10 @@ void buf_mktemp_full(struct Buffer *buf, const char *prefix, const char *suffix,
              NONULL(prefix), NONULL(ShortHostname), (int) getuid(),
              (int) getpid(), mutt_rand64(), suffix ? "." : "", NONULL(suffix));
 
-  mutt_debug(LL_DEBUG3, "%s:%d: buf_mktemp returns \"%s\"\n", src, line, buf_string(buf));
+  log_debug3("%s:%d: buf_mktemp returns \"%s\"", src, line, buf_string(buf));
   if (unlink(buf_string(buf)) && (errno != ENOENT))
   {
-    mutt_debug(LL_DEBUG1, "%s:%d: ERROR: unlink(\"%s\"): %s (errno %d)\n", src,
+    log_debug1("%s:%d: ERROR: unlink(\"%s\"): %s (errno %d)", src,
                line, buf_string(buf), strerror(errno), errno);
   }
 }
@@ -94,6 +94,6 @@ FILE *mutt_file_mkstemp_full(const char *file, int line, const char *func)
     return NULL;
   }
 
-  MuttLogger(0, file, line, func, 1, "created temp file '%s'\n", name);
+  g_log_structured_standard(G_LOG_DOMAIN, LOG_LEVEL_DEBUG1, file, G_STRINGIFY(line), func, "created temp file '%s'\n", name);
   return fp;
 }

@@ -97,7 +97,7 @@ static void sort_use_threads_warn(void)
   static bool warned = false;
   if (!warned)
   {
-    mutt_warning(_("Changing threaded display should prefer $use_threads over $sort"));
+    log_warning(_("Changing threaded display should prefer $use_threads over $sort"));
     warned = true;
     mutt_sleep(0);
   }
@@ -231,7 +231,7 @@ static int index_altern_observer(struct NotifyCallback *nc)
   struct IndexSharedData *shared = dlg->wdata;
 
   mutt_alternates_reset(shared->mailbox_view);
-  mutt_debug(LL_DEBUG5, "alternates done\n");
+  log_debug5("alternates done");
   return 0;
 }
 
@@ -250,7 +250,7 @@ static int index_attach_observer(struct NotifyCallback *nc)
   struct IndexSharedData *shared = dlg->wdata;
 
   mutt_attachments_reset(shared->mailbox_view);
-  mutt_debug(LL_DEBUG5, "attachments done\n");
+  log_debug5("attachments done");
   return 0;
 }
 
@@ -303,7 +303,7 @@ static int index_color_observer(struct NotifyCallback *nc)
   struct Menu *menu = priv->menu;
   menu->redraw = MENU_REDRAW_FULL;
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "color done, request MENU_REDRAW_FULL\n");
+  log_debug5("color done, request MENU_REDRAW_FULL");
 
   return 0;
 }
@@ -403,17 +403,17 @@ static int index_config_observer(struct NotifyCallback *nc)
     struct MuttWindow *dlg = dialog_find(win);
     struct IndexSharedData *shared = dlg->wdata;
     config_reply_regex(shared->mailbox_view);
-    mutt_debug(LL_DEBUG5, "config done\n");
+    log_debug5("config done");
   }
   else if (mutt_str_equal(ev_c->name, "sort"))
   {
     config_sort(ev_c->sub);
-    mutt_debug(LL_DEBUG5, "config done\n");
+    log_debug5("config done");
   }
   else if (mutt_str_equal(ev_c->name, "use_threads"))
   {
     config_use_threads(ev_c->sub);
-    mutt_debug(LL_DEBUG5, "config done\n");
+    log_debug5("config done");
   }
 
   menu_queue_redraw(win->wdata, MENU_REDRAW_INDEX);
@@ -456,7 +456,7 @@ static int index_index_observer(struct NotifyCallback *nc)
 
   struct Menu *menu = win->wdata;
   menu_queue_redraw(menu, MENU_REDRAW_INDEX);
-  mutt_debug(LL_DEBUG5, "index done, request WA_RECALC\n");
+  log_debug5("index done, request WA_RECALC");
 
   struct IndexPrivateData *priv = menu->mdata;
   struct IndexSharedData *shared = priv->shared;
@@ -518,7 +518,7 @@ static int index_score_observer(struct NotifyCallback *nc)
     e->attr_color = NULL; // Force recalc of colour
   }
 
-  mutt_debug(LL_DEBUG5, "score done\n");
+  log_debug5("score done");
   return 0;
 }
 
@@ -537,7 +537,7 @@ static int index_subjrx_observer(struct NotifyCallback *nc)
   struct IndexSharedData *shared = dlg->wdata;
 
   subjrx_clear_mods(shared->mailbox_view);
-  mutt_debug(LL_DEBUG5, "subjectrx done\n");
+  log_debug5("subjectrx done");
   return 0;
 }
 
@@ -577,7 +577,7 @@ static int index_window_observer(struct NotifyCallback *nc)
   notify_observer_remove(NeoMutt->notify, index_subjrx_observer, win);
   notify_observer_remove(win->notify, index_window_observer, win);
 
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
   return 0;
 }
 
@@ -587,7 +587,7 @@ static int index_window_observer(struct NotifyCallback *nc)
 static int index_recalc(struct MuttWindow *win)
 {
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+  log_debug5("recalc done, request WA_REPAINT");
   return 0;
 }
 
@@ -639,7 +639,7 @@ static int index_repaint(struct MuttWindow *win)
   }
 
   menu->redraw = MENU_REDRAW_NO_FLAGS;
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
   return 0;
 }
 

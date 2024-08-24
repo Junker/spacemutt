@@ -51,7 +51,7 @@ void attr_color_clear(struct AttrColor *ac)
     return;
 
   if (ac->curses_color)
-    color_debug(LL_DEBUG5, "clear %p\n", (void *) ac);
+    log_color_debug("clear %p\n", (void *) ac);
   curses_color_free(&ac->curses_color);
 
   memset(&ac->fg, 0, sizeof(ac->fg));
@@ -351,7 +351,7 @@ color_t color_xterm256_to_24bit(const color_t color)
 
   if (color < 16)
   {
-    color_debug(LL_DEBUG5, "Converted color 0-15: %d\n", color);
+    log_color_debug("Converted color 0-15: %d\n", color);
     /* The first 16 colours are the "usual" terminal colours */
     return basic[color];
   }
@@ -386,7 +386,7 @@ color_t color_xterm256_to_24bit(const color_t color)
     color_t b = (vb * 0x28) + ((vb > 0) ? (0x5f - 0x28) : 0);
 
     color_t rgb = (r << 16) + (g << 8) + (b << 0);
-    color_debug(LL_DEBUG5, "Converted xterm color %d to RGB #%x:\n", color, rgb);
+    log_color_debug("Converted xterm color %d to RGB #%x:\n", color, rgb);
     return rgb;
   }
 
@@ -395,7 +395,7 @@ color_t color_xterm256_to_24bit(const color_t color)
   color_t steps = color - 232;
   color_t grey = (steps * 0x0a) + 0x08;
   color_t rgb = (grey << 16) + (grey << 8) + (grey << 0);
-  color_debug(LL_DEBUG5, "Converted xterm color %d to RGB #%x:\n", color, rgb);
+  log_color_debug("Converted xterm color %d to RGB #%x:\n", color, rgb);
   return rgb;
 }
 #endif

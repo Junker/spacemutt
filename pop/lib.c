@@ -95,7 +95,7 @@ int pop_parse_path(const char *path, struct ConnAccount *cac)
       !url->host || (mutt_account_fromurl(cac, url) < 0))
   {
     url_free(&url);
-    mutt_error(_("Invalid POP URL: %s"), path);
+    log_fault(_("Invalid POP URL: %s"), path);
     return -1;
   }
 
@@ -263,7 +263,7 @@ static int pop_capabilities(struct PopAccountData *adata, int mode)
       msg = _("Command UIDL is not supported by server");
     if (msg && adata->cmd_capa)
     {
-      mutt_error("%s", msg);
+      log_fault("%s", msg);
       return -2;
     }
     adata->capabilities = true;
@@ -287,7 +287,7 @@ int pop_connect(struct PopAccountData *adata)
   if ((mutt_socket_open(adata->conn) < 0) ||
       (mutt_socket_readln(buf, sizeof(buf), adata->conn) < 0))
   {
-    mutt_error(_("Error connecting to server: %s"), adata->conn->account.host);
+    log_fault(_("Error connecting to server: %s"), adata->conn->account.host);
     return -1;
   }
 
@@ -297,7 +297,7 @@ int pop_connect(struct PopAccountData *adata)
   {
     *adata->err_msg = '\0';
     pop_error(adata, buf);
-    mutt_error("%s", adata->err_msg);
+    log_fault("%s", adata->err_msg);
     return -2;
   }
 
@@ -355,11 +355,11 @@ int pop_open_connection(struct PopAccountData *adata)
         goto err_conn;
       if (rc != 0)
       {
-        mutt_error("%s", adata->err_msg);
+        log_fault("%s", adata->err_msg);
       }
       else if (mutt_ssl_starttls(adata->conn))
       {
-        mutt_error(_("Could not negotiate TLS connection"));
+        log_fault(_("Could not negotiate TLS connection"));
         return -2;
       }
       else
@@ -376,7 +376,7 @@ int pop_open_connection(struct PopAccountData *adata)
 
   if (c_ssl_force_tls && (adata->conn->ssf == 0))
   {
-    mutt_error(_("Encrypted connection unavailable"));
+    log_fault(_("Encrypted connection unavailable"));
     return -2;
   }
 #endif
@@ -403,7 +403,7 @@ int pop_open_connection(struct PopAccountData *adata)
     goto err_conn;
   if (rc == -2)
   {
-    mutt_error("%s", adata->err_msg);
+    log_fault("%s", adata->err_msg);
     return rc;
   }
 
@@ -414,7 +414,7 @@ int pop_open_connection(struct PopAccountData *adata)
 
 err_conn:
   adata->status = POP_DISCONNECTED;
-  mutt_error(_("Server closed connection"));
+  log_fault(_("Server closed connection"));
   return -1;
 }
 
@@ -430,7 +430,7 @@ void pop_logout(struct Mailbox *m)
   {
     int rc = 0;
     char buf[1024] = { 0 };
-    mutt_message(_("Closing connection to POP server..."));
+    log_message(_("Closing connection to POP server..."));
 
     if (m->readonly)
     {
@@ -445,7 +445,7 @@ void pop_logout(struct Mailbox *m)
     }
 
     if (rc < 0)
-      mutt_debug(LL_DEBUG1, "Error closing POP connection\n");
+      log_debug1("Error closing POP connection");
 
     mutt_clear_error();
   }
@@ -471,17 +471,17 @@ int pop_query_d(struct PopAccountData *adata, char *buf, size_t buflen, char *ms
   /* print msg instead of real command */
   if (msg)
   {
-    mutt_debug(MUTT_SOCK_LOG_CMD, "> %s", msg);
+    log_debug2("> %s", msg);
   }
 
-  mutt_socket_send_d(adata->conn, buf, MUTT_SOCK_LOG_FULL);
+  mutt_socket_send_d(adata->conn, buf, MUTT_SOCK_LOG_LEVEL_FULL);
 
   char *c = strpbrk(buf, " \r\n");
   if (c)
     *c = '\0';
   snprintf(adata->err_msg, sizeof(adata->err_msg), "%s: ", buf);
 
-  if (mutt_socket_readln_d(buf, buflen, adata->conn, MUTT_SOCK_LOG_FULL) < 0)
+  if (mutt_socket_readln_d(buf, buflen, adata->conn, MUTT_SOCK_LOG_LEVEL_FULL) < 0)
   {
     adata->status = POP_DISCONNECTED;
     return -1;
@@ -524,7 +524,7 @@ int pop_fetch_data(struct PopAccountData *adata, const char *query,
 
   while (true)
   {
-    const int chunk = mutt_socket_readln_d(buf, sizeof(buf), adata->conn, MUTT_SOCK_LOG_FULL);
+    const int chunk = mutt_socket_readln_d(buf, sizeof(buf), adata->conn, MUTT_SOCK_LOG_LEVEL_FULL);
     if (chunk < 0)
     {
       adata->status = POP_DISCONNECTED;
@@ -633,7 +633,7 @@ int pop_reconnect(struct Mailbox *m)
       progress_free(&progress);
       if (rc == -2)
       {
-        mutt_error("%s", adata->err_msg);
+        log_fault("%s", adata->err_msg);
       }
     }
 

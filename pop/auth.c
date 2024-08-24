@@ -40,6 +40,7 @@
 #include "core/lib.h"
 #include "conn/lib.h"
 #include "adata.h"
+#include "mutt_logging.h"
 #ifdef USE_SASL_CYRUS
 #include <sasl/sasl.h>
 #include <sasl/saslutil.h>
@@ -63,19 +64,19 @@ static enum PopAuthRes pop_auth_gsasl(struct PopAccountData *adata, const char *
   const char *chosen_mech = mutt_gsasl_get_mech(method, buf_string(&adata->auth_list));
   if (!chosen_mech)
   {
-    mutt_debug(LL_DEBUG2, "returned no usable mech\n");
+    log_debug2("returned no usable mech");
     return POP_A_UNAVAIL;
   }
 
-  mutt_debug(LL_DEBUG2, "using mech %s\n", chosen_mech);
+  log_debug2("using mech %s", chosen_mech);
 
   if (mutt_gsasl_client_new(adata->conn, chosen_mech, &gsasl_session) < 0)
   {
-    mutt_debug(LL_DEBUG1, "Error allocating GSASL connection\n");
+    log_debug1("Error allocating GSASL connection");
     return POP_A_UNAVAIL;
   }
 
-  mutt_message(_("Authenticating (%s)..."), chosen_mech);
+  log_message(_("Authenticating (%s)..."), chosen_mech);
 
   output_buf = buf_pool_get();
   input_buf = buf_pool_get();
@@ -111,7 +112,7 @@ static enum PopAuthRes pop_auth_gsasl(struct PopAccountData *adata, const char *
     }
     else
     {
-      mutt_debug(LL_DEBUG1, "gsasl_step64() failed (%d): %s\n", gsasl_rc,
+      log_debug1("gsasl_step64() failed (%d): %s", gsasl_rc,
                  gsasl_strerror(gsasl_rc));
     }
   } while ((gsasl_rc == GSASL_NEEDS_MORE) || (gsasl_rc == GSASL_OK));
@@ -132,8 +133,8 @@ fail:
 
   if (rc == POP_A_FAILURE)
   {
-    mutt_debug(LL_DEBUG2, "%s failed\n", chosen_mech);
-    mutt_error(_("SASL authentication failed"));
+    log_debug2("%s failed", chosen_mech);
+    log_fault(_("SASL authentication failed"));
   }
 
   return rc;
@@ -159,7 +160,7 @@ static enum PopAuthRes pop_auth_sasl(struct PopAccountData *adata, const char *m
 
   if (mutt_sasl_client_new(adata->conn, &saslconn) < 0)
   {
-    mutt_debug(LL_DEBUG1, "Error allocating SASL connection\n");
+    log_debug1("Error allocating SASL connection");
     return POP_A_FAILURE;
   }
 
@@ -176,7 +177,7 @@ static enum PopAuthRes pop_auth_sasl(struct PopAccountData *adata, const char *m
 
   if ((rc != SASL_OK) && (rc != SASL_CONTINUE))
   {
-    mutt_debug(LL_DEBUG1, "Failure starting authentication exchange. No shared mechanisms?\n");
+    log_debug1("Failure starting authentication exchange. No shared mechanisms?");
 
     /* SASL doesn't support suggested mechanisms, so fall back */
     sasl_dispose(&saslconn);
@@ -189,7 +190,7 @@ static enum PopAuthRes pop_auth_sasl(struct PopAccountData *adata, const char *m
   unsigned int client_start = olen;
 
   // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_message(_("Authenticating (%s)..."), "SASL");
+  log_message(_("Authenticating (%s)..."), "SASL");
 
   size_t bufsize = MAX((olen * 2), 1024);
   char *buf = mutt_mem_malloc(bufsize);
@@ -202,7 +203,7 @@ static enum PopAuthRes pop_auth_sasl(struct PopAccountData *adata, const char *m
   {
     mutt_str_copy(buf + olen, "\r\n", bufsize - olen);
     mutt_socket_send(adata->conn, buf);
-    if (mutt_socket_readln_d(inbuf, sizeof(inbuf), adata->conn, MUTT_SOCK_LOG_FULL) < 0)
+    if (mutt_socket_readln_d(inbuf, sizeof(inbuf), adata->conn, MUTT_SOCK_LOG_LEVEL_FULL) < 0)
     {
       sasl_dispose(&saslconn);
       adata->status = POP_DISCONNECTED;
@@ -220,7 +221,7 @@ static enum PopAuthRes pop_auth_sasl(struct PopAccountData *adata, const char *m
     if (mutt_str_startswith(inbuf, "+ ") &&
         (sasl_decode64(inbuf + 2, strlen(inbuf + 2), buf, bufsize - 1, &len) != SASL_OK))
     {
-      mutt_debug(LL_DEBUG1, "error base64-decoding server response\n");
+      log_debug1("error base64-decoding server response");
       goto bail;
     }
 
@@ -255,7 +256,7 @@ static enum PopAuthRes pop_auth_sasl(struct PopAccountData *adata, const char *m
       }
       if (sasl_encode64(pc, olen, buf, bufsize, &olen) != SASL_OK)
       {
-        mutt_debug(LL_DEBUG1, "error base64-encoding client response\n");
+        log_debug1("error base64-encoding client response");
         goto bail;
       }
     }
@@ -287,7 +288,7 @@ bail:
 
   FREE(&buf);
   // L10N: %s is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_error(_("%s authentication failed"), "SASL");
+  log_fault(_("%s authentication failed"), "SASL");
 
   return POP_A_FAILURE;
 }
@@ -329,12 +330,12 @@ static enum PopAuthRes pop_auth_apop(struct PopAccountData *adata, const char *m
 
   if (!mutt_addr_valid_msgid(adata->timestamp))
   {
-    mutt_error(_("POP timestamp is invalid"));
+    log_fault(_("POP timestamp is invalid"));
     return POP_A_UNAVAIL;
   }
 
   // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_message(_("Authenticating (%s)..."), "APOP");
+  log_message(_("Authenticating (%s)..."), "APOP");
 
   /* Compute the authentication hash to send to the server */
   mutt_md5_init_ctx(&md5ctx);
@@ -355,7 +356,7 @@ static enum PopAuthRes pop_auth_apop(struct PopAccountData *adata, const char *m
   }
 
   // L10N: %s is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_error(_("%s authentication failed"), "APOP");
+  log_fault(_("%s authentication failed"), "APOP");
 
   return POP_A_FAILURE;
 }
@@ -371,7 +372,7 @@ static enum PopAuthRes pop_auth_user(struct PopAccountData *adata, const char *m
   if (mutt_account_getpass(&adata->conn->account) || !adata->conn->account.pass[0])
     return POP_A_FAILURE;
 
-  mutt_message(_("Logging in..."));
+  log_message(_("Logging in..."));
 
   char buf[1024] = { 0 };
   snprintf(buf, sizeof(buf), "USER %s\r\n", adata->conn->account.user);
@@ -383,14 +384,14 @@ static enum PopAuthRes pop_auth_user(struct PopAccountData *adata, const char *m
     {
       adata->cmd_user = 1;
 
-      mutt_debug(LL_DEBUG1, "set USER capability\n");
+      log_debug1("set USER capability");
     }
 
     if (rc == -2)
     {
       adata->cmd_user = 0;
 
-      mutt_debug(LL_DEBUG1, "unset USER capability\n");
+      log_debug1("unset USER capability");
       snprintf(adata->err_msg, sizeof(adata->err_msg), "%s",
                _("Command USER is not supported by server"));
     }
@@ -402,7 +403,7 @@ static enum PopAuthRes pop_auth_user(struct PopAccountData *adata, const char *m
     const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
     rc = pop_query_d(adata, buf, sizeof(buf),
                      /* don't print the password unless we're at the ungodly debugging level */
-                     (c_debug_level < MUTT_SOCK_LOG_FULL) ? "PASS *\r\n" : NULL);
+                     (c_debug_level < log_level_to_debug_level(MUTT_SOCK_LOG_LEVEL_FULL)) ? "PASS *\r\n" : NULL);
   }
 
   switch (rc)
@@ -413,7 +414,7 @@ static enum PopAuthRes pop_auth_user(struct PopAccountData *adata, const char *m
       return POP_A_SOCKET;
   }
 
-  mutt_error("%s %s", _("Login failed"), adata->err_msg);
+  log_fault("%s %s", _("Login failed"), adata->err_msg);
 
   return POP_A_FAILURE;
 }
@@ -429,7 +430,7 @@ static enum PopAuthRes pop_auth_oauth(struct PopAccountData *adata, const char *
     return POP_A_UNAVAIL;
 
   // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_message(_("Authenticating (%s)..."), "OAUTHBEARER");
+  log_message(_("Authenticating (%s)..."), "OAUTHBEARER");
 
   char *oauthbearer = mutt_account_getoauthbearer(&adata->conn->account, false);
   if (!oauthbearer)
@@ -442,7 +443,7 @@ static enum PopAuthRes pop_auth_oauth(struct PopAccountData *adata, const char *
   int rc = pop_query_d(adata, auth_cmd, strlen(auth_cmd),
 #ifdef DEBUG
                        /* don't print the bearer token unless we're at the ungodly debugging level */
-                       (cs_subset_number(NeoMutt->sub, "debug_level") < MUTT_SOCK_LOG_FULL) ?
+                       (cs_subset_number(NeoMutt->sub, "debug_level") < MUTT_SOCK_LOG_LEVEL_FULL) ?
                            "AUTH OAUTHBEARER *\r\n" :
 #endif
                            NULL);
@@ -468,7 +469,7 @@ static enum PopAuthRes pop_auth_oauth(struct PopAccountData *adata, const char *
     decoded_err[len] = '\0';
     err = decoded_err;
   }
-  mutt_error("%s %s", _("Authentication failed"), err);
+  log_fault("%s %s", _("Authentication failed"), err);
 
   return POP_A_FAILURE;
 }
@@ -539,7 +540,7 @@ int pop_authenticate(struct PopAccountData *adata)
     /* Try user-specified list of authentication methods */
     for (GSList *np = c_pop_authenticators->head; np != NULL; np = np->next)
     {
-      mutt_debug(LL_DEBUG2, "Trying method %s\n", (char*)np->data);
+      log_debug2("Trying method %s", (char*)np->data);
       authenticator = PopAuthenticators;
 
       while (authenticator->authenticate)
@@ -576,7 +577,7 @@ int pop_authenticate(struct PopAccountData *adata)
   else
   {
     /* Fall back to default: any authenticator */
-    mutt_debug(LL_DEBUG2, "Using any available method\n");
+    log_debug2("Using any available method");
     authenticator = PopAuthenticators;
 
     while (authenticator->authenticate)
@@ -616,7 +617,7 @@ int pop_authenticate(struct PopAccountData *adata)
       return -1;
     case POP_A_UNAVAIL:
       if (attempts == 0)
-        mutt_error(_("No authenticators available"));
+        log_fault(_("No authenticators available"));
   }
 
   return -2;

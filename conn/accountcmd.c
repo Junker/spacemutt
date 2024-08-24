@@ -78,7 +78,7 @@ static MuttAccountFlags parse_one(struct ConnAccount *cac, char *line)
   const regmatch_t *match = mutt_prex_capture(PREX_ACCOUNT_CMD, line);
   if (!match)
   {
-    mutt_perror(_("Line is malformed: expected <key: val>, got <%s>"), line);
+    log_perror(_("Line is malformed: expected <key: val>, got <%s>"), line);
     return MUTT_ACCT_NO_FLAGS;
   }
 
@@ -118,7 +118,7 @@ static MuttAccountFlags parse_one(struct ConnAccount *cac, char *line)
       break;
   }
 
-  mutt_warning(_("Unhandled key in line <%s: %s>"), key, val);
+  log_warning(_("Unhandled key in line <%s: %s>"), key, val);
   return MUTT_ACCT_NO_FLAGS;
 }
 
@@ -139,7 +139,7 @@ static MuttAccountFlags call_cmd(struct ConnAccount *cac, const struct Buffer *c
   pid_t pid = filter_create(buf_string(cmd), NULL, &fp, NULL, EnvList);
   if (pid < 0)
   {
-    mutt_perror(_("Unable to run account command"));
+    log_perror(_("Unable to run account command"));
     return rc;
   }
 

@@ -687,7 +687,7 @@ static int op_edit_label(struct IndexSharedData *shared, struct IndexPrivateData
     menu_queue_redraw(priv->menu, MENU_REDRAW_FULL);
     /* L10N: This is displayed when the x-label on one or more
        messages is edited. */
-    mutt_message(ngettext("%d label changed", "%d labels changed", num_changed), num_changed);
+    log_message(ngettext("%d label changed", "%d labels changed", num_changed), num_changed);
 
     if (!priv->tag_prefix)
       resolve_email(priv, shared, RESOLVE_NEXT_UNDELETED);
@@ -697,7 +697,7 @@ static int op_edit_label(struct IndexSharedData *shared, struct IndexPrivateData
   /* L10N: This is displayed when editing an x-label, but no messages
      were updated.  Possibly due to canceling at the prompt or if the new
      label is the same as the old label. */
-  mutt_message(_("No labels changed"));
+  log_message(_("No labels changed"));
   return FR_NO_ACTION;
 }
 
@@ -920,20 +920,20 @@ static int op_jump(struct IndexSharedData *shared, struct IndexPrivateData *priv
   if ((mw_get_field(_("Jump to message: "), buf, MUTT_COMP_NO_FLAGS, HC_OTHER, NULL, NULL) != 0) ||
       buf_is_empty(buf))
   {
-    mutt_message(_("Nothing to do"));
+    log_message(_("Nothing to do"));
     rc = FR_NO_ACTION;
   }
   else if (!mutt_str_atoi_full(buf_string(buf), &msg_num))
   {
-    mutt_warning(_("Argument must be a message number"));
+    log_warning(_("Argument must be a message number"));
   }
   else if ((msg_num < 1) || (msg_num > shared->mailbox->msg_count))
   {
-    mutt_warning(_("Invalid message number"));
+    log_warning(_("Invalid message number"));
   }
   else if (!shared->mailbox->emails[msg_num - 1]->visible)
   {
-    mutt_warning(_("That message is not visible"));
+    log_warning(_("That message is not visible"));
   }
   else
   {
@@ -1045,7 +1045,7 @@ static int op_main_break_thread(struct IndexSharedData *shared,
 
   if (!mutt_using_threads())
   {
-    mutt_warning(_("Threading is not enabled"));
+    log_warning(_("Threading is not enabled"));
     return FR_NO_ACTION;
   }
 
@@ -1059,13 +1059,13 @@ static int op_main_break_thread(struct IndexSharedData *shared,
     }
 
     m->changed = true;
-    mutt_message(_("Thread broken"));
+    log_message(_("Thread broken"));
 
     menu_queue_redraw(priv->menu, MENU_REDRAW_INDEX);
   }
   else
   {
-    mutt_error(_("Thread can't be broken, message is not part of a thread"));
+    log_fault(_("Thread can't be broken, message is not part of a thread"));
   }
 
   return FR_SUCCESS;
@@ -1148,7 +1148,7 @@ static int op_main_collapse_all(struct IndexSharedData *shared,
 {
   if (!mutt_using_threads())
   {
-    mutt_error(_("Threading is not enabled"));
+    log_fault(_("Threading is not enabled"));
     return FR_ERROR;
   }
   collapse_all(shared->mailbox_view, priv->menu, 1);
@@ -1164,7 +1164,7 @@ static int op_main_collapse_thread(struct IndexSharedData *shared,
 {
   if (!mutt_using_threads())
   {
-    mutt_error(_("Threading is not enabled"));
+    log_fault(_("Threading is not enabled"));
     return FR_ERROR;
   }
 
@@ -1187,7 +1187,7 @@ static int op_main_collapse_thread(struct IndexSharedData *shared,
   }
   else
   {
-    mutt_error(_("Thread contains unread or flagged messages"));
+    log_fault(_("Thread contains unread or flagged messages"));
     return FR_ERROR;
   }
 
@@ -1279,7 +1279,7 @@ static int op_main_limit(struct IndexSharedData *shared, struct IndexPrivateData
     menu_queue_redraw(priv->menu, MENU_REDRAW_FULL);
   }
   if (lmt)
-    mutt_message(_("To view all messages, limit to \"all\""));
+    log_message(_("To view all messages, limit to \"all\""));
 
   return FR_SUCCESS;
 }
@@ -1303,11 +1303,11 @@ static int op_main_link_threads(struct IndexSharedData *shared,
 
   if (!mutt_using_threads())
   {
-    mutt_error(_("Threading is not enabled"));
+    log_fault(_("Threading is not enabled"));
   }
   else if (!e->env->message_id)
   {
-    mutt_error(_("No Message-ID: header available to link thread"));
+    log_fault(_("No Message-ID: header available to link thread"));
   }
   else
   {
@@ -1321,12 +1321,12 @@ static int op_main_link_threads(struct IndexSharedData *shared,
       menu_set_index(priv->menu, e->vnum);
 
       m->changed = true;
-      mutt_message(_("Threads linked"));
+      log_message(_("Threads linked"));
       rc = FR_SUCCESS;
     }
     else
     {
-      mutt_error(_("No thread linked"));
+      log_fault(_("No thread linked"));
       rc = FR_NO_ACTION;
     }
 
@@ -1355,7 +1355,7 @@ static int op_main_modify_tags(struct IndexSharedData *shared,
   struct Mailbox *m = shared->mailbox;
   if (!mx_tags_is_supported(m))
   {
-    mutt_message(_("Folder doesn't support tagging, aborting"));
+    log_message(_("Folder doesn't support tagging, aborting"));
     goto done;
   }
   if (!shared->email)
@@ -1376,7 +1376,7 @@ static int op_main_modify_tags(struct IndexSharedData *shared,
   }
   else if (rc2 == 0)
   {
-    mutt_message(_("No tag specified, aborting"));
+    log_message(_("No tag specified, aborting"));
     goto done;
   }
 
@@ -1427,7 +1427,7 @@ static int op_main_modify_tags(struct IndexSharedData *shared,
   {
     if (mx_tags_commit(m, shared->email, buf_string(buf)))
     {
-      mutt_message(_("Failed to modify tags, aborting"));
+      log_message(_("Failed to modify tags, aborting"));
       goto done;
     }
     shared->email->attr_color = NULL;
@@ -1541,16 +1541,16 @@ static int op_main_next_new(struct IndexSharedData *shared,
     if ((op == OP_MAIN_NEXT_NEW) || (op == OP_MAIN_PREV_NEW))
     {
       if (mview_has_limit(shared->mailbox_view))
-        mutt_error(_("No new messages in this limited view"));
+        log_fault(_("No new messages in this limited view"));
       else
-        mutt_error(_("No new messages"));
+        log_fault(_("No new messages"));
     }
     else
     {
       if (mview_has_limit(shared->mailbox_view))
-        mutt_error(_("No unread messages in this limited view"));
+        log_fault(_("No unread messages in this limited view"));
       else
-        mutt_error(_("No unread messages"));
+        log_fault(_("No unread messages"));
     }
     notify_send(shared->notify, NT_INDEX, NT_INDEX_EMAIL, NULL);
     return FR_ERROR;
@@ -1566,12 +1566,12 @@ static int op_main_next_new(struct IndexSharedData *shared,
   {
     if (saved_current > index)
     {
-      mutt_message(_("Search wrapped to top"));
+      log_message(_("Search wrapped to top"));
     }
   }
   else if (saved_current < index)
   {
-    mutt_message(_("Search wrapped to bottom"));
+    log_message(_("Search wrapped to bottom"));
   }
 
   return FR_SUCCESS;
@@ -1615,9 +1615,9 @@ static int op_main_next_thread(struct IndexSharedData *shared,
   if (index < 0)
   {
     if ((op == OP_MAIN_NEXT_THREAD) || (op == OP_MAIN_NEXT_SUBTHREAD))
-      mutt_error(_("No more threads"));
+      log_fault(_("No more threads"));
     else
-      mutt_error(_("You are on the first thread"));
+      log_fault(_("You are on the first thread"));
 
     notify_send(shared->notify, NT_INDEX, NT_INDEX_EMAIL, NULL);
   }
@@ -1635,7 +1635,7 @@ static int op_main_next_undeleted(struct IndexSharedData *shared,
   if (index >= (shared->mailbox->vcount - 1))
   {
     notify_send(shared->notify, NT_INDEX, NT_INDEX_EMAIL, NULL);
-    mutt_message(_("You are on the last message"));
+    log_message(_("You are on the last message"));
     return FR_ERROR;
   }
 
@@ -1652,7 +1652,7 @@ static int op_main_next_undeleted(struct IndexSharedData *shared,
   if (index == -1)
   {
     notify_send(shared->notify, NT_INDEX, NT_INDEX_EMAIL, NULL);
-    mutt_error(_("No undeleted messages"));
+    log_fault(_("No undeleted messages"));
   }
 
   return FR_SUCCESS;
@@ -1673,7 +1673,7 @@ static int op_main_next_unread_mailbox(struct IndexSharedData *shared,
 
   if (!m)
   {
-    mutt_error(_("No mailboxes have new mail"));
+    log_fault(_("No mailboxes have new mail"));
     return FR_ERROR;
   }
 
@@ -1691,7 +1691,7 @@ static int op_main_prev_undeleted(struct IndexSharedData *shared,
   if (index < 1)
   {
     notify_send(shared->notify, NT_INDEX, NT_INDEX_EMAIL, NULL);
-    mutt_message(_("You are on the first message"));
+    log_message(_("You are on the first message"));
     return FR_ERROR;
   }
 
@@ -1707,7 +1707,7 @@ static int op_main_prev_undeleted(struct IndexSharedData *shared,
 
   if (index == -1)
   {
-    mutt_error(_("No undeleted messages"));
+    log_fault(_("No undeleted messages"));
     notify_send(shared->notify, NT_INDEX, NT_INDEX_EMAIL, NULL);
   }
 
@@ -1833,11 +1833,11 @@ static int op_main_show_limit(struct IndexSharedData *shared,
     char buf2[256] = { 0 };
     /* L10N: ask for a limit to apply */
     snprintf(buf2, sizeof(buf2), _("Limit: %s"), shared->mailbox_view->pattern);
-    mutt_message("%s", buf2);
+    log_message("%s", buf2);
   }
   else
   {
-    mutt_message(_("No limit pattern is in effect"));
+    log_message(_("No limit pattern is in effect"));
   }
 
   return FR_SUCCESS;
@@ -2003,8 +2003,8 @@ static int op_mark_msg(struct IndexSharedData *shared, struct IndexPrivateData *
          macro.  %s is the hotkey string ($mark_macro_prefix followed
          by whatever they typed at the prompt.) */
       buf_printf(buf, _("Message bound to %s"), str);
-      mutt_message("%s", buf_string(buf));
-      mutt_debug(LL_DEBUG1, "Mark: %s => %s\n", str, macro);
+      log_message("%s", buf_string(buf));
+      log_debug1("Mark: %s => %s", str, macro);
       buf_pool_release(&buf);
     }
   }
@@ -2012,7 +2012,7 @@ static int op_mark_msg(struct IndexSharedData *shared, struct IndexPrivateData *
   {
     /* L10N: This error is printed if <mark-message> can't find a
        Message-ID for the currently selected message in the index. */
-    mutt_error(_("No message ID to macro"));
+    log_fault(_("No message ID to macro"));
     rc = FR_ERROR;
   }
 
@@ -2027,7 +2027,7 @@ static int op_next_entry(struct IndexSharedData *shared, struct IndexPrivateData
   const int index = menu_get_index(priv->menu) + 1;
   if (index >= shared->mailbox->vcount)
   {
-    mutt_message(_("You are on the last message"));
+    log_message(_("You are on the last message"));
     notify_send(shared->notify, NT_INDEX, NT_INDEX_EMAIL, NULL);
     return FR_ERROR;
   }
@@ -2065,7 +2065,7 @@ static int op_prev_entry(struct IndexSharedData *shared, struct IndexPrivateData
   if (index < 1)
   {
     notify_send(shared->notify, NT_INDEX, NT_INDEX_EMAIL, NULL);
-    mutt_message(_("You are on the first message"));
+    log_message(_("You are on the first message"));
     return FR_ERROR;
   }
   menu_set_index(priv->menu, index - 1);
@@ -2115,7 +2115,7 @@ static int op_quit(struct IndexSharedData *shared, struct IndexPrivateData *priv
     priv->oldcount = shared->mailbox ? shared->mailbox->msg_count : 0;
 
     mutt_startup_shutdown_hook(MUTT_SHUTDOWN_HOOK);
-    mutt_debug(LL_NOTIFY, "NT_GLOBAL_SHUTDOWN\n");
+    log_notify("NT_GLOBAL_SHUTDOWN");
     notify_send(NeoMutt->notify, NT_GLOBAL, NT_GLOBAL_SHUTDOWN, NULL);
 
     enum MxStatus check = MX_STATUS_OK;
@@ -2553,7 +2553,7 @@ static int op_main_imap_logout_all(struct IndexSharedData *shared,
     }
   }
   imap_logout_all();
-  mutt_message(_("Logged out of IMAP servers"));
+  log_message(_("Logged out of IMAP servers"));
   mutt_pattern_free(&shared->search_state->pattern);
   menu_queue_redraw(priv->menu, MENU_REDRAW_FULL);
 
@@ -2601,11 +2601,11 @@ static int op_get_children(struct IndexSharedData *shared,
 
   if (!e->env->message_id)
   {
-    mutt_error(_("No Message-Id. Unable to perform operation."));
+    log_fault(_("No Message-Id. Unable to perform operation."));
     return FR_ERROR;
   }
 
-  mutt_message(_("Fetching message headers..."));
+  log_message(_("Fetching message headers..."));
   if (!m->id_hash)
     m->id_hash = mutt_make_id_hash(m);
   mutt_str_copy(buf, e->env->message_id, sizeof(buf));
@@ -2670,7 +2670,7 @@ static int op_get_children(struct IndexSharedData *shared,
   }
   else if (rc >= 0)
   {
-    mutt_error(_("No deleted messages found in the thread"));
+    log_fault(_("No deleted messages found in the thread"));
   }
 
   return FR_SUCCESS;
@@ -2707,7 +2707,7 @@ static int op_get_message(struct IndexSharedData *shared,
     struct Email *e = shared->email;
     if (!e || g_queue_is_empty(e->env->references))
     {
-      mutt_error(_("Article has no parent reference"));
+      log_fault(_("Article has no parent reference"));
       goto done;
     }
     buf_strcpy(buf, e->env->references->head->data);
@@ -2730,12 +2730,12 @@ static int op_get_message(struct IndexSharedData *shared,
     }
     else
     {
-      mutt_error(_("Message is not visible in limited view"));
+      log_fault(_("Message is not visible in limited view"));
     }
   }
   else
   {
-    mutt_message(_("Fetching %s from server..."), buf_string(buf));
+    log_message(_("Fetching %s from server..."), buf_string(buf));
     int rc2 = nntp_check_msgid(m, buf_string(buf));
     if (rc2 == 0)
     {
@@ -2748,7 +2748,7 @@ static int op_get_message(struct IndexSharedData *shared,
     }
     else if (rc2 > 0)
     {
-      mutt_error(_("Article %s not found on the server"), buf_string(buf));
+      log_fault(_("Article %s not found on the server"), buf_string(buf));
     }
   }
 
@@ -2888,7 +2888,7 @@ static int op_main_entire_thread(struct IndexSharedData *shared,
     if (((shared->mailbox->type != MUTT_MH) && (shared->mailbox->type != MUTT_MAILDIR)) ||
         (!shared->email || !shared->email->env || !shared->email->env->message_id))
     {
-      mutt_message(_("No virtual folder and no Message-Id, aborting"));
+      log_message(_("No virtual folder and no Message-Id, aborting"));
       return FR_ERROR;
     } // no virtual folder, but we have message-id, reconstruct thread on-the-fly
 
@@ -2916,7 +2916,7 @@ static int op_main_entire_thread(struct IndexSharedData *shared,
     // To prevent that, stay in the empty vfolder and print an error.
     if (shared->mailbox->msg_count == 0)
     {
-      mutt_error(_("failed to find message in notmuch database. try running 'notmuch new'."));
+      log_fault(_("failed to find message in notmuch database. try running 'notmuch new'."));
       return FR_ERROR;
     }
   }
@@ -2928,7 +2928,7 @@ static int op_main_entire_thread(struct IndexSharedData *shared,
 
   if (nm_read_entire_thread(shared->mailbox, e_oldcur) < 0)
   {
-    mutt_message(_("Failed to read thread, aborting"));
+    log_message(_("Failed to read thread, aborting"));
     return FR_ERROR;
   }
 
@@ -2968,7 +2968,7 @@ static int op_main_vfolder_from_query(struct IndexSharedData *shared,
                     &CompleteNmQueryOps, NULL) != 0) ||
       buf_is_empty(buf))
   {
-    mutt_message(_("No query, aborting"));
+    log_message(_("No query, aborting"));
     rc = FR_NO_ACTION;
     goto done;
   }
@@ -3011,13 +3011,13 @@ static int op_main_windowed_vfolder(struct IndexSharedData *shared,
   // Common guard clauses.
   if (!nm_query_window_available())
   {
-    mutt_message(_("Windowed queries disabled"));
+    log_message(_("Windowed queries disabled"));
     return FR_ERROR;
   }
   const char *const c_nm_query_window_current_search = cs_subset_string(shared->sub, "nm_query_window_current_search");
   if (!c_nm_query_window_current_search)
   {
-    mutt_message(_("No notmuch vfolder currently loaded"));
+    log_message(_("No notmuch vfolder currently loaded"));
     return FR_ERROR;
   }
 
@@ -3074,13 +3074,13 @@ static bool prereq(struct IndexSharedData *shared, struct Menu *menu, CheckFlags
 
   if ((checks & CHECK_IN_MAILBOX) && (!mv || !mv->mailbox))
   {
-    mutt_error(_("No mailbox is open"));
+    log_fault(_("No mailbox is open"));
     result = false;
   }
 
   if (result && (checks & CHECK_MSGCOUNT) && (mv->mailbox->msg_count == 0))
   {
-    mutt_error(_("There are no messages"));
+    log_fault(_("There are no messages"));
     result = false;
   }
 
@@ -3088,19 +3088,19 @@ static bool prereq(struct IndexSharedData *shared, struct Menu *menu, CheckFlags
   if (result && (checks & CHECK_VISIBLE) &&
       ((index < 0) || (index >= mv->mailbox->vcount)))
   {
-    mutt_error(_("No visible messages"));
+    log_fault(_("No visible messages"));
     result = false;
   }
 
   if (result && (checks & CHECK_READONLY) && mv->mailbox->readonly)
   {
-    mutt_error(_("Mailbox is read-only"));
+    log_fault(_("Mailbox is read-only"));
     result = false;
   }
 
   if (result && (checks & CHECK_ATTACH) && shared->attach_msg)
   {
-    mutt_error(_("Function not permitted in attach-message mode"));
+    log_fault(_("Function not permitted in attach-message mode"));
     result = false;
   }
 
@@ -3262,7 +3262,7 @@ int index_function_dispatcher(struct MuttWindow *win, int op)
 {
   if (!win)
   {
-    mutt_error("%s", _(Not_available_in_this_menu));
+    log_fault("%s", _(Not_available_in_this_menu));
     return FR_ERROR;
   }
 
@@ -3293,7 +3293,7 @@ int index_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return rc;
 }

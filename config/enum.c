@@ -108,7 +108,7 @@ static int enum_string_get(const struct ConfigSet *cs, void *var,
   const char *name = mutt_map_get_name(value, ed->lookup);
   if (!name)
   {
-    mutt_debug(LL_DEBUG1, "Variable has an invalid value: %d\n", value);
+    log_debug1("Variable has an invalid value: %d", value);
     return CSR_ERR_INVALID | CSR_INV_TYPE;
   }
 

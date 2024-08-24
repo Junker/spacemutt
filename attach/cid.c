@@ -114,7 +114,7 @@ static void cid_save_attachment(struct Body *b, struct CidMapList *cid_map_list)
   bool has_tempfile = false;
   FILE *fp = NULL;
 
-  mutt_debug(LL_DEBUG2, "attachment found with \"Content-ID: %s\"\n", id);
+  log_debug2("attachment found with \"Content-ID: %s\"", id);
   /* get filename */
   char *fname = mutt_str_dup(b->filename);
   if (b->aptr)
@@ -127,7 +127,7 @@ static void cid_save_attachment(struct Body *b, struct CidMapList *cid_map_list)
   if (mutt_save_attachment(fp, b, buf_string(tmpfile), 0, NULL) == -1)
     goto bail;
   has_tempfile = true;
-  mutt_debug(LL_DEBUG2, "attachment with \"Content-ID: %s\" saved to file \"%s\"\n",
+  log_debug2("attachment with \"Content-ID: %s\" saved to file \"%s\"",
              id, buf_string(tmpfile));
 
   /* add Content-ID to filename mapping to list */
@@ -220,7 +220,7 @@ void cid_to_filename(struct Buffer *filename, const struct CidMapList *cid_map_l
         buf_addstr_n(tmpbuf, pbuf, cid - pbuf);
         buf_addstr(tmpbuf, cid_map->fname);
         pbuf = cid + mutt_str_len(cid_map->cid);
-        mutt_debug(LL_DEBUG2, "replaced \"%s\" with \"%s\" in file \"%s\"\n",
+        log_debug2("replaced \"%s\" with \"%s\" in file \"%s\"",
                    cid_map->cid, cid_map->fname, buf_string(filename));
       }
       buf_addstr(tmpbuf, pbuf);

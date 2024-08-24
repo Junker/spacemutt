@@ -25,86 +25,66 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <glib.h>
 #include <time.h>
-#include "queue.h"
+
+
 
 /// Log lines longer than this will be truncated
 #define LOG_LINE_MAX_LEN 10240
 
-/**
- * enum LogLevel - Names for the Logging Levels
- */
-enum LogLevel
-{
-  LL_PERROR  = -3, ///< Log perror (using errno)
-  LL_ERROR   = -2, ///< Log error
-  LL_WARNING = -1, ///< Log warning
-  LL_MESSAGE =  0, ///< Log informational message
-  LL_DEBUG1  =  1, ///< Log at debug level 1
-  LL_DEBUG2  =  2, ///< Log at debug level 2
-  LL_DEBUG3  =  3, ///< Log at debug level 3
-  LL_DEBUG4  =  4, ///< Log at debug level 4
-  LL_DEBUG5  =  5, ///< Log at debug level 5
-  LL_NOTIFY  =  6, ///< Log of notifications
 
-  LL_MAX,
-};
+#define LOG_LEVEL_FAULT 1 << G_LOG_LEVEL_USER_SHIFT
+#define LOG_LEVEL_DEBUG1 G_LOG_LEVEL_DEBUG + (1 << (G_LOG_LEVEL_USER_SHIFT + 1))
+#define LOG_LEVEL_DEBUG2 G_LOG_LEVEL_DEBUG + (1 << (G_LOG_LEVEL_USER_SHIFT + 2))
+#define LOG_LEVEL_DEBUG3 G_LOG_LEVEL_DEBUG + (1 << (G_LOG_LEVEL_USER_SHIFT + 3))
+#define LOG_LEVEL_DEBUG4 G_LOG_LEVEL_DEBUG + (1 << (G_LOG_LEVEL_USER_SHIFT + 4))
+#define LOG_LEVEL_DEBUG5 G_LOG_LEVEL_DEBUG + (1 << (G_LOG_LEVEL_USER_SHIFT + 5))
+#define LOG_LEVEL_NOTIFY 1 << (G_LOG_LEVEL_USER_SHIFT + 6)
 
-/**
- * @defgroup logging_api Logging API
- *
- * Prototype for a Logging Function
- *
- * @param stamp    Unix time (optional)
- * @param file     Source file
- * @param line     Source line
- * @param function Source function
- * @param level    Logging level, e.g. #LL_WARNING
- * @param format   printf()-style formatting string
- * @param ...      Parameters, like printf()
- * @retval -1 Error
- * @retval  0 Success, filtered
- * @retval >0 Success, number of characters written
- */
-typedef int (*log_dispatcher_t)(time_t stamp, const char *file, int line, const char *function, enum LogLevel level, const char *format, ...)
-__attribute__((__format__(__printf__, 6, 7)));
 
-extern log_dispatcher_t MuttLogger;
+#define DEBUG_LEVEL_MAX 5
 
+extern GLogWriterFunc MuttLogWriter;
 /**
  * struct LogLine - A Log line
  */
-struct LogLine
+typedef struct
 {
   time_t time;                   ///< Timestamp of the message
+  GLogLevelFlags level;
   const char *file;              ///< Source file
-  int line;                      ///< Line number in source file
-  const char *function;          ///< C function
-  enum LogLevel level;           ///< Log level, e.g. #LL_DEBUG1
+  const char *line;              ///< Line number in source file
+  const char *func;              ///< C function
   char *message;                 ///< Message to be logged
-  STAILQ_ENTRY(LogLine) entries; ///< Linked list
-};
-STAILQ_HEAD(LogLineList, LogLine);
+  short err_no;
+} LogLine;
 
-#define mutt_debug(LEVEL, ...) MuttLogger(0, __FILE__, __LINE__, __func__, LEVEL,      __VA_ARGS__) ///< @ingroup logging_api
-#define mutt_warning(...)      MuttLogger(0, __FILE__, __LINE__, __func__, LL_WARNING, __VA_ARGS__) ///< @ingroup logging_api
-#define mutt_message(...)      MuttLogger(0, __FILE__, __LINE__, __func__, LL_MESSAGE, __VA_ARGS__) ///< @ingroup logging_api
-#define mutt_error(...)        MuttLogger(0, __FILE__, __LINE__, __func__, LL_ERROR,   __VA_ARGS__) ///< @ingroup logging_api
-#define mutt_perror(...)       MuttLogger(0, __FILE__, __LINE__, __func__, LL_PERROR,  __VA_ARGS__) ///< @ingroup logging_api
+#define log(LEVEL, ...)  g_log_structured_standard(G_LOG_DOMAIN, LEVEL, __FILE__, G_STRINGIFY(__LINE__), G_STRFUNC, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_notify(...)  log(LOG_LEVEL_NOTIFY, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_debug1(...)  log(LOG_LEVEL_DEBUG1, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_debug2(...)  log(LOG_LEVEL_DEBUG2, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_debug3(...)  log(LOG_LEVEL_DEBUG3, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_debug4(...)  log(LOG_LEVEL_DEBUG4, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_debug5(...)  log(LOG_LEVEL_DEBUG5, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_info(...)    log(G_LOG_LEVEL_INFO, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_message(...) log(G_LOG_LEVEL_MESSAGE, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_warning(...) log(G_LOG_LEVEL_WARNING, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_fault(...)   log(LOG_LEVEL_FAULT, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_critical(...) log(G_LOG_LEVEL_CRITICAL, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_error(...)   log(G_LOG_LEVEL_ERROR, __VA_ARGS__)    ///< @ingroup logging_api */
+#define log_perror(...) g_log_structured(G_LOG_DOMAIN, LOG_LEVEL_FAULT, "ERRNO", errno, "CODE_FILE", __FILE__, "CODE_LINE", G_STRINGIFY(__LINE__), "CODE_FUNC", G_STRFUNC, "MESSAGE", __VA_ARGS__)
 
-void log_multiline_full(enum LogLevel level, const char *str, const char *file, int line, const char *func);
-#define log_multiline(LEVEL, STRING) log_multiline_full(LEVEL, STRING, __FILE__, __LINE__, __func__)
+void logging_init();
+gconstpointer log_get_field(const GLogField* fields, gsize n_fields, char *name);
+gchar * log_writer_format_fields(GLogLevelFlags level, const GLogField *fields, gsize n_fields);
+GLogWriterOutput log_writer_terminal(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data);
+GLogWriterOutput log_writer_queue(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data);
+GLogWriterOutput log_writer_file(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data);
 
-int  log_disp_file    (time_t stamp, const char *file, int line, const char *function, enum LogLevel level, const char *format, ...)
-                       __attribute__((__format__(__printf__, 6, 7)));
-int  log_disp_queue   (time_t stamp, const char *file, int line, const char *function, enum LogLevel level, const char *format, ...)
-                       __attribute__((__format__(__printf__, 6, 7)));
-int  log_disp_terminal(time_t stamp, const char *file, int line, const char *function, enum LogLevel level, const char *format, ...)
-                       __attribute__((__format__(__printf__, 6, 7)));
-
-int  log_queue_add(struct LogLine *ll);
+int  log_queue_add(LogLine *ll);
 void log_queue_empty(void);
-void log_queue_flush(log_dispatcher_t disp);
+void log_queue_flush(GLogWriterFunc disp);
 int  log_queue_save(FILE *fp);
 void log_queue_set_max_size(int size);
 
@@ -112,7 +92,7 @@ void log_file_close(bool verbose);
 int  log_file_open(bool verbose);
 bool log_file_running(void);
 int  log_file_set_filename(const char *file, bool verbose);
-int  log_file_set_level(enum LogLevel level, bool verbose);
+int  log_file_set_level(GLogLevelFlags level, bool verbose);
 void log_file_set_version(const char *version);
 
 #endif /* MUTT_MUTT_LOGGING2_H */

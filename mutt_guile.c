@@ -87,7 +87,7 @@ static char symbol_to_dt_quad(SCM val)
  */
 static SCM guile_mutt_call(SCM scm_command, SCM scm_args)
 {
-  mutt_debug(LL_DEBUG2, " * guile_mutt_call()\n");
+  log_debug2(" * guile_mutt_call()");
   struct Buffer *err = buf_pool_get();
   struct Buffer *token = buf_pool_get();
   struct Buffer *buf = buf_pool_get();
@@ -134,7 +134,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
 {
 
   char *param = scm_to_locale_string(scm_param);
-  mutt_debug(LL_DEBUG2, " * mutt_set(%s)\n", param);
+  log_debug2(" * mutt_set(%s)", param);
 
   struct Buffer *err = buf_pool_get();
   struct HashElem *he = cs_subset_lookup(NeoMutt->sub, param);
@@ -243,12 +243,12 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
 static SCM guile_mutt_get(SCM scm_param)
 {
   char *param = scm_to_locale_string(scm_param);
-  mutt_debug(LL_DEBUG2, " * mutt_get(%s)\n", param);
+  log_debug2(" * mutt_get(%s)", param);
 
   struct HashElem *he = cs_subset_lookup(NeoMutt->sub, param);
   if (!he)
   {
-    mutt_debug(LL_DEBUG2, " * error\n");
+    log_debug2(" * error");
     scm_misc_error(__func__, "SpaceMutt parameter not found ~S", scm_list_1(scm_param));
     return SCM_UNDEFINED;
   }
@@ -297,10 +297,10 @@ static SCM guile_mutt_get(SCM scm_param)
  */
 static SCM guile_mutt_message(SCM scm_msg)
 {
-  mutt_debug(LL_DEBUG2, " * mutt_message()\n");
+  log_debug2(" * log_message()");
   const char *msg = scm_to_locale_string(scm_msg);
   if (msg)
-    mutt_message("%s", msg);
+    log_message("%s", msg);
   free(msg);
   return 0;
 }

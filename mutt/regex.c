@@ -206,7 +206,7 @@ bool mutt_regexlist_match(struct RegexList *rl, const char *str)
   {
     if (mutt_regex_match(np->regex, str))
     {
-      mutt_debug(LL_DEBUG5, "%s matches %s\n", str, np->regex->pattern);
+      log_debug5("%s matches %s", str, np->regex->pattern);
       return true;
     }
   }
@@ -325,7 +325,7 @@ int mutt_replacelist_add(struct ReplaceList *rl, const char *pat,
       if (!end)
       {
         // this is not an error, we might have matched %R or %L in subjectrx
-        mutt_debug(LL_DEBUG2, "Invalid match number in replacelist: '%s'\n", p);
+        log_debug2("Invalid match number in replacelist: '%s'", p);
       }
       if (n > np->nmatch)
       {
@@ -392,7 +392,7 @@ char *mutt_replacelist_apply(struct ReplaceList *rl, const char *str)
 
     if (mutt_regex_capture(np->regex, buf_string(src), np->nmatch, pmatch))
     {
-      mutt_debug(LL_DEBUG5, "%s matches %s\n", buf_string(src), np->regex->pattern);
+      log_debug5("%s matches %s", buf_string(src), np->regex->pattern);
 
       buf_reset(dst);
       if (np->templ)
@@ -432,7 +432,7 @@ char *mutt_replacelist_apply(struct ReplaceList *rl, const char *str)
       }
 
       buf_strcpy(src, buf_string(dst));
-      mutt_debug(LL_DEBUG5, "subst %s\n", buf_string(dst));
+      log_debug5("subst %s", buf_string(dst));
     }
   }
 
@@ -498,8 +498,8 @@ bool mutt_replacelist_match(struct ReplaceList *rl, char *buf, size_t buflen, co
     /* Does this pattern match? */
     if (mutt_regex_capture(np->regex, str, (size_t) np->nmatch, pmatch))
     {
-      mutt_debug(LL_DEBUG5, "%s matches %s\n", str, np->regex->pattern);
-      mutt_debug(LL_DEBUG5, "%d subs\n", (int) np->regex->regex->re_nsub);
+      log_debug5("%s matches %s", str, np->regex->pattern);
+      log_debug5("%d subs", (int) np->regex->regex->re_nsub);
 
       /* Copy template into buf, with substitutions. */
       for (p = np->templ; *p && (tlen < (buflen - 1));)
@@ -539,7 +539,7 @@ bool mutt_replacelist_match(struct ReplaceList *rl, char *buf, size_t buflen, co
       if (tlen < buflen)
       {
         buf[tlen] = '\0';
-        mutt_debug(LL_DEBUG5, "\"%s\"\n", buf);
+        log_debug5("\"%s\"", buf);
       }
       return true;
     }

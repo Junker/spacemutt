@@ -174,14 +174,14 @@ static int monitor_init(void)
   INotifyFd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
   if (INotifyFd == -1)
   {
-    mutt_debug(LL_DEBUG2, "inotify_init1 failed, errno=%d %s\n", errno, strerror(errno));
+    log_debug2("inotify_init1 failed, errno=%d %s", errno, strerror(errno));
     return -1;
   }
 #else
   INotifyFd = inotify_init();
   if (INotifyFd == -1)
   {
-    mutt_debug(LL_DEBUG2, "monitor: inotify_init failed, errno=%d %s\n", errno,
+    log_debug2("monitor: inotify_init failed, errno=%d %s", errno,
                strerror(errno));
     return -1;
   }
@@ -287,12 +287,12 @@ static int monitor_handle_ignore(int desc)
       new_desc = inotify_add_watch(INotifyFd, iter->mh_backup_path, INOTIFY_MASK_FILE);
       if (new_desc == -1)
       {
-        mutt_debug(LL_DEBUG2, "inotify_add_watch failed for '%s', errno=%d %s\n",
+        log_debug2("inotify_add_watch failed for '%s', errno=%d %s",
                    iter->mh_backup_path, errno, strerror(errno));
       }
       else
       {
-        mutt_debug(LL_DEBUG3, "inotify_add_watch descriptor=%d for '%s'\n",
+        log_debug3("inotify_add_watch descriptor=%d for '%s'",
                    desc, iter->mh_backup_path);
         iter->st_dev = st.st_dev;
         iter->st_ino = st.st_ino;
@@ -301,7 +301,7 @@ static int monitor_handle_ignore(int desc)
     }
     else
     {
-      mutt_debug(LL_DEBUG3, "cleanup watch (implicitly removed) - descriptor=%d\n", desc);
+      log_debug3("cleanup watch (implicitly removed) - descriptor=%d", desc);
     }
 
     if (MonitorCurMboxDescriptor == desc)
@@ -415,7 +415,7 @@ int mutt_monitor_poll(void)
       rc = -1;
       if (errno != EINTR)
       {
-        mutt_debug(LL_DEBUG2, "poll() failed, errno=%d %s\n", errno, strerror(errno));
+        log_debug2("poll() failed, errno=%d %s", errno, strerror(errno));
       }
     }
     else
@@ -433,7 +433,7 @@ int mutt_monitor_poll(void)
           else if (PollFds[i].fd == INotifyFd)
           {
             MonitorFilesChanged = true;
-            mutt_debug(LL_DEBUG3, "file change(s) detected\n");
+            log_debug3("file change(s) detected");
             char *ptr = buf;
             const struct inotify_event *event = NULL;
 
@@ -444,7 +444,7 @@ int mutt_monitor_poll(void)
               {
                 if (errno != EAGAIN)
                 {
-                  mutt_debug(LL_DEBUG2, "read inotify events failed, errno=%d %s\n",
+                  log_debug2("read inotify events failed, errno=%d %s",
                              errno, strerror(errno));
                 }
                 break;
@@ -453,7 +453,7 @@ int mutt_monitor_poll(void)
               while (ptr < (buf + len))
               {
                 event = (const struct inotify_event *) ptr;
-                mutt_debug(LL_DEBUG3, "+ detail: descriptor=%d mask=0x%x\n",
+                log_debug3("+ detail: descriptor=%d mask=0x%x",
                            event->wd, event->mask);
                 if (event->mask & IN_IGNORED)
                   monitor_handle_ignore(event->wd);
@@ -499,13 +499,13 @@ int mutt_monitor_add(struct Mailbox *m)
   if (((INotifyFd == -1) && (monitor_init() == -1)) ||
       ((desc = inotify_add_watch(INotifyFd, info.path, mask)) == -1))
   {
-    mutt_debug(LL_DEBUG2, "inotify_add_watch failed for '%s', errno=%d %s\n",
+    log_debug2("inotify_add_watch failed for '%s', errno=%d %s",
                info.path, errno, strerror(errno));
     rc = -1;
     goto cleanup;
   }
 
-  mutt_debug(LL_DEBUG3, "inotify_add_watch descriptor=%d for '%s'\n", desc, info.path);
+  log_debug3("inotify_add_watch descriptor=%d for '%s'", desc, info.path);
   if (!m)
     MonitorCurMboxDescriptor = desc;
 
@@ -566,7 +566,7 @@ int mutt_monitor_remove(struct Mailbox *m)
   }
 
   inotify_rm_watch(info.monitor->desc, INotifyFd);
-  mutt_debug(LL_DEBUG3, "inotify_rm_watch for '%s' descriptor=%d\n", info.path,
+  log_debug3("inotify_rm_watch for '%s' descriptor=%d", info.path,
              info.monitor->desc);
 
   monitor_delete(info.monitor);

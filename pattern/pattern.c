@@ -204,7 +204,7 @@ int mutt_pattern_alias_func(char *prompt, struct AliasMenuData *mdata, struct Me
     }
   }
 
-  mutt_message(_("Compiling search pattern..."));
+  log_message(_("Compiling search pattern..."));
 
   bool match_all = false;
   struct PatternList *pat = NULL;
@@ -221,7 +221,7 @@ int mutt_pattern_alias_func(char *prompt, struct AliasMenuData *mdata, struct Me
     pat = mutt_pattern_comp(NULL, menu, buf->data, MUTT_PC_FULL_MSG, err);
     if (!pat)
     {
-      mutt_error("%s", buf_string(err));
+      log_fault("%s", buf_string(err));
       buf_pool_release(&err);
       goto bail;
     }
@@ -310,7 +310,7 @@ int mutt_pattern_func(struct MailboxView *mv, int op, char *prompt)
     }
   }
 
-  mutt_message(_("Compiling search pattern..."));
+  log_message(_("Compiling search pattern..."));
 
   char *simple = buf_strdup(buf);
   const char *const c_simple_search = cs_subset_string(NeoMutt->sub, "simple_search");
@@ -324,7 +324,7 @@ int mutt_pattern_func(struct MailboxView *mv, int op, char *prompt)
   struct PatternList *pat = mutt_pattern_comp(mv, mv->menu, buf->data, MUTT_PC_FULL_MSG, err);
   if (!pat)
   {
-    mutt_error("%s", buf_string(err));
+    log_fault("%s", buf_string(err));
     goto bail;
   }
 
@@ -418,7 +418,7 @@ int mutt_pattern_func(struct MailboxView *mv, int op, char *prompt)
     mutt_pattern_free(&mv->limit_pattern);
 
     if (m->msg_count && !m->vcount)
-      mutt_error(_("No messages matched criteria"));
+      log_fault(_("No messages matched criteria"));
 
     /* record new limit pattern, unless match all */
     if (!match_all)
@@ -430,7 +430,7 @@ int mutt_pattern_func(struct MailboxView *mv, int op, char *prompt)
   }
 
   if (interrupted)
-    mutt_error(_("Search interrupted"));
+    log_fault(_("Search interrupted"));
 
   rc = 0;
 
@@ -489,7 +489,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
 
   if (!state->pattern)
   {
-    mutt_message(_("Compiling search pattern..."));
+    log_message(_("Compiling search pattern..."));
     mutt_pattern_free(&state->pattern);
     struct Buffer *err = buf_pool_get();
     state->pattern = mutt_pattern_comp(mv, menu, state->string_expn->data,
@@ -497,7 +497,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
     pattern_changed = true;
     if (!state->pattern)
     {
-      mutt_error("%s", buf_string(err));
+      log_fault("%s", buf_string(err));
       buf_free(&err);
       buf_reset(state->string);
       buf_reset(state->string_expn);
@@ -536,7 +536,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
       }
       else
       {
-        mutt_message(_("Search hit bottom without finding match"));
+        log_message(_("Search hit bottom without finding match"));
         goto done;
       }
     }
@@ -549,7 +549,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
       }
       else
       {
-        mutt_message(_("Search hit top without finding match"));
+        log_message(_("Search hit top without finding match"));
         goto done;
       }
     }
@@ -565,7 +565,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
       {
         mutt_clear_error();
         if (msg && *msg)
-          mutt_message("%s", msg);
+          log_message("%s", msg);
         rc = i;
         goto done;
       }
@@ -580,7 +580,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
       {
         mutt_clear_error();
         if (msg && *msg)
-          mutt_message("%s", msg);
+          log_message("%s", msg);
         rc = i;
         goto done;
       }
@@ -588,7 +588,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
 
     if (SigInt)
     {
-      mutt_error(_("Search interrupted"));
+      log_fault(_("Search interrupted"));
       SigInt = false;
       goto done;
     }
@@ -596,7 +596,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
     i += incr;
   }
 
-  mutt_error(_("Not found"));
+  log_fault(_("Not found"));
 done:
   progress_free(&progress);
   return rc;
@@ -645,14 +645,14 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
 
   if (!state->pattern)
   {
-    mutt_message(_("Compiling search pattern..."));
+    log_message(_("Compiling search pattern..."));
     struct Buffer *err = buf_pool_get();
     state->pattern = mutt_pattern_comp(NULL, menu, state->string_expn->data,
                                        MUTT_PC_FULL_MSG, err);
     pattern_changed = true;
     if (!state->pattern)
     {
-      mutt_error("%s", buf_string(err));
+      log_fault("%s", buf_string(err));
       buf_free(&err);
       buf_reset(state->string);
       buf_reset(state->string_expn);
@@ -692,7 +692,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
       }
       else
       {
-        mutt_message(_("Search hit bottom without finding match"));
+        log_message(_("Search hit bottom without finding match"));
         goto done;
       }
     }
@@ -705,7 +705,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
       }
       else
       {
-        mutt_message(_("Search hit top without finding match"));
+        log_message(_("Search hit top without finding match"));
         goto done;
       }
     }
@@ -718,7 +718,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
       {
         mutt_clear_error();
         if (msg && *msg)
-          mutt_message("%s", msg);
+          log_message("%s", msg);
         rc = i;
         goto done;
       }
@@ -733,7 +733,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
       {
         mutt_clear_error();
         if (msg && *msg)
-          mutt_message("%s", msg);
+          log_message("%s", msg);
         rc = i;
         goto done;
       }
@@ -741,7 +741,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
 
     if (SigInt)
     {
-      mutt_error(_("Search interrupted"));
+      log_fault(_("Search interrupted"));
       SigInt = false;
       goto done;
     }
@@ -749,7 +749,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
     i += incr;
   }
 
-  mutt_error(_("Not found"));
+  log_fault(_("Not found"));
 done:
   progress_free(&progress);
   return rc;

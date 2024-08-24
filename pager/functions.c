@@ -342,7 +342,7 @@ static inline bool assert_pager_mode(bool test)
     return true;
 
   mutt_flushinp();
-  mutt_error("%s", _(Not_available_in_this_menu));
+  log_fault("%s", _(Not_available_in_this_menu));
   return false;
 }
 
@@ -405,7 +405,7 @@ static int op_pager_bottom(struct IndexSharedData *shared,
                            struct PagerPrivateData *priv, int op)
 {
   if (!jump_to_bottom(priv, priv->pview))
-    mutt_message(_("Bottom of message is shown"));
+    log_message(_("Bottom of message is shown"));
 
   return FR_SUCCESS;
 }
@@ -426,7 +426,7 @@ static int op_pager_half_down(struct IndexSharedData *shared,
   else if (c_pager_stop)
   {
     /* emulate "less -q" and don't go on to the next message. */
-    mutt_message(_("Bottom of message is shown"));
+    log_message(_("Bottom of message is shown"));
   }
   else
   {
@@ -451,7 +451,7 @@ static int op_pager_half_up(struct IndexSharedData *shared,
   }
   else
   {
-    mutt_message(_("Top of message is shown"));
+    log_message(_("Top of message is shown"));
   }
   return FR_SUCCESS;
 }
@@ -499,7 +499,7 @@ static int op_pager_next_line(struct IndexSharedData *shared,
   }
   else
   {
-    mutt_message(_("Bottom of message is shown"));
+    log_message(_("Bottom of message is shown"));
   }
   return FR_SUCCESS;
 }
@@ -520,7 +520,7 @@ static int op_pager_next_page(struct IndexSharedData *shared,
   else if (c_pager_stop)
   {
     /* emulate "less -q" and don't go on to the next message. */
-    mutt_message(_("Bottom of message is shown"));
+    log_message(_("Bottom of message is shown"));
   }
   else
   {
@@ -543,7 +543,7 @@ static int op_pager_prev_line(struct IndexSharedData *shared,
   }
   else
   {
-    mutt_message(_("Top of message is shown"));
+    log_message(_("Top of message is shown"));
   }
   return FR_SUCCESS;
 }
@@ -556,7 +556,7 @@ static int op_pager_prev_page(struct IndexSharedData *shared,
 {
   if (priv->top_line == 0)
   {
-    mutt_message(_("Top of message is shown"));
+    log_message(_("Top of message is shown"));
   }
   else
   {
@@ -631,7 +631,7 @@ static int op_pager_search(struct IndexSharedData *shared,
   if (err != 0)
   {
     regerror(err, &priv->search_re, buf->data, buf->dsize);
-    mutt_error("%s", buf_string(buf));
+    log_fault("%s", buf_string(buf));
     for (size_t i = 0; i < priv->lines_max; i++)
     {
       /* cleanup */
@@ -692,7 +692,7 @@ static int op_pager_search(struct IndexSharedData *shared,
     if (priv->lines[priv->top_line].search_arr_size == 0)
     {
       priv->search_flag = 0;
-      mutt_error(_("Not found"));
+      log_fault(_("Not found"));
     }
     else
     {
@@ -759,11 +759,11 @@ static int op_pager_search_next(struct IndexSharedData *shared,
       }
       else if (priv->wrapped || !c_wrap_search)
       {
-        mutt_error(_("Not found"));
+        log_fault(_("Not found"));
       }
       else
       {
-        mutt_message(_("Search wrapped to top"));
+        log_message(_("Search wrapped to top"));
         priv->wrapped = true;
         goto search_next;
       }
@@ -789,11 +789,11 @@ static int op_pager_search_next(struct IndexSharedData *shared,
       }
       else if (priv->wrapped || !c_wrap_search)
       {
-        mutt_error(_("Not found"));
+        log_fault(_("Not found"));
       }
       else
       {
-        mutt_message(_("Search wrapped to bottom"));
+        log_message(_("Search wrapped to bottom"));
         priv->wrapped = true;
         goto search_next;
       }
@@ -846,7 +846,7 @@ static int op_pager_skip_headers(struct IndexSharedData *shared,
        there is no text past the headers.
        (I don't think this is actually possible in Mutt's code, but
        display some kind of message in case it somehow occurs.) */
-    mutt_warning(_("No text past headers"));
+    log_warning(_("No text past headers"));
     return FR_NO_ACTION;
   }
   priv->top_line = new_topline;
@@ -905,7 +905,7 @@ static int op_pager_skip_quoted(struct IndexSharedData *shared,
 
     if (rc < 0)
     {
-      mutt_error(_("No more unquoted text after quoted text"));
+      log_fault(_("No more unquoted text after quoted text"));
       return FR_NO_ACTION;
     }
   }
@@ -927,7 +927,7 @@ static int op_pager_skip_quoted(struct IndexSharedData *shared,
 
     if (rc < 0)
     {
-      mutt_error(_("No more quoted text"));
+      log_fault(_("No more quoted text"));
       return FR_NO_ACTION;
     }
 
@@ -945,7 +945,7 @@ static int op_pager_skip_quoted(struct IndexSharedData *shared,
 
     if (rc < 0)
     {
-      mutt_error(_("No more unquoted text after quoted text"));
+      log_fault(_("No more unquoted text after quoted text"));
       return FR_NO_ACTION;
     }
   }
@@ -962,7 +962,7 @@ static int op_pager_top(struct IndexSharedData *shared, struct PagerPrivateData 
   if (priv->top_line)
     priv->top_line = 0;
   else
-    mutt_message(_("Top of message is shown"));
+    log_message(_("Top of message is shown"));
   return FR_SUCCESS;
 }
 
@@ -986,7 +986,7 @@ static int op_help(struct IndexSharedData *shared, struct PagerPrivateData *priv
   if (priv->pview->mode == PAGER_MODE_HELP)
   {
     /* don't let the user enter the help-menu from the help screen! */
-    mutt_error(_("Help is currently being shown"));
+    log_fault(_("Help is currently being shown"));
     return FR_ERROR;
   }
   mutt_help(MENU_PAGER);
@@ -1027,14 +1027,14 @@ static int op_save(struct IndexSharedData *shared, struct PagerPrivateData *priv
   fp_save = mutt_file_fopen(buf_string(buf), "a+");
   if (!fp_save)
   {
-    mutt_perror("%s", buf_string(buf));
+    log_perror("%s", buf_string(buf));
     goto done;
   }
 
   int bytes = mutt_file_copy_stream(priv->fp, fp_save);
   if (bytes == -1)
   {
-    mutt_perror("%s", buf_string(buf));
+    log_perror("%s", buf_string(buf));
     goto done;
   }
 
@@ -1042,7 +1042,7 @@ static int op_save(struct IndexSharedData *shared, struct PagerPrivateData *priv
   if (pos >= 0)
     mutt_file_seek(priv->fp, pos, SEEK_CUR);
 
-  mutt_message(_("Saved to: %s"), buf_string(buf));
+  log_message(_("Saved to: %s"), buf_string(buf));
   rc = FR_SUCCESS;
 
 done:
@@ -1126,7 +1126,7 @@ int pager_function_dispatcher(struct MuttWindow *win, int op)
 {
   if (!win)
   {
-    mutt_error("%s", _(Not_available_in_this_menu));
+    log_fault("%s", _(Not_available_in_this_menu));
     return FR_ERROR;
   }
 
@@ -1154,7 +1154,7 @@ int pager_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return rc;
 }

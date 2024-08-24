@@ -298,13 +298,13 @@ void km_error_key(enum MenuType mtype)
     key = km_find_func(MENU_GENERIC, OP_HELP);
   if (!key)
   {
-    mutt_error(_("Key is not bound"));
+    log_fault(_("Key is not bound"));
     return;
   }
 
   char buf[128] = { 0 };
   km_expand_key(buf, sizeof(buf), key);
-  mutt_error(_("Key is not bound.  Press '%s' for help."), buf);
+  log_fault(_("Key is not bound.  Press '%s' for help."), buf);
 }
 
 /**
@@ -439,7 +439,7 @@ struct KeyEvent km_dokey_event(enum MenuType mtype, GetChFlags flags)
       if (n++ == 10)
       {
         mutt_flushinp();
-        mutt_error(_("Macro loop detected"));
+        log_fault(_("Macro loop detected"));
         return (struct KeyEvent){ '\0', OP_ABORT };
       }
 

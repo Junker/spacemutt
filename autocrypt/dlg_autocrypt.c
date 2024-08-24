@@ -285,7 +285,7 @@ static int autocrypt_config_observer(struct NotifyCallback *nc)
 
   struct Menu *menu = nc->global_data;
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC, MENU_REDRAW_FULL\n");
+  log_debug5("config done, request WA_RECALC, MENU_REDRAW_FULL");
 
   return 0;
 }
@@ -316,7 +316,7 @@ static int autocrypt_window_observer(struct NotifyCallback *nc)
   notify_observer_remove(NeoMutt->sub->notify, autocrypt_config_observer, menu);
   notify_observer_remove(win_menu->notify, autocrypt_window_observer, win_menu);
 
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
   return 0;
 }
 
@@ -362,7 +362,7 @@ void dlg_autocrypt(void)
     window_redraw(NULL);
 
     op = km_dokey(MENU_AUTOCRYPT, GETCH_NO_FLAGS);
-    mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+    log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
     if (op < 0)
       continue;
     if (op == OP_NULL)

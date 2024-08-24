@@ -45,9 +45,9 @@ struct Progress;
 #define IMAP_SSL_PORT 993  ///< Port for IMAP over SSL/TLS
 
 /* logging levels */
-#define IMAP_LOG_CMD  2
-#define IMAP_LOG_LTRL 3
-#define IMAP_LOG_PASS 5
+#define IMAP_LOG_LEVEL_CMD  LOG_LEVEL_DEBUG2
+#define IMAP_LOG_LEVEL_LTRL LOG_LEVEL_DEBUG3
+#define IMAP_LOG_LEVEL_PASS LOG_LEVEL_DEBUG5
 
 /* IMAP command responses. Used in ImapCommand.state too */
 #define IMAP_RES_NO       -2  ///< `<tag> NO ...`

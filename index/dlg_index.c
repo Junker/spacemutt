@@ -144,7 +144,7 @@ bool check_acl(struct Mailbox *m, AclFlags acl, const char *msg)
   if (!(m->rights & acl))
   {
     /* L10N: %s is one of the CHECK_ACL entries below. */
-    mutt_error(_("%s: Operation not permitted by ACL"), msg);
+    log_fault(_("%s: Operation not permitted by ACL"), msg);
     return false;
   }
 
@@ -597,7 +597,7 @@ static int index_mailbox_observer(struct NotifyCallback *nc)
     return 0;
 
   *ptr = NULL;
-  mutt_debug(LL_DEBUG5, "mailbox done\n");
+  log_debug5("mailbox done");
   return 0;
 }
 
@@ -735,7 +735,7 @@ struct Mailbox *change_folder_notmuch(struct Menu *menu, char *buf, int buflen, 
 {
   if (!nm_url_from_query(NULL, buf, buflen))
   {
-    mutt_message(_("Failed to create query, aborting"));
+    log_message(_("Failed to create query, aborting"));
     return NULL;
   }
 
@@ -780,7 +780,7 @@ void change_folder_string(struct Menu *menu, struct Buffer *buf, int *oldcount,
     }
     else
     {
-      mutt_error(_("%s is not a mailbox"), buf_string(buf));
+      log_fault(_("%s is not a mailbox"), buf_string(buf));
     }
     return;
   }
@@ -1163,7 +1163,7 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
         /* notify the user of new mail */
         if (check == MX_STATUS_REOPENED)
         {
-          mutt_error(_("Mailbox was externally modified.  Flags may be wrong."));
+          log_fault(_("Mailbox was externally modified.  Flags may be wrong."));
         }
         else if (check == MX_STATUS_NEW_MAIL)
         {
@@ -1172,7 +1172,7 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
             const struct Email *e = shared->mailbox->emails[i];
             if (e && !e->read && !e->old)
             {
-              mutt_message(_("New mail in this mailbox"));
+              log_message(_("New mail in this mailbox"));
               const bool c_beep_new = cs_subset_bool(shared->sub, "beep_new");
               if (c_beep_new)
                 mutt_beep(true);
@@ -1183,7 +1183,7 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
                 struct Buffer *cmd = buf_pool_get();
                 menu_status_line(cmd, shared, NULL, -1, c_new_mail_command);
                 if (mutt_system(buf_string(cmd)) != 0)
-                  mutt_error(_("Error running \"%s\""), buf_string(cmd));
+                  log_fault(_("Error running \"%s\""), buf_string(cmd));
                 buf_pool_release(&cmd);
               }
               break;
@@ -1192,7 +1192,7 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
         }
         else if (check == MX_STATUS_FLAGS)
         {
-          mutt_message(_("Mailbox was externally modified"));
+          log_message(_("Mailbox was externally modified"));
         }
 
         /* avoid the message being overwritten by mailbox */
@@ -1228,7 +1228,7 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
             struct Buffer *cmd = buf_pool_get();
             menu_status_line(cmd, shared, priv->menu, -1, c_new_mail_command);
             if (mutt_system(buf_string(cmd)) != 0)
-              mutt_error(_("Error running \"%s\""), buf_string(cmd));
+              log_fault(_("Error running \"%s\""), buf_string(cmd));
             buf_pool_release(&cmd);
           }
         }
@@ -1287,7 +1287,7 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
       continue;
     }
 
-    mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+    log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
 
     /* special handling for the priv->tag-prefix function */
     const bool c_auto_tag = cs_subset_bool(shared->sub, "auto_tag");
@@ -1303,7 +1303,7 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
 
       if (!shared->mailbox)
       {
-        mutt_error(_("No mailbox is open"));
+        log_fault(_("No mailbox is open"));
         continue;
       }
 
@@ -1311,12 +1311,12 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
       {
         if (op == OP_TAG_PREFIX)
         {
-          mutt_error(_("No tagged messages"));
+          log_fault(_("No tagged messages"));
         }
         else if (op == OP_TAG_PREFIX_COND)
         {
           mutt_flush_macro_to_endcond();
-          mutt_message(_("Nothing to do"));
+          log_message(_("Nothing to do"));
         }
         continue;
       }

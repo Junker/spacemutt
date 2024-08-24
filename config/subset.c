@@ -113,7 +113,7 @@ void cs_subset_free(struct ConfigSubset **ptr)
   struct ConfigSubset *sub = *ptr;
 
   struct EventConfig ev_c = { sub, NULL, NULL };
-  mutt_debug(LL_NOTIFY, "NT_CONFIG_DELETED: ALL\n");
+  log_notify("NT_CONFIG_DELETED: ALL");
   notify_send(sub->notify, NT_CONFIG, NT_CONFIG_DELETED, &ev_c);
 
   if (sub->cs && sub->name)
@@ -242,7 +242,7 @@ void cs_subset_notify_observers(const struct ConfigSubset *sub,
 
   struct HashElem *he_base = cs_get_base(he);
   struct EventConfig ev_c = { sub, he_base->key.strkey, he };
-  mutt_debug(LL_NOTIFY, "%s: %s\n",
+  log_notify("%s: %s",
              NONULL(mutt_map_get_name(ev, ConfigEventNames)), he_base->key.strkey);
   notify_send(sub->notify, NT_CONFIG, ev, &ev_c);
 }
@@ -453,7 +453,7 @@ int cs_subset_he_delete(const struct ConfigSubset *sub, struct HashElem *he, str
   if (CSR_RESULT(rc) == CSR_SUCCESS)
   {
     struct EventConfig ev_c = { sub, name, NULL };
-    mutt_debug(LL_NOTIFY, "NT_CONFIG_DELETED: %s\n", name);
+    log_notify("NT_CONFIG_DELETED: %s", name);
     notify_send(sub->notify, NT_CONFIG, NT_CONFIG_DELETED, &ev_c);
   }
 

@@ -245,7 +245,7 @@ struct PgpKeyInfo *pgp_ask_for_key(char *tag, const char *whatfor,
     if (key)
       goto done;
 
-    mutt_error(_("No matching keys found for \"%s\""), buf_string(resp));
+    log_fault(_("No matching keys found for \"%s\""), buf_string(resp));
   }
 
 done:
@@ -280,25 +280,25 @@ struct Body *pgp_class_make_key_attachment(void)
   FILE *fp_tmp = mutt_file_fopen(buf_string(tempf), "w");
   if (!fp_tmp)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto cleanup;
   }
 
   FILE *fp_null = mutt_file_fopen("/dev/null", "w");
   if (!fp_null)
   {
-    mutt_perror(_("Can't open /dev/null"));
+    log_perror(_("Can't open /dev/null"));
     mutt_file_fclose(&fp_tmp);
     unlink(buf_string(tempf));
     goto cleanup;
   }
 
-  mutt_message(_("Invoking PGP..."));
+  log_message(_("Invoking PGP..."));
 
   pid = pgp_invoke_export(NULL, NULL, NULL, -1, fileno(fp_tmp), fileno(fp_null), tmp);
   if (pid == -1)
   {
-    mutt_perror(_("Can't create filter"));
+    log_perror(_("Can't create filter"));
     unlink(buf_string(tempf));
     mutt_file_fclose(&fp_tmp);
     mutt_file_fclose(&fp_null);
@@ -395,7 +395,7 @@ struct PgpKeyInfo *pgp_getkeybyaddr(struct Address *a, KeyFlags abilities,
     pgp_add_string_to_hints(buf_string(a->personal), &hints);
 
   if (!oppenc_mode)
-    mutt_message(_("Looking for keys matching \"%s\"..."), buf_string(a->mailbox));
+    log_message(_("Looking for keys matching \"%s\"..."), buf_string(a->mailbox));
   keys = pgp_get_candidates(keyring, hints);
 
   g_slist_free_full(g_steal_pointer(&hints), g_free);
@@ -403,18 +403,18 @@ struct PgpKeyInfo *pgp_getkeybyaddr(struct Address *a, KeyFlags abilities,
   if (!keys)
     return NULL;
 
-  mutt_debug(LL_DEBUG5, "looking for %s <%s>\n", buf_string(a->personal),
+  log_debug5("looking for %s <%s>", buf_string(a->personal),
              buf_string(a->mailbox));
 
   for (k = keys; k; k = kn)
   {
     kn = k->next;
 
-    mutt_debug(LL_DEBUG5, "  looking at key: %s\n", pgp_keyid(k));
+    log_debug5("  looking at key: %s", pgp_keyid(k));
 
     if (abilities && !(k->flags & abilities))
     {
-      mutt_debug(LL_DEBUG3, "  insufficient abilities: Has %x, want %x\n", k->flags, abilities);
+      log_debug3("  insufficient abilities: Has %x, want %x", k->flags, abilities);
       continue;
     }
 
@@ -527,7 +527,7 @@ struct PgpKeyInfo *pgp_getkeybystr(const char *cp, KeyFlags abilities, enum PgpR
   if ((l > 0) && (p[l - 1] == '!'))
     p[l - 1] = 0;
 
-  mutt_message(_("Looking for keys matching \"%s\"..."), p);
+  log_message(_("Looking for keys matching \"%s\"..."), p);
 
   pfcopy = crypt_get_fingerprint_or_id(p, &phint, &pl, &ps);
   pgp_add_string_to_hints(phint, &hints);
@@ -547,24 +547,24 @@ struct PgpKeyInfo *pgp_getkeybystr(const char *cp, KeyFlags abilities, enum PgpR
 
     bool match = false;
 
-    mutt_debug(LL_DEBUG5, "matching \"%s\" against key %s:\n", p, pgp_long_keyid(k));
+    log_debug5("matching \"%s\" against key %s:", p, pgp_long_keyid(k));
 
     if ((*p == '\0') || (pfcopy && mutt_istr_equal(pfcopy, k->fingerprint)) ||
         (pl && mutt_istr_equal(pl, pgp_long_keyid(k))) ||
         (ps && mutt_istr_equal(ps, pgp_short_keyid(k))))
     {
-      mutt_debug(LL_DEBUG5, "        match #1\n");
+      log_debug5("        match #1");
       match = true;
     }
     else
     {
       for (a = k->address; a; a = a->next)
       {
-        mutt_debug(LL_DEBUG5, "matching \"%s\" against key %s, \"%s\":\n", p,
+        log_debug5("matching \"%s\" against key %s, \"%s\":", p,
                    pgp_long_keyid(k), NONULL(a->addr));
         if (mutt_istr_find(a->addr, p))
         {
-          mutt_debug(LL_DEBUG5, "        match #2\n");
+          log_debug5("        match #2");
           match = true;
           break;
         }
@@ -597,7 +597,7 @@ struct PgpKeyInfo *pgp_getkeybystr(const char *cp, KeyFlags abilities, enum PgpR
     }
     else
     {
-      mutt_error(_("A key can't be used: expired/disabled/revoked"));
+      log_fault(_("A key can't be used: expired/disabled/revoked"));
     }
   }
 

@@ -53,13 +53,13 @@ static int socket_preconnect(void)
   if (!c_preconnect)
     return 0;
 
-  mutt_debug(LL_DEBUG2, "Executing preconnect: %s\n", c_preconnect);
+  log_debug2("Executing preconnect: %s", c_preconnect);
   const int rc = mutt_system(c_preconnect);
-  mutt_debug(LL_DEBUG2, "Preconnect result: %d\n", rc);
+  log_debug2("Preconnect result: %d", rc);
   if (rc != 0)
   {
     const int save_errno = errno;
-    mutt_perror(_("Preconnect command failed"));
+    log_perror(_("Preconnect command failed"));
 
     return save_errno;
   }
@@ -84,7 +84,7 @@ int mutt_socket_open(struct Connection *conn)
 
   if (rc >= 0)
   {
-    mutt_debug(LL_DEBUG2, "Connected to %s:%d on fd=%d\n", conn->account.host,
+    log_debug2("Connected to %s:%d on fd=%d", conn->account.host,
                conn->account.port, conn->fd);
   }
 
@@ -105,7 +105,7 @@ int mutt_socket_close(struct Connection *conn)
   int rc = -1;
 
   if (conn->fd < 0)
-    mutt_debug(LL_DEBUG1, "Attempt to close closed connection\n");
+    log_debug1("Attempt to close closed connection");
   else
     rc = conn->close(conn);
 
@@ -139,15 +139,15 @@ int mutt_socket_read(struct Connection *conn, char *buf, size_t len)
  * @retval >0 Number of bytes written
  * @retval -1 Error
  */
-int mutt_socket_write_d(struct Connection *conn, const char *buf, int len, int dbg)
+int mutt_socket_write_d(struct Connection *conn, const char *buf, int len, GLogLevelFlags dbg)
 {
   int sent = 0;
 
-  mutt_debug(dbg, "%d> %s", conn->fd, buf);
+  log(dbg, "%d> %s", conn->fd, buf);
 
   if (conn->fd < 0)
   {
-    mutt_debug(LL_DEBUG1, "attempt to write to closed connection\n");
+    log_debug1("attempt to write to closed connection");
     return -1;
   }
 
@@ -156,14 +156,14 @@ int mutt_socket_write_d(struct Connection *conn, const char *buf, int len, int d
     const int rc = conn->write(conn, buf + sent, len - sent);
     if (rc < 0)
     {
-      mutt_debug(LL_DEBUG1, "error writing (%s), closing socket\n", strerror(errno));
+      log_debug1("error writing (%s), closing socket", strerror(errno));
       mutt_socket_close(conn);
 
       return -1;
     }
 
     if (rc < len - sent)
-      mutt_debug(LL_DEBUG3, "short write (%d of %d bytes)\n", rc, len - sent);
+      log_debug3("short write (%d of %d bytes)", rc, len - sent);
 
     sent += rc;
   }
@@ -207,13 +207,13 @@ int mutt_socket_readchar(struct Connection *conn, char *c)
     }
     else
     {
-      mutt_debug(LL_DEBUG1, "attempt to read from closed connection\n");
+      log_debug1("attempt to read from closed connection");
       return -1;
     }
     conn->bufpos = 0;
     if (conn->available == 0)
     {
-      mutt_error(_("Connection to %s closed"), conn->account.host);
+      log_fault(_("Connection to %s closed"), conn->account.host);
     }
     if (conn->available <= 0)
     {
@@ -235,7 +235,7 @@ int mutt_socket_readchar(struct Connection *conn, char *c)
  * @retval >0 Success, number of bytes read
  * @retval -1 Error
  */
-int mutt_socket_readln_d(char *buf, size_t buflen, struct Connection *conn, int dbg)
+int mutt_socket_readln_d(char *buf, size_t buflen, struct Connection *conn, GLogLevelFlags dbg)
 {
   char ch;
   int i;
@@ -258,7 +258,7 @@ int mutt_socket_readln_d(char *buf, size_t buflen, struct Connection *conn, int 
     i--;
   buf[i] = '\0';
 
-  mutt_debug(dbg, "%d< %s\n", conn->fd, buf);
+  log(dbg, "%d< %s\n", conn->fd, buf);
 
   /* number of bytes read, not strlen */
   return i + 1;
@@ -325,7 +325,7 @@ void mutt_socket_empty(struct Connection *conn)
  * @retval >0 Success, number of bytes read
  * @retval -1 Error
  */
-int mutt_socket_buffer_readln_d(struct Buffer *buf, struct Connection *conn, int dbg)
+int mutt_socket_buffer_readln_d(struct Buffer *buf, struct Connection *conn, GLogLevelFlags dbg)
 {
   char ch;
   bool has_cr = false;
@@ -352,6 +352,6 @@ int mutt_socket_buffer_readln_d(struct Buffer *buf, struct Connection *conn, int
       buf_addch(buf, ch);
   }
 
-  mutt_debug(dbg, "%d< %s\n", conn->fd, buf_string(buf));
+  log(dbg, "%d< %s\n", conn->fd, buf_string(buf));
   return 0;
 }

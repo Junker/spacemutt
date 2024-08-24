@@ -36,6 +36,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "config/lib.h"
 #include "core/lib.h"
@@ -134,6 +135,8 @@ void test_neomutt_destroy(void)
 void test_init(void)
 {
   setenv("TZ", "UTC", 1); // Default to UTC
+
+  logging_init();
 
   const char *path = get_test_dir();
   bool success = false;
@@ -284,12 +287,11 @@ int mutt_copy_message(FILE *fp_out, struct Email *e, struct Message *msg,
 }
 
 /**
- * log_disp_null - Discard log lines - Implements ::log_dispatcher_t - @ingroup logging_api
+ * log_writer_null - Discard log lines
  */
-int log_disp_null(time_t stamp, const char *file, int line, const char *function,
-                  enum LogLevel level, const char *format, ...)
+GLogWriterOutput log_writer_null(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data)
 {
-  return 0;
+  return G_LOG_WRITER_HANDLED;
 }
 
 bool check_for_mailing_list(AddressList *al, const char *pfx, char *buf, int buflen)

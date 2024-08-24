@@ -259,9 +259,9 @@ int dlg_certificate(const char *title, struct CertArray *carr, bool allow_always
     op = menu_dialog_translate_op(op);
 
     if (op <= OP_MAX)
-      mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+      log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
     else
-      mutt_debug(LL_DEBUG1, "Got choice %d\n", op - OP_MAX);
+      log_debug1("Got choice %d", op - OP_MAX);
 
     switch (op)
     {
@@ -290,14 +290,14 @@ int dlg_certificate(const char *title, struct CertArray *carr, bool allow_always
       case OP_JUMP_7:
       case OP_JUMP_8:
       case OP_JUMP_9:
-        mutt_error(_("Jumping is not implemented for dialogs"));
+        log_fault(_("Jumping is not implemented for dialogs"));
         continue;
 
       case OP_SEARCH:
       case OP_SEARCH_NEXT:
       case OP_SEARCH_OPPOSITE:
       case OP_SEARCH_REVERSE:
-        mutt_error(_("Search is not implemented for this menu"));
+        log_fault(_("Search is not implemented for this menu"));
         continue;
     }
 

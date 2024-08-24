@@ -97,7 +97,7 @@ struct ImapMboxData *imap_mdata_new(struct ImapAccountData *adata, const char *n
     {
       hcache_fetch_raw_obj(mdata->hcache, "UIDNEXT", 7, &mdata->uid_next);
       hcache_fetch_raw_obj(mdata->hcache, "MODSEQ", 6, &mdata->modseq);
-      mutt_debug(LL_DEBUG3, "hcache uidvalidity %u, uidnext %u, modseq %llu\n",
+      log_debug3("hcache uidvalidity %u, uidnext %u, modseq %llu",
                  mdata->uidvalidity, mdata->uid_next, mdata->modseq);
     }
     imap_hcache_close(mdata);

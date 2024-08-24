@@ -93,13 +93,13 @@ static void print_crypt_pattern_op_error(int op)
     /* L10N: One of the crypt pattern operators: ~g, ~G, ~k, ~V
        was invoked when NeoMutt was compiled without crypto support.
        %c is the pattern character, i.e. "g".  */
-    mutt_error(_("Pattern operator '~%c' is disabled"), entry->tag);
+    log_fault(_("Pattern operator '~%c' is disabled"), entry->tag);
   }
   else
   {
     /* L10N: An unknown pattern operator was somehow invoked.
        This shouldn't be possible unless there is a bug.  */
-    mutt_error(_("error: unknown op %d (report this error)"), op);
+    log_fault(_("error: unknown op %d (report this error)"), op);
   }
 }
 
@@ -139,14 +139,14 @@ static bool msg_search(struct Pattern *pat, struct Email *e, struct Message *msg
     state.fp_out = open_memstream(&temp, &tempsize);
     if (!state.fp_out)
     {
-      mutt_perror(_("Error opening 'memory stream'"));
+      log_perror(_("Error opening 'memory stream'"));
       return false;
     }
 #else
     state.fp_out = mutt_file_mkstemp();
     if (!state.fp_out)
     {
-      mutt_perror(_("Can't create temporary file"));
+      log_perror(_("Can't create temporary file"));
       return false;
     }
 #endif
@@ -192,7 +192,7 @@ static bool msg_search(struct Pattern *pat, struct Email *e, struct Message *msg
       fp = fmemopen(temp, tempsize, "r");
       if (!fp)
       {
-        mutt_perror(_("Error re-opening 'memory stream'"));
+        log_perror(_("Error re-opening 'memory stream'"));
         FREE(&temp);
         return false;
       }
@@ -202,7 +202,7 @@ static bool msg_search(struct Pattern *pat, struct Email *e, struct Message *msg
       fp = mutt_file_fopen("/dev/null", "r");
       if (!fp)
       {
-        mutt_perror(_("Error opening /dev/null"));
+        log_perror(_("Error opening /dev/null"));
         FREE(&temp);
         return false;
       }
@@ -212,7 +212,7 @@ static bool msg_search(struct Pattern *pat, struct Email *e, struct Message *msg
     fflush(fp);
     if (!mutt_file_seek(fp, 0, SEEK_SET) || fstat(fileno(fp), &st))
     {
-      mutt_perror(_("Error checking length of temporary file"));
+      log_perror(_("Error checking length of temporary file"));
       mutt_file_fclose(&fp);
       return false;
     }
@@ -716,7 +716,7 @@ static int msg_search_sendmode(struct Email *e, struct Pattern *pat)
     fp = mutt_file_fopen(buf_string(tempfile), "w+");
     if (!fp)
     {
-      mutt_perror("%s", buf_string(tempfile));
+      log_perror("%s", buf_string(tempfile));
       buf_pool_release(&tempfile);
       return 0;
     }
@@ -750,7 +750,7 @@ static int msg_search_sendmode(struct Email *e, struct Pattern *pat)
     fp = mutt_file_fopen(e->body->filename, "r");
     if (!fp)
     {
-      mutt_perror("%s", e->body->filename);
+      log_perror("%s", e->body->filename);
       return 0;
     }
 
@@ -894,7 +894,7 @@ static bool pattern_exec(struct Pattern *pat, PatternExecFlags flags,
       {
         return (pat->string_match) ? e->matched : false;
       }
-      mutt_error(_("error: server custom search only supported with IMAP"));
+      log_fault(_("error: server custom search only supported with IMAP"));
       return false;
     case MUTT_PAT_SENDER:
       if (!e->env)
@@ -1111,7 +1111,7 @@ static bool pattern_exec(struct Pattern *pat, PatternExecFlags flags,
         return false;
       return pat->pat_not ^ (e->env->newsgroups && patmatch(pat, e->env->newsgroups));
   }
-  mutt_error(_("error: unknown op %d (report this error)"), pat->op);
+  log_fault(_("error: unknown op %d (report this error)"), pat->op);
   return false;
 }
 

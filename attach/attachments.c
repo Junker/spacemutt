@@ -131,17 +131,17 @@ static bool count_body_parts_check(GSList *checklist, struct Body *b, bool dflt)
   for (GSList *np = checklist; np != NULL; np = np->next)
   {
     a = (struct AttachMatch *) np->data;
-    mutt_debug(LL_DEBUG3, "%s %d/%s ?? %s/%s [%d]... ", dflt ? "[OK]   " : "[EXCL] ",
+    log_debug3("%s %d/%s ?? %s/%s [%d]... ", dflt ? "[OK]   " : "[EXCL] ",
                b->type, b->subtype ? b->subtype : "*", a->major, a->minor, a->major_int);
     if (((a->major_int == TYPE_ANY) || (a->major_int == b->type)) &&
         (!b->subtype || (regexec(&a->minor_regex, b->subtype, 0, NULL, 0) == 0)))
     {
-      mutt_debug(LL_DEBUG3, "yes\n");
+      log_debug3("yes");
       return true;
     }
     else
     {
-      mutt_debug(LL_DEBUG3, "no\n");
+      log_debug3("no");
     }
   }
 
@@ -166,7 +166,7 @@ static int count_body_parts(struct Body *b)
     bool shallcount = true; /* default */
     bool shallrecurse = false;
 
-    mutt_debug(LL_DEBUG5, "desc=\"%s\"; fn=\"%s\", type=\"%d/%s\"\n",
+    log_debug5("desc=\"%s\"; fn=\"%s\", type=\"%d/%s\"",
                bp->description ? bp->description : ("none"),
                bp->filename   ? bp->filename :
                bp->d_filename ? bp->d_filename :
@@ -226,18 +226,18 @@ static int count_body_parts(struct Body *b)
       count++;
     bp->attach_qualifies = shallcount;
 
-    mutt_debug(LL_DEBUG3, "%p shallcount = %d\n", (void *) bp, shallcount);
+    log_debug3("%p shallcount = %d", (void *) bp, shallcount);
 
     if (shallrecurse)
     {
-      mutt_debug(LL_DEBUG3, "%p pre count = %d\n", (void *) bp, count);
+      log_debug3("%p pre count = %d", (void *) bp, count);
       bp->attach_count = count_body_parts(bp->parts);
       count += bp->attach_count;
-      mutt_debug(LL_DEBUG3, "%p post count = %d\n", (void *) bp, count);
+      log_debug3("%p post count = %d", (void *) bp, count);
     }
   }
 
-  mutt_debug(LL_DEBUG3, "return %d\n", (count < 0) ? 0 : count);
+  log_debug3("return %d", (count < 0) ? 0 : count);
   return (count < 0) ? 0 : count;
 }
 
@@ -367,7 +367,7 @@ static enum CommandResult parse_attach_list(struct Buffer *buf, struct Buffer *s
       return MUTT_CMD_ERROR;
     }
 
-    mutt_debug(LL_DEBUG3, "added %s/%s [%d]\n", a->major, a->minor, a->major_int);
+    log_debug3("added %s/%s [%d]", a->major, a->minor, a->major_int);
 
     *head = g_slist_append(*head, a);
   } while (MoreArgs(s));
@@ -375,7 +375,7 @@ static enum CommandResult parse_attach_list(struct Buffer *buf, struct Buffer *s
   if (!a)
     return MUTT_CMD_ERROR;
 
-  mutt_debug(LL_NOTIFY, "NT_ATTACH_ADD: %s/%s\n", a->major, a->minor);
+  log_notify("NT_ATTACH_ADD: %s/%s", a->major, a->minor);
   notify_send(AttachmentsNotify, NT_ATTACH, NT_ATTACH_ADD, NULL);
 
   return MUTT_CMD_SUCCESS;
@@ -425,12 +425,12 @@ static enum CommandResult parse_unattach_list(struct Buffer *buf, struct Buffer 
     {
       GSList *next = np->next;
       a = (struct AttachMatch *) np->data;
-      mutt_debug(LL_DEBUG3, "check %s/%s [%d] : %s/%s [%d]\n", a->major,
+      log_debug3("check %s/%s [%d] : %s/%s [%d]", a->major,
                  a->minor, a->major_int, tmp, minor, major);
       if ((a->major_int == major) && mutt_istr_equal(minor, a->minor))
       {
-        mutt_debug(LL_DEBUG3, "removed %s/%s [%d]\n", a->major, a->minor, a->major_int);
-        mutt_debug(LL_NOTIFY, "NT_ATTACH_DELETE: %s/%s\n", a->major, a->minor);
+        log_debug3("removed %s/%s [%d]", a->major, a->minor, a->major_int);
+        log_notify("NT_ATTACH_DELETE: %s/%s", a->major, a->minor);
 
         regfree(&a->minor_regex);
         FREE(&a->major);
@@ -553,7 +553,7 @@ enum CommandResult parse_unattachments(struct Buffer *buf, struct Buffer *s,
     g_slist_free_full(g_steal_pointer(&InlineAllow), (GDestroyNotify)attachmatch_free);
     g_slist_free_full(g_steal_pointer(&InlineExclude), (GDestroyNotify)attachmatch_free);
 
-    mutt_debug(LL_NOTIFY, "NT_ATTACH_DELETE_ALL\n");
+    log_notify("NT_ATTACH_DELETE_ALL");
     notify_send(AttachmentsNotify, NT_ATTACH, NT_ATTACH_DELETE_ALL, NULL);
     return 0;
   }

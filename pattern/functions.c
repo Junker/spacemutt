@@ -100,7 +100,7 @@ int pattern_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return rc;
 }

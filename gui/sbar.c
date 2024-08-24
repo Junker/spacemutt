@@ -85,7 +85,7 @@ static int sbar_recalc(struct MuttWindow *win)
     return -1;
 
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+  log_debug5("recalc done, request WA_REPAINT");
   return 0;
 }
 
@@ -103,7 +103,7 @@ static int sbar_repaint(struct MuttWindow *win)
   mutt_paddstr(win, win->state.cols, priv->display);
   mutt_curses_set_color_by_id(MT_COLOR_NORMAL);
 
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
   return 0;
 }
 
@@ -132,7 +132,7 @@ static int sbar_color_observer(struct NotifyCallback *nc)
   struct MuttWindow *win_sbar = nc->global_data;
 
   win_sbar->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "color done, request WA_REPAINT\n");
+  log_debug5("color done, request WA_REPAINT");
 
   return 0;
 }
@@ -160,13 +160,13 @@ static int sbar_window_observer(struct NotifyCallback *nc)
   if (nc->event_subtype == NT_WINDOW_STATE)
   {
     win_sbar->actions |= WA_REPAINT;
-    mutt_debug(LL_DEBUG5, "window state done, request WA_REPAINT\n");
+    log_debug5("window state done, request WA_REPAINT");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
     mutt_color_observer_remove(sbar_color_observer, win_sbar);
     notify_observer_remove(win_sbar->notify, sbar_window_observer, win_sbar);
-    mutt_debug(LL_DEBUG5, "window delete done\n");
+    log_debug5("window delete done");
   }
 
   return 0;

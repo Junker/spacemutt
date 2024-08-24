@@ -39,7 +39,7 @@ void test_mutt_mem_malloc(void)
 {
   // void *mutt_mem_malloc(size_t size);
 
-  MuttLogger = log_disp_null;
+  MuttLogWriter = log_writer_null;
 
   {
     void *ptr = mutt_mem_malloc(0);

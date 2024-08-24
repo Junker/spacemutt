@@ -49,7 +49,7 @@ void nm_mdata_free(void **ptr)
 
   struct NmMboxData *mdata = *ptr;
 
-  mutt_debug(LL_DEBUG1, "nm: freeing context data %p\n", (void *) mdata);
+  log_debug1("nm: freeing context data %p", (void *) mdata);
 
   url_free(&mdata->db_url);
   FREE(&mdata->db_query);
@@ -71,7 +71,7 @@ struct NmMboxData *nm_mdata_new(const char *url)
     return NULL;
 
   struct NmMboxData *mdata = mutt_mem_calloc(1, sizeof(struct NmMboxData));
-  mutt_debug(LL_DEBUG1, "nm: initialize mailbox mdata %p\n", (void *) mdata);
+  log_debug1("nm: initialize mailbox mdata %p", (void *) mdata);
 
   const short c_nm_db_limit = cs_subset_number(NeoMutt->sub, "nm_db_limit");
   const char *const c_nm_query_type = cs_subset_string(NeoMutt->sub, "nm_query_type");
@@ -80,7 +80,7 @@ struct NmMboxData *nm_mdata_new(const char *url)
   mdata->db_url = url_parse(url);
   if (!mdata->db_url)
   {
-    mutt_error(_("failed to parse notmuch url: %s"), url);
+    log_fault(_("failed to parse notmuch url: %s"), url);
     FREE(&mdata);
     return NULL;
   }

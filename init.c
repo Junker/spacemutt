@@ -82,9 +82,9 @@ static int execute_commands(GSList *p)
   {
     enum CommandResult rc2 = parse_rc_line(np->data, err);
     if (rc2 == MUTT_CMD_ERROR)
-      mutt_error(_("Error in command line: %s"), buf_string(err));
+      log_fault(_("Error in command line: %s"), buf_string(err));
     else if (rc2 == MUTT_CMD_WARNING)
-      mutt_warning(_("Warning in command line: %s"), buf_string(err));
+      log_warning(_("Warning in command line: %s"), buf_string(err));
 
     if ((rc2 == MUTT_CMD_ERROR) || (rc2 == MUTT_CMD_WARNING))
     {
@@ -192,7 +192,7 @@ static bool get_hostname(struct ConfigSet *cs)
      * state.  We should bail.  */
     if ((uname(&utsname)) == -1)
     {
-      mutt_perror(_("unable to determine nodename via uname()"));
+      log_perror(_("unable to determine nodename via uname()"));
       return false; // TEST09: can't test
     }
 
@@ -210,7 +210,7 @@ static bool get_hostname(struct ConfigSet *cs)
   char *fqdn = mutt_str_dup(c_hostname);
   if (!fqdn)
   {
-    mutt_debug(LL_DEBUG1, "Setting $hostname\n");
+    log_debug1("Setting $hostname");
     /* now get FQDN.  Use configured domain first, DNS next, then uname */
 #ifdef DOMAIN
     /* we have a compile-time domain name, use that for `$hostname` */
@@ -236,7 +236,7 @@ static bool get_hostname(struct ConfigSet *cs)
         fqdn = mutt_str_dup(utsname.nodename);
       }
       buf_pool_release(&domain);
-      mutt_debug(LL_DEBUG1, "Hostname: %s\n", NONULL(fqdn));
+      log_debug1("Hostname: %s", NONULL(fqdn));
     }
 #endif
   }
@@ -476,7 +476,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
       entry->data = buf_strdup(buf);
       if (access(entry->data, F_OK))
       {
-        mutt_perror("%s", (char*)entry->data);
+        log_perror("%s", (char*)entry->data);
         goto done; // TEST10: neomutt -F missing
       }
     }
@@ -500,7 +500,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
     {
       if (mutt_guile_load_config(buf_string(buf)) == false)
       {
-        mutt_error("Load %s error", buf_string(buf));
+        log_fault("Load %s error", buf_string(buf));
         need_pause = true; // TEST11: neomutt (error in /etc/spacemutt.scm)
       }
     }
@@ -513,7 +513,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
     {
       if (mutt_guile_load_config((char*)entry->data) != true)
       {
-        mutt_error("load %s error", (char*)entry->data);
+        log_fault("load %s error", (char*)entry->data);
         need_pause = true; // TEST12: neomutt (error in ~/.neomuttrc)
       }
     }
@@ -546,13 +546,13 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
 
   if (mutt_log_start() < 0)
   {
-    mutt_perror("log file");
+    log_perror("log file");
     goto done;
   }
 
   if (need_pause && !OptNoCurses)
   {
-    log_queue_flush(log_disp_terminal);
+    log_queue_flush(log_writer_terminal);
     if (mutt_any_key_to_continue(NULL) == 'q')
       goto done; // TEST14: neomutt -e broken (press 'q')
   }
@@ -560,7 +560,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   const char *const c_tmp_dir = cs_subset_path(NeoMutt->sub, "tmp_dir");
   if (mutt_file_mkdir(c_tmp_dir, S_IRWXU) < 0)
   {
-    mutt_error(_("Can't create %s: %s"), c_tmp_dir, strerror(errno));
+    log_fault(_("Can't create %s: %s"), c_tmp_dir, strerror(errno));
     goto done;
   }
 
@@ -610,7 +610,7 @@ int mutt_query_variables(GSList *queries, bool show_docs)
     {
       if (he->type & D_INTERNAL_DEPRECATED)
       {
-        mutt_warning(_("Option %s is deprecated"), (char*)np->data);
+        log_warning(_("Option %s is deprecated"), (char*)np->data);
         rc = 1;
         continue;
       }
@@ -638,7 +638,7 @@ int mutt_query_variables(GSList *queries, bool show_docs)
       continue;
     }
 
-    mutt_warning(_("Unknown option %s"), (char*)np->data);
+    log_warning(_("Unknown option %s"), (char*)np->data);
     rc = 1;
   }
 

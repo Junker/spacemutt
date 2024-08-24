@@ -84,7 +84,7 @@ static int dopager_config_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *dlg = nc->global_data;
   window_status_on_top(dlg, NeoMutt->sub);
-  mutt_debug(LL_DEBUG5, "config done, request WA_REFLOW\n");
+  log_debug5("config done, request WA_REFLOW");
   return 0;
 }
 
@@ -107,7 +107,7 @@ static int dopager_window_observer(struct NotifyCallback *nc)
 
   notify_observer_remove(NeoMutt->sub->notify, dopager_config_observer, dlg);
   notify_observer_remove(dlg->notify, dopager_window_observer, dlg);
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
 
   return 0;
 }
@@ -163,7 +163,7 @@ int mutt_do_pager(struct PagerView *pview, struct Email *e)
     buf_file_expand_fmt_quote(cmd, c_pager, pview->pdata->fname);
     if (mutt_system(buf_string(cmd)) == -1)
     {
-      mutt_error(_("Error running \"%s\""), buf_string(cmd));
+      log_fault(_("Error running \"%s\""), buf_string(cmd));
       rc = -1;
     }
     else

@@ -53,7 +53,7 @@ mode_t maildir_umask(struct Mailbox *m)
   struct stat st = { 0 };
   if (stat(mailbox_path(m), &st) != 0)
   {
-    mutt_debug(LL_DEBUG1, "stat failed on %s\n", mailbox_path(m));
+    log_debug1("stat failed on %s", mailbox_path(m));
     return 077;
   }
 

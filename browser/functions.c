@@ -187,7 +187,7 @@ static int op_browser_subscribe(struct BrowserPrivateData *priv, int op)
 
     if (ARRAY_EMPTY(&priv->state.entry))
     {
-      mutt_error(_("No newsgroups match the mask"));
+      log_fault(_("No newsgroups match the mask"));
       return FR_ERROR;
     }
 
@@ -213,7 +213,7 @@ static int op_browser_subscribe(struct BrowserPrivateData *priv, int op)
   {
     if (ARRAY_EMPTY(&priv->state.entry))
     {
-      mutt_error(_("There are no mailboxes"));
+      log_fault(_("There are no mailboxes"));
       return FR_ERROR;
     }
 
@@ -237,7 +237,7 @@ static int op_browser_tell(struct BrowserPrivateData *priv, int op)
   if (ARRAY_EMPTY(&priv->state.entry))
     return FR_ERROR;
 
-  mutt_message("%s", ARRAY_GET(&priv->state.entry, index)->name);
+  log_message("%s", ARRAY_GET(&priv->state.entry, index)->name);
   return FR_SUCCESS;
 }
 
@@ -259,7 +259,7 @@ static int op_browser_view_file(struct BrowserPrivateData *priv, int op)
 {
   if (ARRAY_EMPTY(&priv->state.entry))
   {
-    mutt_error(_("No files match the file mask"));
+    log_fault(_("No files match the file mask"));
     return FR_ERROR;
   }
 
@@ -274,7 +274,7 @@ static int op_browser_view_file(struct BrowserPrivateData *priv, int op)
   else if (S_ISDIR(ff->mode) ||
            (S_ISLNK(ff->mode) && link_is_dir(buf_string(&LastDir), ff->name)))
   {
-    mutt_error(_("Can't view a directory"));
+    log_fault(_("Can't view a directory"));
     return FR_ERROR;
   }
   else
@@ -290,7 +290,7 @@ static int op_browser_view_file(struct BrowserPrivateData *priv, int op)
     }
     else
     {
-      mutt_error(_("Error trying to view file"));
+      log_fault(_("Error trying to view file"));
     }
     buf_pool_release(&path);
   }
@@ -421,7 +421,7 @@ static int op_change_directory(struct BrowserPrivateData *priv, int op)
           }
           else
           {
-            mutt_error(_("Error scanning directory"));
+            log_fault(_("Error scanning directory"));
             if (examine_directory(priv->mailbox, priv->menu, &priv->state,
                                   buf_string(&LastDir), buf_string(priv->prefix)) == -1)
             {
@@ -434,12 +434,12 @@ static int op_change_directory(struct BrowserPrivateData *priv, int op)
         }
         else
         {
-          mutt_error(_("%s is not a directory"), buf_string(buf));
+          log_fault(_("%s is not a directory"), buf_string(buf));
         }
       }
       else
       {
-        mutt_perror("%s", buf_string(buf));
+        log_perror("%s", buf_string(buf));
       }
     }
   }
@@ -454,7 +454,7 @@ static int op_create_mailbox(struct BrowserPrivateData *priv, int op)
 {
   if (!priv->state.imap_browse)
   {
-    mutt_error(_("Create is only supported for IMAP mailboxes"));
+    log_fault(_("Create is only supported for IMAP mailboxes"));
     return FR_ERROR;
   }
 
@@ -485,7 +485,7 @@ static int op_delete_mailbox(struct BrowserPrivateData *priv, int op)
   struct FolderFile *ff = ARRAY_GET(&priv->state.entry, index);
   if (!ff->imap)
   {
-    mutt_error(_("Delete is only supported for IMAP mailboxes"));
+    log_fault(_("Delete is only supported for IMAP mailboxes"));
     return FR_ERROR;
   }
 
@@ -496,20 +496,20 @@ static int op_delete_mailbox(struct BrowserPrivateData *priv, int op)
   // Let's just protect neomutt against crash for now. #1417
   if (mutt_str_equal(mailbox_path(priv->mailbox), ff->name))
   {
-    mutt_error(_("Can't delete currently selected mailbox"));
+    log_fault(_("Can't delete currently selected mailbox"));
     return FR_ERROR;
   }
 
   snprintf(msg, sizeof(msg), _("Really delete mailbox \"%s\"?"), ff->name);
   if (query_yesorno(msg, MUTT_NO) != MUTT_YES)
   {
-    mutt_message(_("Mailbox not deleted"));
+    log_message(_("Mailbox not deleted"));
     return FR_NO_ACTION;
   }
 
   if (imap_delete_mailbox(priv->mailbox, ff->name) != 0)
   {
-    mutt_error(_("Mailbox deletion failed"));
+    log_fault(_("Mailbox deletion failed"));
     return FR_ERROR;
   }
 
@@ -518,7 +518,7 @@ static int op_delete_mailbox(struct BrowserPrivateData *priv, int op)
   FREE(&ff->desc);
   /* and move all other entries up */
   ARRAY_REMOVE(&priv->state.entry, ff);
-  mutt_message(_("Mailbox deleted"));
+  log_message(_("Mailbox deleted"));
   init_menu(&priv->state, priv->menu, priv->mailbox, priv->sbar);
 
   return FR_SUCCESS;
@@ -552,7 +552,7 @@ static int op_enter_mask(struct BrowserPrivateData *priv, int op)
   {
     if (!buf_is_empty(errmsg))
     {
-      mutt_error("%s", buf_string(errmsg));
+      log_fault("%s", buf_string(errmsg));
       buf_pool_release(&errmsg);
     }
     return FR_ERROR;
@@ -577,14 +577,14 @@ static int op_enter_mask(struct BrowserPrivateData *priv, int op)
   }
   else
   {
-    mutt_error(_("Error scanning directory"));
+    log_fault(_("Error scanning directory"));
     priv->done = true;
     return FR_ERROR;
   }
   priv->kill_prefix = false;
   if (ARRAY_EMPTY(&priv->state.entry))
   {
-    mutt_error(_("No files match the file mask"));
+    log_fault(_("No files match the file mask"));
     return FR_ERROR;
   }
   return FR_SUCCESS;
@@ -643,7 +643,7 @@ static int op_generic_select_entry(struct BrowserPrivateData *priv, int op)
 {
   if (ARRAY_EMPTY(&priv->state.entry))
   {
-    mutt_error(_("No files match the file mask"));
+    log_fault(_("No files match the file mask"));
     return FR_ERROR;
   }
 
@@ -774,7 +774,7 @@ static int op_generic_select_entry(struct BrowserPrivateData *priv, int op)
   }
   else if (op == OP_DESCEND_DIRECTORY)
   {
-    mutt_error(_("%s is not a directory"), ARRAY_GET(&priv->state.entry, index)->name);
+    log_fault(_("%s is not a directory"), ARRAY_GET(&priv->state.entry, index)->name);
     return FR_ERROR;
   }
 
@@ -850,7 +850,7 @@ static int op_rename_mailbox(struct BrowserPrivateData *priv, int op)
   struct FolderFile *ff = ARRAY_GET(&priv->state.entry, index);
   if (!ff->imap)
   {
-    mutt_error(_("Rename is only supported for IMAP mailboxes"));
+    log_fault(_("Rename is only supported for IMAP mailboxes"));
     return FR_ERROR;
   }
 
@@ -971,7 +971,7 @@ static int op_subscribe_pattern(struct BrowserPrivateData *priv, int op)
   {
     regerror(err, &rx, buf->data, buf->dsize);
     regfree(&rx);
-    mutt_error("%s", buf_string(buf));
+    log_fault("%s", buf_string(buf));
     buf_pool_release(&buf);
     return FR_ERROR;
   }
@@ -1045,7 +1045,7 @@ static int op_toggle_mailboxes(struct BrowserPrivateData *priv, int op)
     const char *const c_folder = cs_subset_string(NeoMutt->sub, "folder");
     if (c_folder)
     {
-      mutt_debug(LL_DEBUG3, "= hit! Folder: %s, LastDir: %s\n", c_folder,
+      log_debug3("= hit! Folder: %s, LastDir: %s", c_folder,
                  buf_string(&LastDir));
       if (priv->goto_swapper[0] == '\0')
       {
@@ -1141,7 +1141,7 @@ int browser_function_dispatcher(struct MuttWindow *win, int op)
 {
   if (!win)
   {
-    mutt_error("%s", _(Not_available_in_this_menu));
+    log_fault("%s", _(Not_available_in_this_menu));
     return FR_ERROR;
   }
 

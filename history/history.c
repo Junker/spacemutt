@@ -231,7 +231,7 @@ static void shrink_histfile(void)
     if ((sscanf(linebuf, "%d:%n", &hclass, &read) < 1) || (read == 0) ||
         (*(p = linebuf + strlen(linebuf) - 1) != '|') || (hclass < 0))
     {
-      mutt_error(_("%s:%d: Bad history file format"), c_history_file, line);
+      log_fault(_("%s:%d: Bad history file format"), c_history_file, line);
       regen_file = true;
       continue;
     }
@@ -264,7 +264,7 @@ static void shrink_histfile(void)
     fp_tmp = mutt_file_mkstemp();
     if (!fp_tmp)
     {
-      mutt_perror(_("Can't create temporary file"));
+      log_perror(_("Can't create temporary file"));
       goto cleanup;
     }
     rewind(fp);
@@ -297,7 +297,7 @@ cleanup:
     if (fflush(fp_tmp) == 0)
     {
       if (truncate(c_history_file, 0) < 0)
-        mutt_debug(LL_DEBUG1, "truncate: %s\n", strerror(errno));
+        log_debug1("truncate: %s", strerror(errno));
       fp = mutt_file_fopen(c_history_file, "w");
       if (fp)
       {
@@ -618,7 +618,7 @@ void mutt_hist_read_file(void)
     if ((sscanf(linebuf, "%d:%n", &hclass, &read) < 1) || (read == 0) ||
         (*(p = linebuf + strlen(linebuf) - 1) != '|') || (hclass < 0))
     {
-      mutt_error(_("%s:%d: Bad history file format"), c_history_file, line);
+      log_fault(_("%s:%d: Bad history file format"), c_history_file, line);
       continue;
     }
     /* silently ignore too high class (probably newer neomutt) */
@@ -714,6 +714,6 @@ int main_hist_observer(struct NotifyCallback *nc)
     return 0;
 
   mutt_hist_init();
-  mutt_debug(LL_DEBUG5, "history done\n");
+  log_debug5("history done");
   return 0;
 }

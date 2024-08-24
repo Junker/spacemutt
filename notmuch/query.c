@@ -113,7 +113,7 @@ enum NmQueryType nm_string_to_query_type(const char *str)
 
   if (query_type == NM_QUERY_TYPE_UNKNOWN)
   {
-    mutt_error(_("failed to parse notmuch query type: %s"), NONULL(str));
+    log_fault(_("failed to parse notmuch query type: %s"), NONULL(str));
     return NM_QUERY_TYPE_MESGS;
   }
 

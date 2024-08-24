@@ -220,11 +220,11 @@ static int maildir_move_to_mailbox(struct Mailbox *m, const struct MdEmailArray 
   ARRAY_FOREACH(mdp, mda)
   {
     md = *mdp;
-    mutt_debug(LL_DEBUG2, "Considering %s\n", NONULL(md->canon_fname));
+    log_debug2("Considering %s", NONULL(md->canon_fname));
     if (!md->email)
       continue;
 
-    mutt_debug(LL_DEBUG2, "Adding header structure. Flags: %s%s%s%s%s\n",
+    log_debug2("Adding header structure. Flags: %s%s%s%s%s",
                md->email->flagged ? "f" : "", md->email->deleted ? "D" : "",
                md->email->replied ? "r" : "", md->email->old ? "O" : "",
                md->email->read ? "R" : "");
@@ -292,7 +292,7 @@ static int maildir_parse_dir(struct Mailbox *m, struct MdEmailArray *mda,
     if (*de->d_name == '.')
       continue;
 
-    mutt_debug(LL_DEBUG2, "queueing %s\n", de->d_name);
+    log_debug2("queueing %s", de->d_name);
 
     e = maildir_email_new();
     e->old = is_old;
@@ -754,7 +754,7 @@ bool maildir_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
   errno = 0;
   if ((mutt_file_mkdir(mailbox_path(m), S_IRWXU) != 0) && (errno != EEXIST))
   {
-    mutt_perror("%s", mailbox_path(m));
+    log_perror("%s", mailbox_path(m));
     return false;
   }
 
@@ -763,7 +763,7 @@ bool maildir_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
   errno = 0;
   if ((mkdir(tmp, S_IRWXU) != 0) && (errno != EEXIST))
   {
-    mutt_perror("%s", tmp);
+    log_perror("%s", tmp);
     rmdir(mailbox_path(m));
     return false;
   }
@@ -772,7 +772,7 @@ bool maildir_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
   errno = 0;
   if ((mkdir(tmp, S_IRWXU) != 0) && (errno != EEXIST))
   {
-    mutt_perror("%s", tmp);
+    log_perror("%s", tmp);
     snprintf(tmp, sizeof(tmp), "%s/cur", mailbox_path(m));
     rmdir(tmp);
     rmdir(mailbox_path(m));
@@ -783,7 +783,7 @@ bool maildir_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
   errno = 0;
   if ((mkdir(tmp, S_IRWXU) != 0) && (errno != EEXIST))
   {
-    mutt_perror("%s", tmp);
+    log_perror("%s", tmp);
     snprintf(tmp, sizeof(tmp), "%s/cur", mailbox_path(m));
     rmdir(tmp);
     snprintf(tmp, sizeof(tmp), "%s/new", mailbox_path(m));

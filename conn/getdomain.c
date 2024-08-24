@@ -72,7 +72,7 @@ static struct addrinfo *mutt_getaddrinfo_a(const char *node, const struct addrin
     }
     else if (status == EAI_INPROGRESS)
     {
-      mutt_debug(LL_DEBUG1, "timeout\n");
+      log_debug1("timeout");
       /* request is not finished, cancel it to free it safely */
       if (gai_cancel(reqs[0]) == EAI_NOTCANCELED)
       {
@@ -83,7 +83,7 @@ static struct addrinfo *mutt_getaddrinfo_a(const char *node, const struct addrin
     }
     else
     {
-      mutt_debug(LL_DEBUG1, "fail: (%d) %s\n", status, gai_strerror(status));
+      log_debug1("fail: (%d) %s", status, gai_strerror(status));
     }
   }
   return result;
@@ -104,9 +104,9 @@ static struct addrinfo *mutt_getaddrinfo(const char *node, const struct addrinfo
   ASSERT(node);
   ASSERT(hints);
   struct addrinfo *result = NULL;
-  mutt_debug(LL_DEBUG3, "before getaddrinfo\n");
+  log_debug3("before getaddrinfo");
   int rc = getaddrinfo(node, NULL, hints, &result);
-  mutt_debug(LL_DEBUG3, "after getaddrinfo\n");
+  log_debug3("after getaddrinfo");
 
   if (rc != 0)
     result = NULL;

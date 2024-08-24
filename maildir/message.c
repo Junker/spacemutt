@@ -240,7 +240,7 @@ static int maildir_sync_message(struct Mailbox *m, struct Email *e)
     char *p = strrchr(e->path, '/');
     if (!p)
     {
-      mutt_debug(LL_DEBUG1, "%s: unable to find subdir!\n", e->path);
+      log_debug1("%s: unable to find subdir!", e->path);
       return -1;
     }
     p++;
@@ -279,13 +279,13 @@ static int maildir_sync_message(struct Mailbox *m, struct Email *e)
     struct stat st = { 0 };
     if (stat(buf_string(oldpath), &st) == -1)
     {
-      mutt_debug(LL_DEBUG1, "File already removed (just continuing)");
+      log_debug1("File already removed (just continuing)");
       goto cleanup;
     }
 
     if (rename(buf_string(oldpath), buf_string(fullpath)) != 0)
     {
-      mutt_perror("rename");
+      log_perror("rename");
       rc = -1;
       goto cleanup;
     }
@@ -366,7 +366,7 @@ static int maildir_commit_message(struct Mailbox *m, struct Message *msg, struct
 
   if (mutt_file_fsync_close(&msg->fp))
   {
-    mutt_perror(_("Could not flush message to disk"));
+    log_perror(_("Could not flush message to disk"));
     return -1;
   }
 
@@ -391,7 +391,7 @@ static int maildir_commit_message(struct Mailbox *m, struct Message *msg, struct
                mutt_rand64(), NONULL(ShortHostname), suffix);
     buf_printf(full, "%s/%s", mailbox_path(m), buf_string(path));
 
-    mutt_debug(LL_DEBUG2, "renaming %s to %s\n", msg->path, buf_string(full));
+    log_debug2("renaming %s to %s", msg->path, buf_string(full));
 
     if (mutt_file_safe_rename(msg->path, buf_string(full)) == 0)
     {
@@ -412,7 +412,7 @@ static int maildir_commit_message(struct Mailbox *m, struct Message *msg, struct
         } while ((rc_utime == -1) && (errno == EINTR));
         if (rc_utime == -1)
         {
-          mutt_perror(_("maildir_commit_message(): unable to set time on file"));
+          log_perror(_("maildir_commit_message(): unable to set time on file"));
           rc = -1;
           goto cleanup;
         }
@@ -431,7 +431,7 @@ static int maildir_commit_message(struct Mailbox *m, struct Message *msg, struct
     }
     else if (errno != EEXIST)
     {
-      mutt_perror("%s", mailbox_path(m));
+      log_perror("%s", mailbox_path(m));
       rc = -1;
       goto cleanup;
     }
@@ -514,7 +514,7 @@ bool maildir_msg_open(struct Mailbox *m, struct Message *msg, struct Email *e)
 
   if (!msg->fp)
   {
-    mutt_perror("%s", path);
+    log_perror("%s", path);
     return false;
   }
 
@@ -555,7 +555,7 @@ bool maildir_msg_open_new(struct Mailbox *m, struct Message *msg, const struct E
 
   mode_t new_umask = maildir_umask(m);
   mode_t old_umask = umask(new_umask);
-  mutt_debug(LL_DEBUG3, "umask set to %03o\n", new_umask);
+  log_debug3("umask set to %03o", new_umask);
 
   while (true)
   {
@@ -563,7 +563,7 @@ bool maildir_msg_open_new(struct Mailbox *m, struct Message *msg, const struct E
              mailbox_path(m), subdir, (long long) mutt_date_now(),
              mutt_rand64(), NONULL(ShortHostname), suffix);
 
-    mutt_debug(LL_DEBUG2, "Trying %s\n", path);
+    log_debug2("Trying %s", path);
 
     fd = open(path, O_WRONLY | O_EXCL | O_CREAT, 0666);
     if (fd == -1)
@@ -571,20 +571,20 @@ bool maildir_msg_open_new(struct Mailbox *m, struct Message *msg, const struct E
       if (errno != EEXIST)
       {
         umask(old_umask);
-        mutt_debug(LL_DEBUG3, "umask set to %03o\n", old_umask);
-        mutt_perror("%s", path);
+        log_debug3("umask set to %03o", old_umask);
+        log_perror("%s", path);
         return false;
       }
     }
     else
     {
-      mutt_debug(LL_DEBUG2, "Success\n");
+      log_debug2("Success");
       msg->path = mutt_str_dup(path);
       break;
     }
   }
   umask(old_umask);
-  mutt_debug(LL_DEBUG3, "umask set to %03o\n", old_umask);
+  log_debug3("umask set to %03o", old_umask);
 
   msg->fp = fdopen(fd, "w");
   if (!msg->fp)

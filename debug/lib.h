@@ -113,12 +113,7 @@ void        dump_graphviz_expando_node(struct ExpandoNode *node);
 // Keymap
 void        dump_keybindings        (void);
 
-// Logging
-extern bool DebugLogColor;
-extern bool DebugLogLevel;
-extern bool DebugLogTimestamp;
-
-extern int log_disp_debug           (time_t stamp, const char *file, int line, const char *function, enum LogLevel level, const char *format, ...);
+GLogWriterOutput log_writer_debug(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data);
 
 // Names
 const char *name_content_disposition(enum ContentDisposition disp);

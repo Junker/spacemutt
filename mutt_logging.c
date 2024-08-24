@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 #include <time.h>
 #include "mutt/lib.h"
 #include "config/lib.h"
@@ -83,51 +84,44 @@ void mutt_clear_error(void)
 }
 
 /**
- * log_disp_curses - Display a log line in the message line - Implements ::log_dispatcher_t - @ingroup logging_api
+ * log_disp_curses - Display a log line in the message line
  */
-int log_disp_curses(time_t stamp, const char *file, int line, const char *function,
-                    enum LogLevel level, const char *format, ...)
+GLogWriterOutput log_writer_curses(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer from_queue)
 {
   const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
-  if (level > c_debug_level)
-    return 0;
 
-  char buf[LOG_LINE_MAX_LEN] = { 0 };
+  if (log_level_to_debug_level(level) > c_debug_level)
+    return G_LOG_WRITER_HANDLED;
 
-  va_list ap;
-  va_start(ap, format);
-  int rc = vsnprintf(buf, sizeof(buf), format, ap);
-  va_end(ap);
+  g_autoptr(GString) message = g_string_new(log_get_field(fields, n_fields, "MESSAGE"));
+  const long _errno = (long)log_get_field(fields, n_fields, "ERRNO");
 
-  if ((level == LL_PERROR) && (rc >= 0) && (rc < sizeof(buf)))
+  if (_errno)
   {
-    char *buf2 = buf + rc;
-    int len = sizeof(buf) - rc;
     const char *p = strerror(errno);
     if (!p)
       p = _("unknown error");
 
-    rc += snprintf(buf2, len, ": %s (errno = %d)", p, errno);
+    g_string_append_printf(message, ": %s (errno = %d)", p, errno);
   }
-
-  const bool dupe = (mutt_str_equal(buf, ErrorBuf));
+  const bool dupe = (mutt_str_equal(message->str, ErrorBuf));
   if (!dupe)
   {
     /* Only log unique messages */
-    log_disp_file(stamp, file, line, function, level, "%s", buf);
-    if (stamp == 0)
-      log_disp_queue(stamp, file, line, function, level, "%s", buf);
+    log_writer_file(level, fields, n_fields, NULL);
+    if (!from_queue)
+      log_writer_queue(level, fields, n_fields, NULL);
   }
 
   /* Don't display debugging message on screen */
-  if (level > LL_MESSAGE)
+  if (level > LOG_LEVEL_FAULT)
     return 0;
 
   /* Only pause if this is a message following an error */
-  if ((level > LL_ERROR) && OptMsgErr && !dupe)
+  if ((level == LOG_LEVEL_FAULT) && OptMsgErr && !dupe)
     error_pause();
 
-  mutt_str_copy(ErrorBuf, buf, sizeof(ErrorBuf));
+  mutt_str_copy(ErrorBuf, message->str, sizeof(ErrorBuf));
   ErrorBufMessage = true;
 
   if (!OptKeepQuiet)
@@ -135,22 +129,24 @@ int log_disp_curses(time_t stamp, const char *file, int line, const char *functi
     enum ColorId cid = MT_COLOR_NORMAL;
     switch (level)
     {
-      case LL_ERROR:
+      case LOG_LEVEL_FAULT:
         mutt_beep(false);
         cid = MT_COLOR_ERROR;
         break;
-      case LL_WARNING:
+      case G_LOG_LEVEL_WARNING:
         cid = MT_COLOR_WARNING;
         break;
       default:
         cid = MT_COLOR_MESSAGE;
         break;
     }
+    /* log_fatal(ErrorBuf); */
+    /* printf("\n\nD:%d L:%d LD:%d M:%s EB:%s \n\n", c_debug_level, level, log_level_to_debug_level(level), message->str, ErrorBuf); */
 
     msgwin_set_text(NULL, ErrorBuf, cid);
   }
 
-  if ((level <= LL_ERROR) && !dupe)
+  if ((level == LOG_LEVEL_FAULT) && !dupe)
   {
     OptMsgErr = true;
     LastError = mutt_date_now_ms();
@@ -162,7 +158,7 @@ int log_disp_curses(time_t stamp, const char *file, int line, const char *functi
   }
 
   window_redraw(msgwin_get_window());
-  return rc;
+  return G_LOG_WRITER_HANDLED;
 }
 
 /**
@@ -216,6 +212,16 @@ int mutt_log_set_file(const char *file)
   return 0;
 }
 
+short log_level_to_debug_level(GLogLevelFlags level)
+{
+  return (short)log2(level - G_LOG_LEVEL_DEBUG) - G_LOG_LEVEL_USER_SHIFT;
+}
+
+GLogLevelFlags debug_level_to_log_level(short debug_level)
+{
+  return (1 << (G_LOG_LEVEL_USER_SHIFT + debug_level)) + G_LOG_LEVEL_DEBUG;
+}
+
 /**
  * mutt_log_set_level - Change the logging level
  * @param level Logging level
@@ -223,7 +229,7 @@ int mutt_log_set_file(const char *file)
  * @retval  0 Success
  * @retval -1 Error, level is out of range
  */
-int mutt_log_set_level(enum LogLevel level, bool verbose)
+int mutt_log_set_level(GLogLevelFlags level, bool verbose)
 {
   if (!CurrentFile)
   {
@@ -234,7 +240,7 @@ int mutt_log_set_level(enum LogLevel level, bool verbose)
   if (log_file_set_level(level, verbose) != 0)
     return -1;
 
-  cs_subset_str_native_set(NeoMutt->sub, "debug_level", level, NULL);
+  cs_subset_str_native_set(NeoMutt->sub, "debug_level", log_level_to_debug_level(level), NULL);
   return 0;
 }
 
@@ -258,7 +264,7 @@ int mutt_log_start(void)
   mutt_log_set_file(c_debug_file);
 
   /* This will trigger the file creation */
-  if (log_file_set_level(c_debug_level, true) < 0)
+  if (log_file_set_level(debug_level_to_log_level(c_debug_level), true) < 0)
     return -1;
 
   return 0;
@@ -270,7 +276,7 @@ int mutt_log_start(void)
 int level_validator(const struct ConfigSet *cs, const struct ConfigDef *cdef,
                     intptr_t value, struct Buffer *err)
 {
-  if ((value < 0) || (value >= LL_MAX))
+  if ((value < 0) || (value > DEBUG_LEVEL_MAX))
   {
     buf_printf(err, _("Invalid value for option %s: %ld"), cdef->name, (long) value);
     return CSR_ERR_INVALID;
@@ -299,13 +305,13 @@ int main_log_observer(struct NotifyCallback *nc)
   else if (mutt_str_equal(ev_c->name, "debug_level"))
   {
     const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
-    mutt_log_set_level(c_debug_level, true);
+    mutt_log_set_level(debug_level_to_log_level(c_debug_level), true);
   }
   else
   {
     return 0;
   }
 
-  mutt_debug(LL_DEBUG5, "log done\n");
+  log_debug5("log done");
   return 0;
 }

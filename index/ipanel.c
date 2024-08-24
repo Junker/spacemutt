@@ -82,7 +82,7 @@ static int ipanel_config_observer(struct NotifyCallback *nc)
   if (mutt_str_equal(ev_c->name, "status_on_top"))
   {
     window_status_on_top(panel_index, NeoMutt->sub);
-    mutt_debug(LL_DEBUG5, "config done\n");
+    log_debug5("config done");
   }
 
   return 0;
@@ -107,7 +107,7 @@ static int ipanel_window_observer(struct NotifyCallback *nc)
 
   notify_observer_remove(NeoMutt->sub->notify, ipanel_config_observer, panel_index);
   notify_observer_remove(panel_index->notify, ipanel_window_observer, panel_index);
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
 
   return 0;
 }

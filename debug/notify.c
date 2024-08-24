@@ -47,7 +47,7 @@ static void notify_dump_account(struct NotifyCallback *nc)
   if (!a)
     return;
 
-  mutt_debug(LL_DEBUG1, "    Account: %p (%s) %s\n", (void *) a,
+  log_debug1("    Account: %p (%s) %s", (void *) a,
              name_mailbox_type(a->type), NONULL(a->name));
 }
 
@@ -73,7 +73,7 @@ static void notify_dump_color(struct NotifyCallback *nc)
   if (!color)
     color = "UNKNOWN";
 
-  mutt_debug(LL_DEBUG1, "    Color: %s %s%s (%d)\n",
+  log_debug1("    Color: %s %s%s (%d)",
              (nc->event_subtype == NT_COLOR_SET) ? "set" : "reset", scope,
              color, ev_c->cid);
 }
@@ -83,9 +83,9 @@ static void notify_dump_command(struct NotifyCallback *nc)
   struct Command *cmd = nc->event_data;
 
   if (cmd->data < 4096)
-    mutt_debug(LL_DEBUG1, "    Command: %s, data: %ld\n", cmd->name, cmd->data);
+    log_debug1("    Command: %s, data: %ld", cmd->name, cmd->data);
   else
-    mutt_debug(LL_DEBUG1, "    Command: %s, data: %p\n", cmd->name, (void *) cmd->data);
+    log_debug1("    Command: %s, data: %p", cmd->name, (void *) cmd->data);
 }
 
 static void notify_dump_config(struct NotifyCallback *nc)
@@ -94,7 +94,7 @@ static void notify_dump_config(struct NotifyCallback *nc)
 
   struct Buffer *value = buf_pool_get();
   cs_he_string_get(ev_c->sub->cs, ev_c->he, value);
-  mutt_debug(LL_DEBUG1, "    Config: %s %s = %s\n",
+  log_debug1("    Config: %s %s = %s",
              name_notify_config(nc->event_subtype), ev_c->name, buf_string(value));
   buf_pool_release(&value);
 }
@@ -107,7 +107,7 @@ static void notify_dump_mview(struct NotifyCallback *nc)
   if (ev_m->mv && ev_m->mv->mailbox)
     path = mailbox_path(ev_m->mv->mailbox);
 
-  mutt_debug(LL_DEBUG1, "    MailboxView: %s %s\n",
+  log_debug1("    MailboxView: %s %s",
              name_notify_mview(nc->event_subtype), path);
 }
 
@@ -115,16 +115,16 @@ static void notify_dump_email(struct NotifyCallback *nc)
 {
   struct EventEmail *ev_e = nc->event_data;
 
-  mutt_debug(LL_DEBUG1, "    Email: %d\n", ev_e->num_emails);
+  log_debug1("    Email: %d", ev_e->num_emails);
   for (size_t i = 0; i < ev_e->num_emails; i++)
   {
-    mutt_debug(LL_DEBUG1, "        : %p\n", (void *) ev_e->emails[i]);
+    log_debug1("        : %p", (void *) ev_e->emails[i]);
   }
 }
 
 static void notify_dump_global(struct NotifyCallback *nc)
 {
-  mutt_debug(LL_DEBUG1, "    Global: %s\n", name_notify_global(nc->event_subtype));
+  log_debug1("    Global: %s", name_notify_global(nc->event_subtype));
 }
 
 static void notify_dump_mailbox(struct NotifyCallback *nc)
@@ -133,7 +133,7 @@ static void notify_dump_mailbox(struct NotifyCallback *nc)
 
   struct Mailbox *m = ev_m->mailbox;
   const char *path = m ? mailbox_path(m) : "";
-  mutt_debug(LL_DEBUG1, "    Mailbox: %s %s\n",
+  log_debug1("    Mailbox: %s %s",
              name_notify_mailbox(nc->event_subtype), path);
 }
 
@@ -167,7 +167,7 @@ static void notify_dump_window_state(struct NotifyCallback *nc)
   if (flags & WN_NARROWER)
     buf_add_printf(buf, "narrower [%d->%d] ", win->old.cols, win->state.cols);
 
-  mutt_debug(LL_DEBUG1, "    Window: %s\n", buf_string(buf));
+  log_debug1("    Window: %s", buf_string(buf));
 
   buf_pool_release(&buf);
 }
@@ -197,14 +197,14 @@ static void notify_dump_window_focus(struct NotifyCallback *nc)
     buf_addstr(buf, "NONE");
   }
 
-  mutt_debug(LL_DEBUG1, "    Window: %s\n", buf_string(buf));
+  log_debug1("    Window: %s", buf_string(buf));
 
   buf_pool_release(&buf);
 }
 
 int debug_all_observer(struct NotifyCallback *nc)
 {
-  mutt_debug(LL_DEBUG1, "\033[1;31mNotification:\033[0m %s\n",
+  log_debug1("\033[1;31mNotification:\033[0m %s",
              name_notify_type(nc->event_type));
 
   switch (nc->event_type)
@@ -243,14 +243,14 @@ int debug_all_observer(struct NotifyCallback *nc)
         notify_dump_window_focus(nc);
       break;
     default:
-      mutt_debug(LL_DEBUG1, "    Event Type: %d\n", nc->event_type);
-      mutt_debug(LL_DEBUG1, "    Event Sub-type: %d\n", nc->event_subtype);
-      mutt_debug(LL_DEBUG1, "    Event Data: %p\n", nc->event_data);
+      log_debug1("    Event Type: %d", nc->event_type);
+      log_debug1("    Event Sub-type: %d", nc->event_subtype);
+      log_debug1("    Event Data: %p", nc->event_data);
       break;
   }
 
-  mutt_debug(LL_DEBUG1, "    Global Data: %p\n", nc->global_data);
+  log_debug1("    Global Data: %p", nc->global_data);
 
-  mutt_debug(LL_DEBUG5, "debug done\n");
+  log_debug5("debug done");
   return 0;
 }

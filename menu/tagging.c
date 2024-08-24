@@ -47,7 +47,7 @@ static void menu_set_prefix(struct Menu *menu)
   if ((menu->num_tagged != 0) && c_auto_tag)
     menu->tag_prefix = true;
 
-  mutt_debug(LL_DEBUG1, "tag_prefix = %d\n", menu->tag_prefix);
+  log_debug1("tag_prefix = %d", menu->tag_prefix);
 
   // Don't overwrite error messages
   const char *msg_text = msgwin_get_text(NULL);
@@ -93,7 +93,7 @@ static int op_tag(struct Menu *menu, int op)
 
   if (!menu->tag)
   {
-    mutt_error(_("Tagging is not supported"));
+    log_fault(_("Tagging is not supported"));
     return FR_ERROR;
   }
 
@@ -121,7 +121,7 @@ static int op_tag(struct Menu *menu, int op)
   }
   else
   {
-    mutt_error(_("No entries"));
+    log_fault(_("No entries"));
     rc = FR_ERROR;
   }
 
@@ -152,7 +152,7 @@ static int op_tag_prefix(struct Menu *menu, int op)
   }
   else if (menu->num_tagged == 0)
   {
-    mutt_warning(_("No tagged entries"));
+    log_warning(_("No tagged entries"));
   }
   else
   {
@@ -178,7 +178,7 @@ static int op_tag_prefix_cond(struct Menu *menu, int op)
   else if (menu->num_tagged == 0)
   {
     mutt_flush_macro_to_endcond();
-    mutt_debug(LL_DEBUG1, "nothing to do\n");
+    log_debug1("nothing to do");
   }
   else
   {

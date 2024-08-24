@@ -50,7 +50,7 @@ static struct Buffer **BufferPool = NULL;
 static void pool_increase_size(void)
 {
   BufferPoolLen += BufferPoolIncrement;
-  mutt_debug(LL_DEBUG1, "%zu\n", BufferPoolLen);
+  log_debug1("%zu", BufferPoolLen);
 
   mutt_mem_realloc(&BufferPool, BufferPoolLen * sizeof(struct Buffer *));
   while (BufferPoolCount < BufferPoolIncrement)
@@ -66,7 +66,7 @@ static void pool_increase_size(void)
  */
 void buf_pool_cleanup(void)
 {
-  mutt_debug(LL_DEBUG1, "%zu of %zu returned to pool\n", BufferPoolCount, BufferPoolLen);
+  log_debug1("%zu of %zu returned to pool", BufferPoolCount, BufferPoolLen);
 
   while (BufferPoolCount)
     buf_free(&BufferPool[--BufferPoolCount]);
@@ -99,7 +99,7 @@ void buf_pool_release(struct Buffer **ptr)
   if (BufferPoolCount >= BufferPoolLen)
   {
     // LCOV_EXCL_START
-    mutt_debug(LL_DEBUG1, "Internal buffer pool error\n");
+    log_debug1("Internal buffer pool error");
     buf_free(ptr);
     return;
     // LCOV_EXCL_STOP

@@ -390,7 +390,7 @@ int mutt_thread_set_flag(struct Mailbox *m, struct Email *e,
 
   if (!mutt_using_threads())
   {
-    mutt_error(_("Threading is not enabled"));
+    log_fault(_("Threading is not enabled"));
     return -1;
   }
 

@@ -1425,7 +1425,7 @@ void mutt_addrlist_dedupe(AddressList *al)
         struct Address *a2 = np2->data;
         if (a2->mailbox && buf_istr_equal(a->mailbox, a2->mailbox))
         {
-          mutt_debug(LL_DEBUG2, "Removing %s\n", buf_string(a2->mailbox));
+          log_debug2("Removing %s", buf_string(a2->mailbox));
           mutt_addr_free(&a2);
           g_queue_delete_link(al, np2);
         }

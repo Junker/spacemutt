@@ -75,7 +75,7 @@ enum CommandResult parse_rc_buffer(struct Buffer *line, struct Buffer *token,
     {
       if (mutt_str_equal(token->data, cmd[i].name))
       {
-        mutt_debug(LL_DEBUG1, "NT_COMMAND: %s\n", cmd[i].name);
+        log_debug1("NT_COMMAND: %s", cmd[i].name);
         rc = cmd[i].parse(token, line, cmd[i].data, err);
         if ((rc == MUTT_CMD_WARNING) || (rc == MUTT_CMD_ERROR) || (rc == MUTT_CMD_FINISH))
           goto finish; /* Propagate return code */

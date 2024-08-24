@@ -111,7 +111,7 @@ static int config_pager_index_lines(struct MuttWindow *win)
   }
 
   mutt_window_reflow(dlg);
-  mutt_debug(LL_DEBUG5, "config, request WA_REFLOW\n");
+  log_debug5("config, request WA_REFLOW");
   return 0;
 }
 
@@ -121,7 +121,7 @@ static int config_pager_index_lines(struct MuttWindow *win)
 static int pager_recalc(struct MuttWindow *win)
 {
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+  log_debug5("recalc done, request WA_REPAINT");
   return 0;
 }
 
@@ -231,7 +231,7 @@ static int pager_repaint(struct MuttWindow *win)
   }
 
   priv->redraw = PAGER_REDRAW_NO_FLAGS;
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
   return 0;
 }
 
@@ -267,7 +267,7 @@ static int pager_color_observer(struct NotifyCallback *nc)
     priv->lines_used = 0;
   }
 
-  mutt_debug(LL_DEBUG5, "color done\n");
+  log_debug5("color done");
   return 0;
 }
 
@@ -287,7 +287,7 @@ static int pager_config_observer(struct NotifyCallback *nc)
   if (mutt_str_equal(ev_c->name, "pager_index_lines"))
   {
     config_pager_index_lines(win_pager);
-    mutt_debug(LL_DEBUG5, "config done\n");
+    log_debug5("config done");
   }
 
   return 0;
@@ -338,13 +338,13 @@ static int pager_index_observer(struct NotifyCallback *nc)
   if (nc->event_subtype & NT_INDEX_MAILBOX)
   {
     win_pager->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "index done, request WA_RECALC\n");
+    log_debug5("index done, request WA_RECALC");
     priv->loop = PAGER_LOOP_QUIT;
   }
   else if (nc->event_subtype & NT_INDEX_EMAIL)
   {
     win_pager->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "index done, request WA_RECALC\n");
+    log_debug5("index done, request WA_RECALC");
     priv->pager_redraw = true;
     if (shared && shared->email && (priv->loop != PAGER_LOOP_QUIT))
     {
@@ -370,7 +370,7 @@ static int pager_pager_observer(struct NotifyCallback *nc)
   if (!nc->global_data || !nc->event_data)
     return -1;
 
-  mutt_debug(LL_DEBUG5, "pager done\n");
+  log_debug5("pager done");
   return 0;
 }
 
@@ -404,7 +404,7 @@ static int pager_window_observer(struct NotifyCallback *nc)
   notify_observer_remove(shared->notify, pager_pager_observer, win_pager);
   notify_observer_remove(win_pager->notify, pager_window_observer, win_pager);
 
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
 
   return 0;
 }

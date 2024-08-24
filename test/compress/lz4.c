@@ -63,7 +63,7 @@ void test_compress_lz4(void)
 
   {
     // Temporarily disable logging
-    MuttLogger = log_disp_null;
+    MuttLogWriter = log_writer_null;
 
     ComprHandle *compr_handle = compr_ops->open(MIN_COMP_LEVEL - 1);
     TEST_CHECK(compr_handle != NULL);
@@ -74,7 +74,7 @@ void test_compress_lz4(void)
     compr_ops->close(&compr_handle);
 
     // Restore logging
-    MuttLogger = log_disp_terminal;
+    MuttLogWriter = log_writer_terminal;
   }
 
   {

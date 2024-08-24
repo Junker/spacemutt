@@ -327,7 +327,7 @@ static bool create_hcache_dir(const char *path)
 
   int rc = mutt_file_mkdir(dir, S_IRWXU | S_IRWXG | S_IRWXO);
   if (rc != 0)
-    mutt_error(_("Can't create %s: %s"), dir, strerror(errno));
+    log_fault(_("Can't create %s: %s"), dir, strerror(errno));
 
   FREE(&dir);
   return (rc == 0);
@@ -506,7 +506,7 @@ struct HeaderCache *hcache_open(const char *path, const char *folder,
     }
 
     /* remember the buffer of database backend */
-    mutt_debug(LL_DEBUG3, "Header cache will use %s compression\n",
+    log_debug3("Header cache will use %s compression",
                hc->compr_ops->name);
   }
 #endif

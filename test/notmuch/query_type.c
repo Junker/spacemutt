@@ -74,7 +74,7 @@ void test_nm_parse_type_from_query(void)
 void test_nm_string_to_query_type(void)
 {
   // enum NmQueryType nm_string_to_query_type(const char *str);
-  MuttLogger = log_disp_null;
+  MuttLogWriter = log_writer_null;
 
   {
     TEST_CHECK(nm_string_to_query_type("threads") == NM_QUERY_TYPE_THREADS);

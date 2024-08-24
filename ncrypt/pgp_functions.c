@@ -68,7 +68,7 @@ static int op_generic_select_entry(struct PgpData *pd, int op)
   {
     if (!pgp_key_is_valid(cur_key->parent))
     {
-      mutt_error(_("This key can't be used: expired/disabled/revoked"));
+      log_fault(_("This key can't be used: expired/disabled/revoked"));
       return FR_ERROR;
     }
   }
@@ -120,7 +120,7 @@ static int op_verify_key(struct PgpData *pd, int op)
   FILE *fp_null = mutt_file_fopen("/dev/null", "w");
   if (!fp_null)
   {
-    mutt_perror(_("Can't open /dev/null"));
+    log_perror(_("Can't open /dev/null"));
     return FR_ERROR;
   }
   struct Buffer *tempfile = NULL;
@@ -129,13 +129,13 @@ static int op_verify_key(struct PgpData *pd, int op)
   FILE *fp_tmp = mutt_file_fopen(buf_string(tempfile), "w");
   if (!fp_tmp)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     mutt_file_fclose(&fp_null);
     buf_pool_release(&tempfile);
     return FR_ERROR;
   }
 
-  mutt_message(_("Invoking PGP..."));
+  log_message(_("Invoking PGP..."));
 
   const int index = menu_get_index(pd->menu);
   struct PgpUid *cur_key = pd->key_table[index];
@@ -147,7 +147,7 @@ static int op_verify_key(struct PgpData *pd, int op)
                                     fileno(fp_null), tmpbuf);
   if (pid == -1)
   {
-    mutt_perror(_("Can't create filter"));
+    log_perror(_("Can't create filter"));
     unlink(buf_string(tempfile));
     mutt_file_fclose(&fp_tmp);
     mutt_file_fclose(&fp_null);
@@ -183,7 +183,7 @@ static int op_view_id(struct PgpData *pd, int op)
 {
   const int index = menu_get_index(pd->menu);
   struct PgpUid *cur_key = pd->key_table[index];
-  mutt_message("%s", NONULL(cur_key->addr));
+  log_message("%s", NONULL(cur_key->addr));
   return FR_SUCCESS;
 }
 
@@ -231,7 +231,7 @@ int pgp_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return rc;
 }

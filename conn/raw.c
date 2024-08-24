@@ -81,7 +81,7 @@ static int socket_connect(int fd, struct sockaddr *sa)
 #endif
   else
   {
-    mutt_debug(LL_DEBUG1, "Unknown address family!\n");
+    log_debug1("Unknown address family!");
     return -1;
   }
 
@@ -116,18 +116,18 @@ static int socket_connect(int fd, struct sockaddr *sa)
     const struct timeval tv = { c_socket_timeout, 0 };
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
     {
-      mutt_debug(LL_DEBUG2, "Cannot set socket receive timeout. errno: %d\n", errno);
+      log_debug2("Cannot set socket receive timeout. errno: %d", errno);
     }
     if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0)
     {
-      mutt_debug(LL_DEBUG2, "Cannot set socket send timeout. errno: %d\n", errno);
+      log_debug2("Cannot set socket send timeout. errno: %d", errno);
     }
   }
 
   if (connect(fd, sa, sa_size) < 0)
   {
     save_errno = errno;
-    mutt_debug(LL_DEBUG2, "Connection failed. errno: %d\n", errno);
+    log_debug2("Connection failed. errno: %d", errno);
     SigInt = false; /* reset in case we caught SIGINTR while in connect() */
   }
 
@@ -174,7 +174,7 @@ int raw_socket_open(struct Connection *conn)
 #ifdef HAVE_LIBIDN
   if (mutt_idna_to_ascii_lz(conn->account.host, &host_idna, 1) != 0)
   {
-    mutt_error(_("Bad IDN: '%s'"), conn->account.host);
+    log_fault(_("Bad IDN: '%s'"), conn->account.host);
     return -1;
   }
 #else
@@ -182,7 +182,7 @@ int raw_socket_open(struct Connection *conn)
 #endif
 
   if (!OptNoCurses)
-    mutt_message(_("Looking up %s..."), conn->account.host);
+    log_message(_("Looking up %s..."), conn->account.host);
 
   rc = getaddrinfo(host_idna, port, &hints, &res);
 
@@ -192,12 +192,12 @@ int raw_socket_open(struct Connection *conn)
 
   if (rc)
   {
-    mutt_error(_("Could not find the host \"%s\""), conn->account.host);
+    log_fault(_("Could not find the host \"%s\""), conn->account.host);
     return -1;
   }
 
   if (!OptNoCurses)
-    mutt_message(_("Connecting to %s..."), conn->account.host);
+    log_message(_("Connecting to %s..."), conn->account.host);
 
   rc = -1;
   for (cur = res; cur; cur = cur->ai_next)
@@ -231,7 +231,7 @@ int raw_socket_open(struct Connection *conn)
 #ifdef HAVE_LIBIDN
   if (mutt_idna_to_ascii_lz(conn->account.host, &host_idna, 1) != 0)
   {
-    mutt_error(_("Bad IDN: '%s'"), conn->account.host);
+    log_fault(_("Bad IDN: '%s'"), conn->account.host);
     return -1;
   }
 #else
@@ -239,7 +239,7 @@ int raw_socket_open(struct Connection *conn)
 #endif
 
   if (!OptNoCurses)
-    mutt_message(_("Looking up %s..."), conn->account.host);
+    log_message(_("Looking up %s..."), conn->account.host);
 
   he = gethostbyname(host_idna);
 
@@ -249,13 +249,13 @@ int raw_socket_open(struct Connection *conn)
 
   if (!he)
   {
-    mutt_error(_("Could not find the host \"%s\""), conn->account.host);
+    log_fault(_("Could not find the host \"%s\""), conn->account.host);
 
     return -1;
   }
 
   if (!OptNoCurses)
-    mutt_message(_("Connecting to %s..."), conn->account.host);
+    log_message(_("Connecting to %s..."), conn->account.host);
 
   rc = -1;
   for (int i = 0; he->h_addr_list[i]; i++)
@@ -281,7 +281,7 @@ int raw_socket_open(struct Connection *conn)
 #endif
   if (rc)
   {
-    mutt_error(_("Could not connect to %s (%s)"), conn->account.host,
+    log_fault(_("Could not connect to %s (%s)"), conn->account.host,
                (rc > 0) ? strerror(rc) : _("unknown error"));
     return -1;
   }
@@ -304,14 +304,14 @@ int raw_socket_read(struct Connection *conn, char *buf, size_t count)
 
   if (rc < 0)
   {
-    mutt_error(_("Error talking to %s (%s)"), conn->account.host, strerror(errno));
+    log_fault(_("Error talking to %s (%s)"), conn->account.host, strerror(errno));
     SigInt = false;
   }
   mutt_sig_allow_interrupt(false);
 
   if (SigInt)
   {
-    mutt_error(_("Connection to %s has been aborted"), conn->account.host);
+    log_fault(_("Connection to %s has been aborted"), conn->account.host);
     SigInt = false;
     rc = -1;
   }
@@ -337,7 +337,7 @@ int raw_socket_write(struct Connection *conn, const char *buf, size_t count)
 
     if (rc < 0)
     {
-      mutt_error(_("Error talking to %s (%s)"), conn->account.host, strerror(errno));
+      log_fault(_("Error talking to %s (%s)"), conn->account.host, strerror(errno));
       mutt_sig_allow_interrupt(false);
       return -1;
     }

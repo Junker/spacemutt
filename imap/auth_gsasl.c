@@ -50,19 +50,19 @@ enum ImapAuthRes imap_auth_gsasl(struct ImapAccountData *adata, const char *meth
   const char *chosen_mech = mutt_gsasl_get_mech(method, adata->capstr);
   if (!chosen_mech)
   {
-    mutt_debug(LL_DEBUG2, "mutt_gsasl_get_mech() returned no usable mech\n");
+    log_debug2("mutt_gsasl_get_mech() returned no usable mech");
     return IMAP_AUTH_UNAVAIL;
   }
 
-  mutt_debug(LL_DEBUG2, "using mech %s\n", chosen_mech);
+  log_debug2("using mech %s", chosen_mech);
 
   if (mutt_gsasl_client_new(adata->conn, chosen_mech, &gsasl_session) < 0)
   {
-    mutt_debug(LL_DEBUG1, "Error allocating GSASL connection\n");
+    log_debug1("Error allocating GSASL connection");
     return IMAP_AUTH_UNAVAIL;
   }
 
-  mutt_message(_("Authenticating (%s)..."), chosen_mech);
+  log_message(_("Authenticating (%s)..."), chosen_mech);
 
   output_buf = buf_pool_get();
   buf_printf(output_buf, "AUTHENTICATE %s", chosen_mech);
@@ -72,7 +72,7 @@ enum ImapAuthRes imap_auth_gsasl(struct ImapAccountData *adata, const char *meth
     gsasl_rc = gsasl_step64(gsasl_session, "", &gsasl_step_output);
     if ((gsasl_rc != GSASL_NEEDS_MORE) && (gsasl_rc != GSASL_OK))
     {
-      mutt_debug(LL_DEBUG1, "gsasl_step64() failed (%d): %s\n", gsasl_rc,
+      log_debug1("gsasl_step64() failed (%d): %s", gsasl_rc,
                  gsasl_strerror(gsasl_rc));
       rc = IMAP_AUTH_UNAVAIL;
       goto bail;
@@ -109,7 +109,7 @@ enum ImapAuthRes imap_auth_gsasl(struct ImapAccountData *adata, const char *meth
     else
     {
       // sasl error occurred, send an abort string
-      mutt_debug(LL_DEBUG1, "gsasl_step64() failed (%d): %s\n", gsasl_rc,
+      log_debug1("gsasl_step64() failed (%d): %s", gsasl_rc,
                  gsasl_strerror(gsasl_rc));
       buf_strcpy(output_buf, "*");
     }
@@ -143,8 +143,8 @@ bail:
 
   if (rc == IMAP_AUTH_FAILURE)
   {
-    mutt_debug(LL_DEBUG2, "%s failed\n", chosen_mech);
-    mutt_error(_("SASL authentication failed"));
+    log_debug2("%s failed", chosen_mech);
+    log_fault(_("SASL authentication failed"));
   }
 
   return rc;

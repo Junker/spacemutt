@@ -95,7 +95,7 @@ MenuRedrawFlags menu_set_and_notify(struct Menu *menu, int top, int index)
     menu->redraw |= flags;
     menu->win->actions |= WA_REPAINT;
 
-    mutt_debug(LL_NOTIFY, "NT_MENU\n");
+    log_notify("NT_MENU");
     notify_send(menu->notify, NT_MENU, flags, NULL);
   }
   return flags;
@@ -344,7 +344,7 @@ MenuRedrawFlags menu_middle_page(struct Menu *menu)
 {
   if (menu->max == 0)
   {
-    mutt_error(_("No entries"));
+    log_fault(_("No entries"));
     return MENU_REDRAW_NO_FLAGS;
   }
 
@@ -364,7 +364,7 @@ MenuRedrawFlags menu_bottom_page(struct Menu *menu)
 {
   if (menu->max == 0)
   {
-    mutt_error(_("No entries"));
+    log_fault(_("No entries"));
     return MENU_REDRAW_NO_FLAGS;
   }
 
@@ -384,7 +384,7 @@ MenuRedrawFlags menu_prev_entry(struct Menu *menu)
   if (menu->current > 0)
     return menu_move_selection(menu, menu->current - 1);
 
-  mutt_message(_("You are on the first entry"));
+  log_message(_("You are on the first entry"));
   return MENU_REDRAW_NO_FLAGS;
 }
 
@@ -398,7 +398,7 @@ MenuRedrawFlags menu_next_entry(struct Menu *menu)
   if (menu->current < (menu->max - 1))
     return menu_move_selection(menu, menu->current + 1);
 
-  mutt_message(_("You are on the last entry"));
+  log_message(_("You are on the last entry"));
   return MENU_REDRAW_NO_FLAGS;
 }
 
@@ -411,7 +411,7 @@ MenuRedrawFlags menu_first_entry(struct Menu *menu)
 {
   if (menu->max == 0)
   {
-    mutt_error(_("No entries"));
+    log_fault(_("No entries"));
     return MENU_REDRAW_NO_FLAGS;
   }
 
@@ -427,7 +427,7 @@ MenuRedrawFlags menu_last_entry(struct Menu *menu)
 {
   if (menu->max == 0)
   {
-    mutt_error(_("No entries"));
+    log_fault(_("No entries"));
     return MENU_REDRAW_NO_FLAGS;
   }
 
@@ -444,7 +444,7 @@ MenuRedrawFlags menu_current_top(struct Menu *menu)
 {
   if (menu->max == 0)
   {
-    mutt_error(_("No entries"));
+    log_fault(_("No entries"));
     return MENU_REDRAW_NO_FLAGS;
   }
 
@@ -465,7 +465,7 @@ MenuRedrawFlags menu_current_middle(struct Menu *menu)
 {
   if (menu->max == 0)
   {
-    mutt_error(_("No entries"));
+    log_fault(_("No entries"));
     return MENU_REDRAW_NO_FLAGS;
   }
 
@@ -485,7 +485,7 @@ MenuRedrawFlags menu_current_bottom(struct Menu *menu)
 {
   if (menu->max == 0)
   {
-    mutt_error(_("No entries"));
+    log_fault(_("No entries"));
     return MENU_REDRAW_NO_FLAGS;
   }
 
@@ -527,7 +527,7 @@ MenuRedrawFlags menu_prev_line(struct Menu *menu)
 {
   MenuRedrawFlags flags = menu_move_view_relative(menu, -1);
   if (flags == MENU_REDRAW_NO_FLAGS)
-    mutt_message(_("You can't scroll up farther"));
+    log_message(_("You can't scroll up farther"));
   return flags;
 }
 
@@ -540,7 +540,7 @@ MenuRedrawFlags menu_next_line(struct Menu *menu)
 {
   MenuRedrawFlags flags = menu_move_view_relative(menu, 1);
   if (flags == MENU_REDRAW_NO_FLAGS)
-    mutt_message(_("You can't scroll down farther"));
+    log_message(_("You can't scroll down farther"));
   return flags;
 }
 

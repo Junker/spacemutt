@@ -155,9 +155,9 @@ void crypt_cleanup(void)
 void crypt_invoke_message(SecurityFlags type)
 {
   if (((WithCrypto & APPLICATION_PGP) != 0) && (type & APPLICATION_PGP))
-    mutt_message(_("Invoking PGP..."));
+    log_message(_("Invoking PGP..."));
   else if (((WithCrypto & APPLICATION_SMIME) != 0) && (type & APPLICATION_SMIME))
-    mutt_message(_("Invoking S/MIME..."));
+    log_message(_("Invoking S/MIME..."));
 }
 
 /**

@@ -123,7 +123,7 @@ static int mkwrapdir(const char *path, struct Buffer *newfile, struct Buffer *ne
   buf_printf(newdir, "%s/%s", buf_string(parent), ".muttXXXXXX");
   if (!mkdtemp(newdir->data))
   {
-    mutt_debug(LL_DEBUG1, "mkdtemp() failed\n");
+    log_debug1("mkdtemp() failed");
     rc = -1;
     goto cleanup;
   }
@@ -172,11 +172,11 @@ int mutt_file_fclose_full(FILE **fp, const char *file, int line, const char *fun
 
   if (rc == 0)
   {
-    MuttLogger(0, file, line, func, LL_DEBUG2, "File closed (fd=%d)\n", fd);
+    g_log_structured_standard(G_LOG_DOMAIN, LOG_LEVEL_DEBUG2, file, G_STRINGIFY(line), func, "File closed (fd=%d)\n", fd);
   }
   else
   {
-    MuttLogger(0, file, line, func, LL_DEBUG2, "File close failed (fd=%d), errno=%d, %s\n",
+    g_log_structured_standard(G_LOG_DOMAIN, LOG_LEVEL_DEBUG2, file, G_STRINGIFY(line), func, "File close failed (fd=%d), errno=%d, %s\n",
                fd, errno, strerror(errno));
   }
 
@@ -393,7 +393,7 @@ int mutt_file_safe_rename(const char *src, const char *target)
     if ((lstat(src, &st_src) == 0) && (lstat(target, &st_target) == 0) &&
         (stat_equal(&st_src, &st_target) == 0))
     {
-      mutt_debug(LL_DEBUG1, "link (%s, %s) reported failure: %s (%d) but actually succeeded\n",
+      log_debug1("link (%s, %s) reported failure: %s (%d) but actually succeeded",
                  src, target, strerror(errno), errno);
       goto success;
     }
@@ -408,7 +408,7 @@ int mutt_file_safe_rename(const char *src, const char *target)
      * With other file systems, rename should just fail when
      * the files reside on different file systems, so it's safe
      * to try it here. */
-    mutt_debug(LL_DEBUG1, "link (%s, %s) failed: %s (%d)\n", src, target,
+    log_debug1("link (%s, %s) failed: %s (%d)", src, target,
                strerror(errno), errno);
 
     /* FUSE may return ENOSYS. VFAT may return EPERM. FreeBSD's
@@ -422,14 +422,14 @@ int mutt_file_safe_rename(const char *src, const char *target)
 #endif
     )
     {
-      mutt_debug(LL_DEBUG1, "trying rename\n");
+      log_debug1("trying rename");
       if (rename(src, target) == -1)
       {
-        mutt_debug(LL_DEBUG1, "rename (%s, %s) failed: %s (%d)\n", src, target,
+        log_debug1("rename (%s, %s) failed: %s (%d)", src, target,
                    strerror(errno), errno);
         return -1;
       }
-      mutt_debug(LL_DEBUG1, "rename succeeded\n");
+      log_debug1("rename succeeded");
 
       return 0;
     }
@@ -446,13 +446,13 @@ int mutt_file_safe_rename(const char *src, const char *target)
   /* Stat both links and check if they are equal. */
   if (lstat(src, &st_src) == -1)
   {
-    mutt_debug(LL_DEBUG1, "#1 can't stat %s: %s (%d)\n", src, strerror(errno), errno);
+    log_debug1("#1 can't stat %s: %s (%d)", src, strerror(errno), errno);
     return -1;
   }
 
   if (lstat(target, &st_target) == -1)
   {
-    mutt_debug(LL_DEBUG1, "#2 can't stat %s: %s (%d)\n", src, strerror(errno), errno);
+    log_debug1("#2 can't stat %s: %s (%d)", src, strerror(errno), errno);
     return -1;
   }
 
@@ -460,7 +460,7 @@ int mutt_file_safe_rename(const char *src, const char *target)
 
   if (!stat_equal(&st_src, &st_target))
   {
-    mutt_debug(LL_DEBUG1, "stat blocks for %s and %s diverge; pretending EEXIST\n", src, target);
+    log_debug1("stat blocks for %s and %s diverge; pretending EEXIST", src, target);
     errno = EEXIST;
     return -1;
   }
@@ -471,7 +471,7 @@ success:
    * Should we really ignore the return value here? XXX */
   if (unlink(src) == -1)
   {
-    mutt_debug(LL_DEBUG1, "unlink (%s) failed: %s (%d)\n", src, strerror(errno), errno);
+    log_debug1("unlink (%s) failed: %s (%d)", src, strerror(errno), errno);
   }
 
   return 0;
@@ -495,7 +495,7 @@ int mutt_file_rmtree(const char *path)
   DIR *dir = mutt_file_opendir(path, MUTT_OPENDIR_NONE);
   if (!dir)
   {
-    mutt_debug(LL_DEBUG1, "error opening directory %s\n", path);
+    log_debug1("error opening directory %s", path);
     return -1;
   }
 
@@ -692,13 +692,14 @@ FILE *mutt_file_fopen_full(const char *path, const char *mode, const mode_t perm
 
   if (fp)
   {
-    MuttLogger(0, file, line, func, LL_DEBUG2, "File opened (fd=%d): %s\n",
+    g_log_structured_standard(G_LOG_DOMAIN, LOG_LEVEL_DEBUG2, file, G_STRINGIFY(line), func, "File opened (fd=%d): %s\n",
                fileno(fp), path);
   }
   else
   {
-    MuttLogger(0, file, line, func, LL_DEBUG2, "File open failed (errno=%d, %s): %s\n",
+    g_log_structured_standard(G_LOG_DOMAIN, LOG_LEVEL_DEBUG2, file, G_STRINGIFY(line), func, "File open failed (errno=%d, %s): %s\n",
                errno, strerror(errno), path);
+
   }
 
   return fp;
@@ -784,7 +785,7 @@ bool mutt_file_seek(FILE *fp, LOFF_T offset, int whence)
 
   if (fseeko(fp, offset, whence) != 0)
   {
-    mutt_perror(_("Failed to seek file: %s"), strerror(errno));
+    log_perror(_("Failed to seek file: %s"), strerror(errno));
     return false;
   }
 
@@ -1211,10 +1212,10 @@ int mutt_file_lock(int fd, bool excl, bool timeout)
 
   while (fcntl(fd, F_SETLK, &lck) == -1)
   {
-    mutt_debug(LL_DEBUG1, "fcntl errno %d\n", errno);
+    log_debug1("fcntl errno %d", errno);
     if ((errno != EAGAIN) && (errno != EACCES))
     {
-      mutt_perror("fcntl");
+      log_perror("fcntl");
       return -1;
     }
 
@@ -1228,13 +1229,13 @@ int mutt_file_lock(int fd, bool excl, bool timeout)
     if ((prev_sb.st_size == st.st_size) && (++count >= (timeout ? MAX_LOCK_ATTEMPTS : 0)))
     {
       if (timeout)
-        mutt_error(_("Timeout exceeded while attempting fcntl lock"));
+        log_fault(_("Timeout exceeded while attempting fcntl lock"));
       return -1;
     }
 
     prev_sb = st;
 
-    mutt_message(_("Waiting for fcntl lock... %d"), ++attempt);
+    log_message(_("Waiting for fcntl lock... %d"), ++attempt);
     sleep(1);
   }
 
@@ -1279,7 +1280,7 @@ int mutt_file_lock(int fd, bool excl, bool timeout)
   {
     if (errno != EWOULDBLOCK)
     {
-      mutt_perror("flock");
+      log_perror("flock");
       rc = -1;
       break;
     }
@@ -1294,14 +1295,14 @@ int mutt_file_lock(int fd, bool excl, bool timeout)
     if ((prev_sb.st_size == st.st_size) && (++count >= (timeout ? MAX_LOCK_ATTEMPTS : 0)))
     {
       if (timeout)
-        mutt_error(_("Timeout exceeded while attempting flock lock"));
+        log_fault(_("Timeout exceeded while attempting flock lock"));
       rc = -1;
       break;
     }
 
     prev_sb = st;
 
-    mutt_message(_("Waiting for flock attempt... %d"), ++attempt);
+    log_message(_("Waiting for flock attempt... %d"), ++attempt);
     sleep(1);
   }
 

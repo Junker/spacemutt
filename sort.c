@@ -304,7 +304,7 @@ static sort_mail_t get_sort_func(enum SortType method, enum MailboxType type)
     case SORT_TO:
       return compare_to;
     default:
-      mutt_error(_("Could not find sorting function [report this bug]"));
+      log_error(_("Could not find sorting function [report this bug]"));
       return NULL;
   }
   /* not reached */
@@ -370,7 +370,7 @@ void mutt_sort_headers(struct MailboxView *mv, bool init)
   }
 
   if (m->verbose)
-    mutt_message(_("Sorting mailbox..."));
+    log_message(_("Sorting mailbox..."));
 
   const bool c_score = cs_subset_bool(NeoMutt->sub, "score");
   if (OptNeedRescore && c_score)

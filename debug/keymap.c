@@ -44,7 +44,7 @@ void log_bind(enum MenuType menu, const char *keystr, struct Keymap *map)
 {
   if (map->op == OP_NULL)
   {
-    mutt_debug(LL_DEBUG1, "    bind %s noop\n", keystr);
+    log_debug1("    bind %s noop", keystr);
     return;
   }
 
@@ -67,16 +67,16 @@ void log_bind(enum MenuType menu, const char *keystr, struct Keymap *map)
     fn_name = mutt_get_func(funcs, map->op);
   }
 
-  mutt_debug(LL_DEBUG1, "    bind %-8s <%s>\n", keystr, fn_name);
-  mutt_debug(LL_DEBUG1, "        op = %d (%s)\n", map->op, opcodes_get_name(map->op));
-  mutt_debug(LL_DEBUG1, "        eq = %d\n", map->eq);
+  log_debug1("    bind %-8s <%s>", keystr, fn_name);
+  log_debug1("        op = %d (%s)", map->op, opcodes_get_name(map->op));
+  log_debug1("        eq = %d", map->eq);
 
   struct Buffer *keys = buf_pool_get();
   for (int i = 0; i < map->len; i++)
   {
     buf_add_printf(keys, "%d ", map->keys[i]);
   }
-  mutt_debug(LL_DEBUG1, "        keys: %s\n", buf_string(keys));
+  log_debug1("        keys: %s", buf_string(keys));
   buf_pool_release(&keys);
 }
 
@@ -90,20 +90,20 @@ void log_macro(const char *keystr, struct Keymap *map)
   struct Buffer *esc_macro = buf_pool_get();
   escape_string(esc_macro, map->macro);
 
-  mutt_debug(LL_DEBUG1, "    macro %-8s \"%s\"\n", keystr, buf_string(esc_macro));
+  log_debug1("    macro %-8s \"%s\"", keystr, buf_string(esc_macro));
   if (map->desc)
-    mutt_debug(LL_DEBUG1, "        %s\n", map->desc);
+    log_debug1("        %s", map->desc);
 
   buf_pool_release(&esc_macro);
 
-  mutt_debug(LL_DEBUG1, "        op = %d\n", map->op);
-  mutt_debug(LL_DEBUG1, "        eq = %d\n", map->eq);
+  log_debug1("        op = %d", map->op);
+  log_debug1("        eq = %d", map->eq);
   struct Buffer *keys = buf_pool_get();
   for (int i = 0; i < map->len; i++)
   {
     buf_add_printf(keys, "%d ", map->keys[i]);
   }
-  mutt_debug(LL_DEBUG1, "        keys: %s\n", buf_string(keys));
+  log_debug1("        keys: %s", buf_string(keys));
   buf_pool_release(&keys);
 }
 
@@ -118,7 +118,7 @@ void log_menu(enum MenuType menu, struct KeymapList *kml)
 
   if (STAILQ_EMPTY(kml))
   {
-    mutt_debug(LL_DEBUG1, "    [NONE]\n");
+    log_debug1("    [NONE]");
     return;
   }
 
@@ -144,10 +144,10 @@ void log_menu(enum MenuType menu, struct KeymapList *kml)
  */
 void dump_keybindings(void)
 {
-  mutt_debug(LL_DEBUG1, "Keybindings:\n");
+  log_debug1("Keybindings:");
   for (int i = 1; i < MENU_MAX; i++)
   {
-    mutt_debug(LL_DEBUG1, "Menu: %s\n", mutt_map_get_name(i, MenuNames));
+    log_debug1("Menu: %s", mutt_map_get_name(i, MenuNames));
     log_menu(i, &Keymaps[i]);
   }
 }

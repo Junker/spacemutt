@@ -76,7 +76,7 @@ const char *nm_db_get_filename(struct Mailbox *m)
   if (nm_path_probe(db_filename, NULL) == MUTT_NOTMUCH)
     db_filename += NmUrlProtocolLen;
 
-  mutt_debug(LL_DEBUG2, "nm: db filename '%s'\n", db_filename);
+  log_debug2("nm: db filename '%s'", db_filename);
   return db_filename;
 }
 
@@ -120,7 +120,7 @@ notmuch_database_t *nm_db_do_open(const char *filename, bool writable, bool verb
   char *msg = NULL;
 
   const short c_nm_open_timeout = cs_subset_number(NeoMutt->sub, "nm_open_timeout");
-  mutt_debug(LL_DEBUG1, "nm: db open '%s' %s (timeout %d)\n", filename,
+  log_debug1("nm: db open '%s' %s (timeout %d)", filename,
              writable ? "[WRITE]" : "[READ]", c_nm_open_timeout);
 
   const notmuch_database_mode_t mode = writable ? NOTMUCH_DATABASE_MODE_READ_WRITE :
@@ -140,8 +140,8 @@ notmuch_database_t *nm_db_do_open(const char *filename, bool writable, bool verb
     // Attempt opening database without configuration file. Don't if the user specified no config.
     if ((st == NOTMUCH_STATUS_NO_CONFIG) && !mutt_str_equal(config_file, ""))
     {
-      mutt_debug(LL_DEBUG1, "nm: Could not find notmuch configuration file: %s\n", config_file);
-      mutt_debug(LL_DEBUG1, "nm: Attempting to open notmuch db without configuration file\n");
+      log_debug1("nm: Could not find notmuch configuration file: %s", config_file);
+      log_debug1("nm: Attempting to open notmuch db without configuration file");
 
       FREE(&msg);
 
@@ -165,7 +165,7 @@ notmuch_database_t *nm_db_do_open(const char *filename, bool writable, bool verb
     }
 
     if (verbose && ct && ((ct % 2) == 0))
-      mutt_error(_("Waiting for notmuch DB... (%d sec)"), ct / 2);
+      log_fault(_("Waiting for notmuch DB... (%d sec)"), ct / 2);
     mutt_date_sleep_ms(500); /* Half a second */
     ct++;
   } while (true);
@@ -181,11 +181,11 @@ notmuch_database_t *nm_db_do_open(const char *filename, bool writable, bool verb
     {
       if (msg)
       {
-        mutt_error("%s", msg);
+        log_fault("%s", msg);
       }
       else
       {
-        mutt_error(_("Can't open notmuch database: %s: %s"), filename,
+        log_fault(_("Can't open notmuch database: %s: %s"), filename,
                    st ? notmuch_status_to_string(st) : _("unknown reason"));
       }
     }
@@ -236,7 +236,7 @@ int nm_db_release(struct Mailbox *m)
   if (!adata || !adata->db || nm_db_is_longrun(m))
     return -1;
 
-  mutt_debug(LL_DEBUG1, "nm: db close\n");
+  log_debug1("nm: db close");
   nm_db_free(adata->db);
   adata->db = NULL;
   adata->longrun = false;
@@ -272,7 +272,7 @@ int nm_db_trans_begin(struct Mailbox *m)
   if (adata->trans)
     return 0;
 
-  mutt_debug(LL_DEBUG2, "nm: db trans start\n");
+  log_debug2("nm: db trans start");
   if (notmuch_database_begin_atomic(adata->db))
     return -1;
   adata->trans = true;
@@ -294,7 +294,7 @@ int nm_db_trans_end(struct Mailbox *m)
   if (!adata->trans)
     return 0;
 
-  mutt_debug(LL_DEBUG2, "nm: db trans end\n");
+  log_debug2("nm: db trans end");
   adata->trans = false;
   if (notmuch_database_end_atomic(adata->db))
     return -1;
@@ -321,7 +321,7 @@ int nm_db_get_mtime(struct Mailbox *m, time_t *mtime)
   char path[PATH_MAX] = { 0 };
   const char *db_filename = nm_db_get_filename(m);
 
-  mutt_debug(LL_DEBUG2, "nm: checking database mtime '%s'\n", db_filename);
+  log_debug2("nm: checking database mtime '%s'", db_filename);
 
   // See if the path we were given has a Xapian directory.
   // After notmuch 0.32, a .notmuch folder isn't guaranteed.
@@ -369,7 +369,7 @@ void nm_db_longrun_init(struct Mailbox *m, bool writable)
     return;
 
   adata->longrun = true;
-  mutt_debug(LL_DEBUG2, "nm: long run initialized\n");
+  log_debug2("nm: long run initialized");
 }
 
 /**
@@ -384,7 +384,7 @@ void nm_db_longrun_done(struct Mailbox *m)
   {
     adata->longrun = false; /* to force nm_db_release() released DB */
     if (nm_db_release(m) == 0)
-      mutt_debug(LL_DEBUG2, "nm: long run deinitialized\n");
+      log_debug2("nm: long run deinitialized");
     else
       adata->longrun = true;
   }
@@ -400,6 +400,6 @@ void nm_db_debug_check(struct Mailbox *m)
   if (!adata || !adata->db)
     return;
 
-  mutt_debug(LL_DEBUG1, "nm: ERROR: db is open, closing\n");
+  log_debug1("nm: ERROR: db is open, closing");
   nm_db_release(m);
 }

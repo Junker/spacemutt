@@ -37,7 +37,7 @@
 #include "attach/lib.h"
 #include "ncrypt/lib.h"
 
-void dump_addr_list(char *buf, size_t buflen, const AddressList *al, const char *name)
+void dump_addr_list(char *buf, size_t buflen, AddressList *al, const char *name)
 {
   if (!buf || !al)
     return;
@@ -50,7 +50,7 @@ void dump_addr_list(char *buf, size_t buflen, const AddressList *al, const char 
   mutt_str_copy(buf, buf_string(tmpbuf), buflen);
   buf_pool_release(&tmpbuf);
 
-  mutt_debug(LL_DEBUG1, "\t%s: %s\n", name, buf);
+  log_debug1("\t%s: %s", name, buf);
 }
 
 void dump_gqueue(GQueue *list, const char *name)
@@ -69,17 +69,17 @@ void dump_gqueue(GQueue *list, const char *name)
     buf_addstr(buf, np->data);
   }
 
-  mutt_debug(LL_DEBUG1, "\t%s: %s\n", name, buf_string(buf));
+  log_debug1("\t%s: %s", name, buf_string(buf));
   buf_pool_release(&buf);
 }
 
 void dump_envelope(const struct Envelope *env)
 {
-  mutt_debug(LL_DEBUG1, "Envelope\n");
+  log_debug1("Envelope");
 
   if (!env)
   {
-    mutt_debug(LL_DEBUG1, "\tNULL pointer\n");
+    log_debug1("\tNULL pointer");
     return;
   }
 
@@ -92,7 +92,7 @@ void dump_envelope(const struct Envelope *env)
   ADD_FLAG(MUTT_ENV_CHANGED_XLABEL);
   ADD_FLAG(MUTT_ENV_CHANGED_SUBJECT);
 #undef ADD_FLAG
-  mutt_debug(LL_DEBUG1, "\tchanged: %s\n", buf_is_empty(buf) ? "[NONE]" : buf_string(buf));
+  log_debug1("\tchanged: %s", buf_is_empty(buf) ? "[NONE]" : buf_string(buf));
 
 #define ADDR_LIST(AL) dump_addr_list(arr, sizeof(arr), env->AL, #AL)
   ADDR_LIST(return_path);
@@ -108,7 +108,7 @@ void dump_envelope(const struct Envelope *env)
 
 #define OPT_STRING(S)                                                          \
   if (env->S)                                                                  \
-  mutt_debug(LL_DEBUG1, "\t%s: %s\n", #S, env->S)
+  log_debug1("\t%s: %s", #S, env->S)
   OPT_STRING(list_post);
   OPT_STRING(list_subscribe);
   OPT_STRING(list_unsubscribe);
@@ -131,13 +131,13 @@ void dump_envelope(const struct Envelope *env)
   dump_gqueue(env->userhdrs, "userhdrs");
 
   if (!buf_is_empty(&env->spam))
-    mutt_debug(LL_DEBUG1, "\tspam: %s\n", buf_string(&env->spam));
+    log_debug1("\tspam: %s", buf_string(&env->spam));
 
 #ifdef USE_AUTOCRYPT
   if (env->autocrypt)
-    mutt_debug(LL_DEBUG1, "\tautocrypt: %p\n", (void *) env->autocrypt);
+    log_debug1("\tautocrypt: %p", (void *) env->autocrypt);
   if (env->autocrypt_gossip)
-    mutt_debug(LL_DEBUG1, "\tautocrypt_gossip: %p\n", (void *) env->autocrypt_gossip);
+    log_debug1("\tautocrypt_gossip: %p", (void *) env->autocrypt_gossip);
 #endif
 
   buf_pool_release(&buf);
@@ -145,18 +145,18 @@ void dump_envelope(const struct Envelope *env)
 
 void dump_email(const struct Email *e)
 {
-  mutt_debug(LL_DEBUG1, "Email\n");
+  log_debug1("Email");
 
   if (!e)
   {
-    mutt_debug(LL_DEBUG1, "\tNULL pointer\n");
+    log_debug1("\tNULL pointer");
     return;
   }
 
   struct Buffer *buf = buf_pool_get();
   char arr[256];
 
-  mutt_debug(LL_DEBUG1, "\tpath: %s\n", e->path);
+  log_debug1("\tpath: %s", e->path);
 
 #define ADD_FLAG(F) add_flag(buf, e->F, #F)
   ADD_FLAG(active);
@@ -184,7 +184,7 @@ void dump_email(const struct Email *e)
   ADD_FLAG(trash);
   ADD_FLAG(visible);
 #undef ADD_FLAG
-  mutt_debug(LL_DEBUG1, "\tFlags: %s\n", buf_is_empty(buf) ? "[NONE]" : buf_string(buf));
+  log_debug1("\tFlags: %s", buf_is_empty(buf) ? "[NONE]" : buf_string(buf));
 
 #define ADD_FLAG(F) add_flag(buf, (e->security & F), #F)
   buf_reset(buf);
@@ -203,28 +203,28 @@ void dump_email(const struct Email *e)
   ADD_FLAG(APPLICATION_SMIME);
   ADD_FLAG(PGP_TRADITIONAL_CHECKED);
 #undef ADD_FLAG
-  mutt_debug(LL_DEBUG1, "\tSecurity: %s\n", buf_is_empty(buf) ? "[NONE]" : buf_string(buf));
+  log_debug1("\tSecurity: %s", buf_is_empty(buf) ? "[NONE]" : buf_string(buf));
 
   mutt_date_make_tls(arr, sizeof(arr), e->date_sent);
-  mutt_debug(LL_DEBUG1, "\tSent: %s (%c%02u%02u)\n", arr,
+  log_debug1("\tSent: %s (%c%02u%02u)", arr,
              e->zoccident ? '-' : '+', e->zhours, e->zminutes);
 
   mutt_date_make_tls(arr, sizeof(arr), e->received);
-  mutt_debug(LL_DEBUG1, "\tRecv: %s\n", arr);
+  log_debug1("\tRecv: %s", arr);
 
   buf_pool_release(&buf);
 
-  mutt_debug(LL_DEBUG1, "\tnum_hidden: %ld\n", e->num_hidden);
-  mutt_debug(LL_DEBUG1, "\trecipient: %d\n", e->recipient);
-  mutt_debug(LL_DEBUG1, "\toffset: %ld\n", e->offset);
-  mutt_debug(LL_DEBUG1, "\tlines: %d\n", e->lines);
-  mutt_debug(LL_DEBUG1, "\tindex: %d\n", e->index);
-  mutt_debug(LL_DEBUG1, "\tmsgno: %d\n", e->msgno);
-  mutt_debug(LL_DEBUG1, "\tvnum: %d\n", e->vnum);
-  mutt_debug(LL_DEBUG1, "\tscore: %d\n", e->score);
-  mutt_debug(LL_DEBUG1, "\tattach_total: %d\n", e->attach_total);
+  log_debug1("\tnum_hidden: %ld", e->num_hidden);
+  log_debug1("\trecipient: %d", e->recipient);
+  log_debug1("\toffset: %ld", e->offset);
+  log_debug1("\tlines: %d", e->lines);
+  log_debug1("\tindex: %d", e->index);
+  log_debug1("\tmsgno: %d", e->msgno);
+  log_debug1("\tvnum: %d", e->vnum);
+  log_debug1("\tscore: %d", e->score);
+  log_debug1("\tattach_total: %d", e->attach_total);
   // if (e->maildir_flags)
-  //   mutt_debug(LL_DEBUG1, "\tmaildir_flags: %s\n", e->maildir_flags);
+  //   log_debug1("\tmaildir_flags: %s", e->maildir_flags);
 
   // struct MuttThread *thread
   // struct Envelope *env
@@ -236,34 +236,34 @@ void dump_email(const struct Email *e)
 
 void dump_param_list(const struct ParameterList *pl)
 {
-  mutt_debug(LL_DEBUG1, "\tparameters\n");
+  log_debug1("\tparameters");
 
   if (!pl)
   {
-    mutt_debug(LL_DEBUG1, "\tNULL pointer\n");
+    log_debug1("\tNULL pointer");
     return;
   }
 
   if (TAILQ_EMPTY(pl))
   {
-    mutt_debug(LL_DEBUG1, "\tempty\n");
+    log_debug1("\tempty");
     return;
   }
 
   struct Parameter *np = NULL;
   TAILQ_FOREACH(np, pl, entries)
   {
-    mutt_debug(LL_DEBUG1, "\t\t%s = %s\n", NONULL(np->attribute), NONULL(np->value));
+    log_debug1("\t\t%s = %s", NONULL(np->attribute), NONULL(np->value));
   }
 }
 
 void dump_body(const struct Body *body)
 {
-  mutt_debug(LL_DEBUG1, "Body\n");
+  log_debug1("Body");
 
   if (!body)
   {
-    mutt_debug(LL_DEBUG1, "\tNULL pointer\n");
+    log_debug1("\tNULL pointer");
     return;
   }
 
@@ -285,11 +285,11 @@ void dump_body(const struct Body *body)
   ADD_FLAG(use_disp);
   ADD_FLAG(warnsig);
 #undef ADD_FLAG
-  mutt_debug(LL_DEBUG1, "\tFlags: %s\n", buf_is_empty(buf) ? "[NONE]" : buf_string(buf));
+  log_debug1("\tFlags: %s", buf_is_empty(buf) ? "[NONE]" : buf_string(buf));
 
 #define OPT_STRING(S)                                                          \
   if (body->S)                                                                 \
-  mutt_debug(LL_DEBUG1, "\t%s: %s\n", #S, body->S)
+  log_debug1("\t%s: %s", #S, body->S)
   OPT_STRING(charset);
   OPT_STRING(description);
   OPT_STRING(d_filename);
@@ -300,20 +300,20 @@ void dump_body(const struct Body *body)
   OPT_STRING(xtype);
 #undef OPT_STRING
 
-  mutt_debug(LL_DEBUG1, "\thdr_offset: %ld\n", body->hdr_offset);
-  mutt_debug(LL_DEBUG1, "\toffset: %ld\n", body->offset);
-  mutt_debug(LL_DEBUG1, "\tlength: %ld\n", body->length);
-  mutt_debug(LL_DEBUG1, "\tattach_count: %d\n", body->attach_count);
+  log_debug1("\thdr_offset: %ld", body->hdr_offset);
+  log_debug1("\toffset: %ld", body->offset);
+  log_debug1("\tlength: %ld", body->length);
+  log_debug1("\tattach_count: %d", body->attach_count);
 
-  mutt_debug(LL_DEBUG1, "\tcontent type: %s\n", name_content_type(body->type));
-  mutt_debug(LL_DEBUG1, "\tcontent encoding: %s\n", name_content_encoding(body->encoding));
-  mutt_debug(LL_DEBUG1, "\tcontent disposition: %s\n",
+  log_debug1("\tcontent type: %s", name_content_type(body->type));
+  log_debug1("\tcontent encoding: %s", name_content_encoding(body->encoding));
+  log_debug1("\tcontent disposition: %s",
              name_content_disposition(body->disposition));
 
   if (body->stamp != 0)
   {
     mutt_date_make_tls(arr, sizeof(arr), body->stamp);
-    mutt_debug(LL_DEBUG1, "\tstamp: %s\n", arr);
+    log_debug1("\tstamp: %s", arr);
   }
 
   dump_param_list(&body->parameter);
@@ -327,26 +327,26 @@ void dump_body(const struct Body *body)
 
   if (body->next)
   {
-    mutt_debug(LL_DEBUG1, "-NEXT-------------------------\n");
+    log_debug1("-NEXT-------------------------");
     dump_body(body->next);
   }
   if (body->parts)
   {
-    mutt_debug(LL_DEBUG1, "-PARTS-------------------------\n");
+    log_debug1("-PARTS-------------------------");
     dump_body(body->parts);
   }
   if (body->next || body->parts)
-    mutt_debug(LL_DEBUG1, "--------------------------\n");
+    log_debug1("--------------------------");
   buf_pool_release(&buf);
 }
 
 void dump_attach(const struct AttachPtr *att)
 {
-  mutt_debug(LL_DEBUG1, "AttachPtr\n");
+  log_debug1("AttachPtr");
 
   if (!att)
   {
-    mutt_debug(LL_DEBUG1, "\tNULL pointer\n");
+    log_debug1("\tNULL pointer");
     return;
   }
 
@@ -359,10 +359,10 @@ void dump_attach(const struct AttachPtr *att)
 #undef ADD_FLAG
 
   if (att->fp)
-    mutt_debug(LL_DEBUG1, "\tfp: %p (%d)\n", (void *) att->fp, fileno(att->fp));
-  mutt_debug(LL_DEBUG1, "\tparent_type: %d\n", att->parent_type);
-  mutt_debug(LL_DEBUG1, "\tlevel: %d\n", att->level);
-  mutt_debug(LL_DEBUG1, "\tnum: %d\n", att->num);
+    log_debug1("\tfp: %p (%d)", (void *) att->fp, fileno(att->fp));
+  log_debug1("\tparent_type: %d", att->parent_type);
+  log_debug1("\tlevel: %d", att->level);
+  log_debug1("\tnum: %d", att->num);
 
   // struct Body *content; ///< Attachment
   buf_pool_release(&buf);
@@ -416,6 +416,6 @@ void dump_body_one_line(const struct Body *b)
   buf_addstr(buf, "Body layout: ");
   dump_body_next(buf, b);
 
-  mutt_message("%s", buf_string(buf));
+  log_message("%s", buf_string(buf));
   buf_pool_release(&buf);
 }

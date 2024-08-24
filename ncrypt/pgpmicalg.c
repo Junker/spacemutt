@@ -92,7 +92,7 @@ static void pgp_dearmor(FILE *fp_in, FILE *fp_out)
   }
   if (!r)
   {
-    mutt_debug(LL_DEBUG1, "Can't find begin of ASCII armor\n");
+    log_debug1("Can't find begin of ASCII armor");
     return;
   }
 
@@ -106,7 +106,7 @@ static void pgp_dearmor(FILE *fp_in, FILE *fp_out)
   }
   if (!r)
   {
-    mutt_debug(LL_DEBUG1, "Armor header doesn't end\n");
+    log_debug1("Armor header doesn't end");
     return;
   }
 
@@ -124,14 +124,14 @@ static void pgp_dearmor(FILE *fp_in, FILE *fp_out)
   }
   if (!r)
   {
-    mutt_debug(LL_DEBUG1, "Can't find end of ASCII armor\n");
+    log_debug1("Can't find end of ASCII armor");
     return;
   }
 
   LOFF_T end = ftello(fp_in) - strlen(line);
   if (end < start)
   {
-    mutt_debug(LL_DEBUG1, "end < start???\n");
+    log_debug1("end < start???");
     return;
   }
 
@@ -154,7 +154,7 @@ static short pgp_mic_from_packet(unsigned char *p, size_t len)
   /* is signature? */
   if ((p[0] & 0x3f) != PT_SIG)
   {
-    mutt_debug(LL_DEBUG1, "tag = %d, want %d\n", p[0] & 0x3f, PT_SIG);
+    log_debug1("tag = %d, want %d", p[0] & 0x3f, PT_SIG);
     return -1;
   }
 
@@ -170,7 +170,7 @@ static short pgp_mic_from_packet(unsigned char *p, size_t len)
   }
   else
   {
-    mutt_debug(LL_DEBUG1, "Bad signature packet\n");
+    log_debug1("Bad signature packet");
     return -1;
   }
 }
@@ -189,14 +189,14 @@ static short pgp_find_hash(const char *fname)
   FILE *fp_out = mutt_file_mkstemp();
   if (!fp_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto bye;
   }
 
   fp_in = mutt_file_fopen(fname, "r");
   if (!fp_in)
   {
-    mutt_perror("%s", fname);
+    log_perror("%s", fname);
     goto bye;
   }
 
@@ -210,7 +210,7 @@ static short pgp_find_hash(const char *fname)
   }
   else
   {
-    mutt_debug(LL_DEBUG1, "No packet\n");
+    log_debug1("No packet");
   }
 
 bye:

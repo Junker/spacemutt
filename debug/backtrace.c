@@ -46,7 +46,7 @@ void show_backtrace(void)
 
   printf("\n%s\n", mutt_make_version());
   printf("Backtrace\n");
-  mutt_debug(LL_DEBUG1, "\nBacktrace\n");
+  log_debug1("\nBacktrace");
   unw_getcontext(&uc);
   unw_init_local(&cursor, &uc);
   while (unw_step(&cursor) > 0)
@@ -57,7 +57,7 @@ void show_backtrace(void)
     if (buf[0] == '_')
       continue;
     printf("    %s() ip = %lx, sp = %lx\n", buf, (long) ip, (long) sp);
-    mutt_debug(LL_DEBUG1, "    %s() ip = %lx, sp = %lx\n", buf, (long) ip, (long) sp);
+    log_debug1("    %s() ip = %lx, sp = %lx", buf, (long) ip, (long) sp);
   }
   printf("\n");
 }

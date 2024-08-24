@@ -55,7 +55,7 @@ int alias_config_observer(struct NotifyCallback *nc)
   struct Menu *menu = nc->global_data;
 
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC, MENU_REDRAW_FULL\n");
+  log_debug5("config done, request WA_RECALC, MENU_REDRAW_FULL");
 
   return 0;
 }
@@ -94,6 +94,6 @@ int alias_recalc(struct MuttWindow *win)
   alias_array_sort(&mdata->ava, mdata->sub);
 
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+  log_debug5("recalc done, request WA_REPAINT");
   return 0;
 }

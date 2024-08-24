@@ -189,7 +189,7 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
   FILE *fp_out = mutt_file_fopen(buf_string(path), "w");
   if (!fp_out)
   {
-    mutt_perror("%s", buf_string(path));
+    log_perror("%s", buf_string(path));
     goto cleanup;
   }
 
@@ -202,7 +202,7 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
   FILE *fp_in = mutt_file_fopen(body, "r");
   if (!fp_in)
   {
-    mutt_perror("%s", body);
+    log_perror("%s", body);
     mutt_file_fclose(&fp_out);
     goto cleanup;
   }
@@ -215,21 +215,21 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
   struct stat st = { 0 };
   if (stat(buf_string(path), &st) == -1)
   {
-    mutt_perror("%s", buf_string(path));
+    log_perror("%s", buf_string(path));
     goto cleanup;
   }
 
   time_t mtime = mutt_file_decrease_mtime(buf_string(path), &st);
   if (mtime == (time_t) -1)
   {
-    mutt_perror("%s", buf_string(path));
+    log_perror("%s", buf_string(path));
     goto cleanup;
   }
 
   mutt_edit_file(editor, buf_string(path));
   if ((stat(buf_string(path), &st) != 0) || (mtime == st.st_mtime))
   {
-    mutt_debug(LL_DEBUG1, "temp file was not modified\n");
+    log_debug1("temp file was not modified");
     /* the file has not changed! */
     mutt_file_unlink(buf_string(path));
     goto cleanup;
@@ -242,7 +242,7 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
   fp_in = mutt_file_fopen(buf_string(path), "r");
   if (!fp_in)
   {
-    mutt_perror("%s", buf_string(path));
+    log_perror("%s", buf_string(path));
     goto cleanup;
   }
 
@@ -251,7 +251,7 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
   {
     /* intentionally leak a possible temporary file here */
     mutt_file_fclose(&fp_in);
-    mutt_perror("%s", body);
+    log_perror("%s", body);
     goto cleanup;
   }
 
@@ -350,7 +350,7 @@ void mutt_edit_headers(const char *editor, const char *body, struct Email *e,
         else
         {
           buf_pretty_mailbox(path);
-          mutt_error(_("%s: unable to attach file"), buf_string(path));
+          log_fault(_("%s: unable to attach file"), buf_string(path));
         }
       }
       keep = false;

@@ -69,7 +69,7 @@ static int bcache_path(struct ConnAccount *account, const char *mailbox, struct 
   struct stat st = { 0 };
   if (!((stat(c_message_cache_dir, &st) == 0) && S_ISDIR(st.st_mode)))
   {
-    mutt_error(_("Cache disabled, $message_cache_dir isn't a directory: %s"), c_message_cache_dir);
+    log_fault(_("Cache disabled, $message_cache_dir isn't a directory: %s"), c_message_cache_dir);
     return -1;
   }
 
@@ -83,7 +83,7 @@ static int bcache_path(struct ConnAccount *account, const char *mailbox, struct 
   url.path = NULL;
   if (url_tostring(&url, host->data, host->dsize, U_PATH) < 0)
   {
-    mutt_debug(LL_DEBUG1, "URL to string failed\n");
+    log_debug1("URL to string failed");
     buf_pool_release(&host);
     return -1;
   }
@@ -99,7 +99,7 @@ static int bcache_path(struct ConnAccount *account, const char *mailbox, struct 
   if (*(dst->dptr - 1) != '/')
     buf_addch(dst, '/');
 
-  mutt_debug(LL_DEBUG3, "path: '%s'\n", buf_string(dst));
+  log_debug3("path: '%s'", buf_string(dst));
   bcache->path = buf_strdup(dst);
 
   buf_pool_release(&host);
@@ -127,7 +127,7 @@ static int mutt_bcache_move(struct BodyCache *bcache, const char *id, const char
   buf_printf(path, "%s%s", bcache->path, id);
   buf_printf(newpath, "%s%s", bcache->path, newid);
 
-  mutt_debug(LL_DEBUG3, "bcache: mv: '%s' '%s'\n", buf_string(path), buf_string(newpath));
+  log_debug3("bcache: mv: '%s' '%s'", buf_string(path), buf_string(newpath));
 
   int rc = rename(buf_string(path), buf_string(newpath));
   buf_pool_release(&path);
@@ -195,7 +195,7 @@ FILE *mutt_bcache_get(struct BodyCache *bcache, const char *id)
 
   FILE *fp = mutt_file_fopen(buf_string(path), "r");
 
-  mutt_debug(LL_DEBUG3, "bcache: get: '%s': %s\n", buf_string(path), fp ? "yes" : "no");
+  log_debug3("bcache: get: '%s': %s", buf_string(path), fp ? "yes" : "no");
 
   buf_pool_release(&path);
   return fp;
@@ -224,7 +224,7 @@ FILE *mutt_bcache_put(struct BodyCache *bcache, const char *id)
   {
     if (!S_ISDIR(st.st_mode))
     {
-      mutt_error(_("Message cache isn't a directory: %s"), bcache->path);
+      log_fault(_("Message cache isn't a directory: %s"), bcache->path);
       return NULL;
     }
   }
@@ -232,12 +232,12 @@ FILE *mutt_bcache_put(struct BodyCache *bcache, const char *id)
   {
     if (mutt_file_mkdir(bcache->path, S_IRWXU | S_IRWXG | S_IRWXO) < 0)
     {
-      mutt_error(_("Can't create %s: %s"), bcache->path, strerror(errno));
+      log_fault(_("Can't create %s: %s"), bcache->path, strerror(errno));
       return NULL;
     }
   }
 
-  mutt_debug(LL_DEBUG3, "bcache: put: '%s'\n", buf_string(path));
+  log_debug3("bcache: put: '%s'", buf_string(path));
 
   FILE *fp = mutt_file_fopen(buf_string(path), "w+");
   buf_pool_release(&path);
@@ -277,7 +277,7 @@ int mutt_bcache_del(struct BodyCache *bcache, const char *id)
   buf_addstr(path, bcache->path);
   buf_addstr(path, id);
 
-  mutt_debug(LL_DEBUG3, "bcache: del: '%s'\n", buf_string(path));
+  log_debug3("bcache: del: '%s'", buf_string(path));
 
   int rc = unlink(buf_string(path));
   buf_pool_release(&path);
@@ -307,7 +307,7 @@ int mutt_bcache_exists(struct BodyCache *bcache, const char *id)
   else
     rc = (S_ISREG(st.st_mode) && (st.st_size != 0)) ? 0 : -1;
 
-  mutt_debug(LL_DEBUG3, "bcache: exists: '%s': %s\n", buf_string(path),
+  log_debug3("bcache: exists: '%s': %s", buf_string(path),
              (rc == 0) ? "yes" : "no");
 
   buf_pool_release(&path);
@@ -344,7 +344,7 @@ int mutt_bcache_list(struct BodyCache *bcache, bcache_list_t want_id, void *data
 
   rc = 0;
 
-  mutt_debug(LL_DEBUG3, "bcache: list: dir: '%s'\n", bcache->path);
+  log_debug3("bcache: list: dir: '%s'", bcache->path);
 
   while ((de = readdir(dir)))
   {
@@ -353,7 +353,7 @@ int mutt_bcache_list(struct BodyCache *bcache, bcache_list_t want_id, void *data
       continue;
     }
 
-    mutt_debug(LL_DEBUG3, "bcache: list: dir: '%s', id :'%s'\n", bcache->path, de->d_name);
+    log_debug3("bcache: list: dir: '%s', id :'%s'", bcache->path, de->d_name);
 
     if (want_id && (want_id(de->d_name, bcache, data) != 0))
       goto out;
@@ -367,6 +367,6 @@ out:
     if (closedir(dir) < 0)
       rc = -1;
   }
-  mutt_debug(LL_DEBUG3, "bcache: list: did %d entries\n", rc);
+  log_debug3("bcache: list: did %d entries", rc);
   return rc;
 }

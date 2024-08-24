@@ -205,20 +205,20 @@ struct Content *mutt_get_content_info(const char *fname, struct Body *b,
 
   if (stat(fname, &st) == -1)
   {
-    mutt_error(_("Can't stat %s: %s"), fname, strerror(errno));
+    log_fault(_("Can't stat %s: %s"), fname, strerror(errno));
     return NULL;
   }
 
   if (!S_ISREG(st.st_mode))
   {
-    mutt_error(_("%s isn't a regular file"), fname);
+    log_fault(_("%s isn't a regular file"), fname);
     return NULL;
   }
 
   fp = mutt_file_fopen(fname, "r");
   if (!fp)
   {
-    mutt_debug(LL_DEBUG1, "%s: %s (errno %d)\n", fname, strerror(errno), errno);
+    log_debug1("%s: %s (errno %d)", fname, strerror(errno), errno);
     return NULL;
   }
 

@@ -753,13 +753,13 @@ int examine_directory(struct Mailbox *m, struct Menu *menu, struct BrowserState 
           continue;
         }
       }
-      mutt_perror("%s", dirname);
+      log_perror("%s", dirname);
       goto ed_out;
     }
 
     if (!S_ISDIR(st.st_mode))
     {
-      mutt_error(_("%s is not a directory"), dirname);
+      log_fault(_("%s is not a directory"), dirname);
       goto ed_out;
     }
 
@@ -769,7 +769,7 @@ int examine_directory(struct Mailbox *m, struct Menu *menu, struct BrowserState 
     dir = mutt_file_opendir(dirname, MUTT_OPENDIR_NONE);
     if (!dir)
     {
-      mutt_perror("%s", dirname);
+      log_perror("%s", dirname);
       goto ed_out;
     }
 
@@ -1137,7 +1137,7 @@ static int file_tag(struct Menu *menu, int sel, int act)
   if (S_ISDIR(ff->mode) ||
       (S_ISLNK(ff->mode) && link_is_dir(buf_string(&LastDir), ff->name)))
   {
-    mutt_error(_("Can't attach a directory"));
+    log_fault(_("Can't attach a directory"));
     return 0;
   }
 
@@ -1180,7 +1180,7 @@ static int browser_config_observer(struct NotifyCallback *nc)
   }
 
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC, MENU_REDRAW_FULL\n");
+  log_debug5("config done, request WA_RECALC, MENU_REDRAW_FULL");
 
   return 0;
 }
@@ -1223,7 +1223,7 @@ static int browser_mailbox_observer(struct NotifyCallback *nc)
   }
 
   menu_queue_redraw(priv->menu, MENU_REDRAW_FULL);
-  mutt_debug(LL_DEBUG5, "mailbox done, request WA_RECALC, MENU_REDRAW_FULL\n");
+  log_debug5("mailbox done, request WA_RECALC, MENU_REDRAW_FULL");
 
   return 0;
 }
@@ -1255,7 +1255,7 @@ static int browser_window_observer(struct NotifyCallback *nc)
   notify_observer_remove(win_menu->notify, browser_window_observer, priv);
   notify_observer_remove(NeoMutt->notify, browser_mailbox_observer, priv);
 
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
   return 0;
 }
 
@@ -1532,7 +1532,7 @@ void dlg_browser(struct Buffer *file, SelectFileFlags flags, struct Mailbox *m,
     window_redraw(NULL);
 
     op = km_dokey(MENU_FOLDER, GETCH_NO_FLAGS);
-    mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+    log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
     if (op < 0)
       continue;
     if (op == OP_NULL)

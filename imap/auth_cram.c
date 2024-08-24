@@ -100,7 +100,7 @@ enum ImapAuthRes imap_auth_cram_md5(struct ImapAccountData *adata, const char *m
     return IMAP_AUTH_UNAVAIL;
 
   // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_message(_("Authenticating (%s)..."), "CRAM-MD5");
+  log_message(_("Authenticating (%s)..."), "CRAM-MD5");
 
   /* get auth info */
   if (mutt_account_getlogin(&adata->conn->account) < 0)
@@ -128,17 +128,17 @@ enum ImapAuthRes imap_auth_cram_md5(struct ImapAccountData *adata, const char *m
 
   if (rc_step != IMAP_RES_RESPOND)
   {
-    mutt_debug(LL_DEBUG1, "Invalid response from server\n");
+    log_debug1("Invalid response from server");
     goto bail;
   }
 
   if (mutt_b64_decode(adata->buf + 2, obuf->data, obuf->dsize) == -1)
   {
-    mutt_debug(LL_DEBUG1, "Error decoding base64 response\n");
+    log_debug1("Error decoding base64 response");
     goto bail;
   }
 
-  mutt_debug(LL_DEBUG2, "CRAM challenge: %s\n", buf_string(obuf));
+  log_debug2("CRAM challenge: %s", buf_string(obuf));
 
   /* The client makes note of the data and then responds with a string
    * consisting of the user name, a space, and a 'digest'. The latter is
@@ -154,7 +154,7 @@ enum ImapAuthRes imap_auth_cram_md5(struct ImapAccountData *adata, const char *m
   /* dubious optimisation I saw elsewhere: make the whole string in one call */
   int off = buf_printf(obuf, "%s ", adata->conn->account.user);
   mutt_md5_toascii(hmac_response, obuf->data + off);
-  mutt_debug(LL_DEBUG2, "CRAM response: %s\n", buf_string(obuf));
+  log_debug2("CRAM response: %s", buf_string(obuf));
 
   /* ibuf must be long enough to store the base64 encoding of obuf,
    * plus the additional debris */
@@ -169,7 +169,7 @@ enum ImapAuthRes imap_auth_cram_md5(struct ImapAccountData *adata, const char *m
 
   if (rc_step != IMAP_RES_OK)
   {
-    mutt_debug(LL_DEBUG1, "Error receiving server response\n");
+    log_debug1("Error receiving server response");
     goto bail;
   }
 
@@ -180,7 +180,7 @@ bail:
   if (rc != IMAP_AUTH_SUCCESS)
   {
     // L10N: %s is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-    mutt_error(_("%s authentication failed"), "CRAM-MD5");
+    log_fault(_("%s authentication failed"), "CRAM-MD5");
   }
 
   buf_pool_release(&ibuf);

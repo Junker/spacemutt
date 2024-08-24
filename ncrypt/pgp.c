@@ -265,12 +265,12 @@ static int pgp_copy_checksig(FILE *fp_in, FILE *fp_out)
     {
       if (mutt_regex_match(c_pgp_good_sign, line))
       {
-        mutt_debug(LL_DEBUG2, "\"%s\" matches regex\n", line);
+        log_debug2("\"%s\" matches regex", line);
         rc = 0;
       }
       else
       {
-        mutt_debug(LL_DEBUG2, "\"%s\" doesn't match regex\n", line);
+        log_debug2("\"%s\" doesn't match regex", line);
       }
 
       if (mutt_strn_equal(line, "[GNUPG:] ", 9))
@@ -282,7 +282,7 @@ static int pgp_copy_checksig(FILE *fp_in, FILE *fp_out)
   }
   else
   {
-    mutt_debug(LL_DEBUG2, "No pattern\n");
+    log_debug2("No pattern");
     mutt_file_copy_stream(fp_in, fp_out);
     rc = 1;
   }
@@ -314,20 +314,20 @@ static int pgp_check_pgp_decryption_okay_regex(FILE *fp_in)
     {
       if (mutt_regex_match(c_pgp_decryption_okay, line))
       {
-        mutt_debug(LL_DEBUG2, "\"%s\" matches regex\n", line);
+        log_debug2("\"%s\" matches regex", line);
         rc = 0;
         break;
       }
       else
       {
-        mutt_debug(LL_DEBUG2, "\"%s\" doesn't match regex\n", line);
+        log_debug2("\"%s\" doesn't match regex", line);
       }
     }
     FREE(&line);
   }
   else
   {
-    mutt_debug(LL_DEBUG2, "No pattern\n");
+    log_debug2("No pattern");
     rc = 1;
   }
 
@@ -371,7 +371,7 @@ static int pgp_check_decryption_okay(FILE *fp_in)
     if (plen == 0)
       continue;
     s = line + plen;
-    mutt_debug(LL_DEBUG2, "checking \"%s\"\n", line);
+    log_debug2("checking \"%s\"", line);
     if (mutt_str_startswith(s, "BEGIN_DECRYPTION"))
     {
       inside_decrypt = 1;
@@ -384,14 +384,14 @@ static int pgp_check_decryption_okay(FILE *fp_in)
     {
       if (!inside_decrypt)
       {
-        mutt_debug(LL_DEBUG2, "    PLAINTEXT encountered outside of DECRYPTION\n");
+        log_debug2("    PLAINTEXT encountered outside of DECRYPTION");
         rc = -2;
         break;
       }
     }
     else if (mutt_str_startswith(s, "DECRYPTION_FAILED"))
     {
-      mutt_debug(LL_DEBUG2, "    DECRYPTION_FAILED encountered.  Failure\n");
+      log_debug2("    DECRYPTION_FAILED encountered.  Failure");
       rc = -3;
       break;
     }
@@ -399,7 +399,7 @@ static int pgp_check_decryption_okay(FILE *fp_in)
     {
       /* Don't break out because we still have to check for
        * PLAINTEXT outside of the decryption boundaries. */
-      mutt_debug(LL_DEBUG2, "    DECRYPTION_OKAY encountered\n");
+      log_debug2("    DECRYPTION_OKAY encountered");
       rc = 0;
     }
   }
@@ -544,7 +544,7 @@ int pgp_class_application_handler(struct Body *b, struct State *state)
       fp_tmp = mutt_file_fopen(buf_string(tmpfname), "w+");
       if (!fp_tmp)
       {
-        mutt_perror("%s", buf_string(tmpfname));
+        log_perror("%s", buf_string(tmpfname));
         FREE(&gpgcharset);
         goto out;
       }
@@ -587,14 +587,14 @@ int pgp_class_application_handler(struct Body *b, struct State *state)
         fp_pgp_out = mutt_file_mkstemp();
         if (!fp_pgp_out)
         {
-          mutt_perror(_("Can't create temporary file"));
+          log_perror(_("Can't create temporary file"));
           goto out;
         }
 
         fp_pgp_err = mutt_file_mkstemp();
         if (!fp_pgp_err)
         {
-          mutt_perror(_("Can't create temporary file"));
+          log_perror(_("Can't create temporary file"));
           goto out;
         }
 
@@ -677,7 +677,7 @@ int pgp_class_application_handler(struct Body *b, struct State *state)
 
         if ((could_not_decrypt || (decrypt_okay_rc <= -3)) && !(state->flags & STATE_DISPLAY))
         {
-          mutt_error(_("Could not decrypt PGP message"));
+          log_fault(_("Could not decrypt PGP message"));
           goto out;
         }
       }
@@ -704,7 +704,7 @@ int pgp_class_application_handler(struct Body *b, struct State *state)
         int ch;
         char *expected_charset = (gpgcharset && *gpgcharset) ? gpgcharset : "utf-8";
 
-        mutt_debug(LL_DEBUG3, "pgp: recoding inline from [%s] to [%s]\n",
+        log_debug3("pgp: recoding inline from [%s] to [%s]",
                    expected_charset, cc_charset());
 
         rewind(fp_pgp_out);
@@ -731,18 +731,18 @@ int pgp_class_application_handler(struct Body *b, struct State *state)
           state_attach_puts(state, _("[-- END PGP MESSAGE --]\n"));
           if (could_not_decrypt || (decrypt_okay_rc <= -3))
           {
-            mutt_error(_("Could not decrypt PGP message"));
+            log_fault(_("Could not decrypt PGP message"));
           }
           else if (decrypt_okay_rc < 0)
           {
             /* L10N: You will see this error message if (1) you are decrypting
                (not encrypting) something and (2) it is a plaintext. So the
                message does not mean "You failed to encrypt the message." */
-            mutt_error(_("PGP message is not encrypted"));
+            log_fault(_("PGP message is not encrypted"));
           }
           else
           {
-            mutt_message(_("PGP message successfully decrypted"));
+            log_message(_("PGP message successfully decrypted"));
           }
         }
         else if (pgp_keyblock)
@@ -907,7 +907,7 @@ int pgp_class_verify_one(struct Body *b, struct State *state, const char *tempfi
   FILE *fp_sig = mutt_file_fopen(buf_string(sigfile), "w");
   if (!fp_sig)
   {
-    mutt_perror("%s", buf_string(sigfile));
+    log_perror("%s", buf_string(sigfile));
     goto cleanup;
   }
 
@@ -922,7 +922,7 @@ int pgp_class_verify_one(struct Body *b, struct State *state, const char *tempfi
   FILE *fp_pgp_err = mutt_file_mkstemp();
   if (!fp_pgp_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     unlink(buf_string(sigfile));
     goto cleanup;
   }
@@ -947,7 +947,7 @@ int pgp_class_verify_one(struct Body *b, struct State *state, const char *tempfi
     if (rv)
       badsig = -1;
 
-    mutt_debug(LL_DEBUG1, "filter_wait returned %d\n", rv);
+    log_debug1("filter_wait returned %d", rv);
   }
 
   mutt_file_fclose(&fp_pgp_err);
@@ -959,7 +959,7 @@ int pgp_class_verify_one(struct Body *b, struct State *state, const char *tempfi
 cleanup:
   buf_pool_release(&sigfile);
 
-  mutt_debug(LL_DEBUG1, "returning %d\n", badsig);
+  log_debug1("returning %d", badsig);
   return badsig;
 }
 
@@ -977,7 +977,7 @@ static void pgp_extract_keys_from_attachment(FILE *fp, struct Body *b)
   FILE *fp_tmp = mutt_file_fopen(buf_string(tempfname), "w");
   if (!fp_tmp)
   {
-    mutt_perror("%s", buf_string(tempfname));
+    log_perror("%s", buf_string(tempfname));
     goto cleanup;
   }
 
@@ -1004,7 +1004,7 @@ void pgp_class_extract_key_from_attachment(FILE *fp, struct Body *b)
 {
   if (!fp)
   {
-    mutt_error(_("Internal error.  Please submit a bug report."));
+    log_fault(_("Internal error.  Please submit a bug report."));
     return;
   }
 
@@ -1039,7 +1039,7 @@ static struct Body *pgp_decrypt_part(struct Body *a, struct State *state,
   FILE *fp_pgp_err = mutt_file_mkstemp();
   if (!fp_pgp_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto cleanup;
   }
 
@@ -1047,7 +1047,7 @@ static struct Body *pgp_decrypt_part(struct Body *a, struct State *state,
   fp_pgp_tmp = mutt_file_fopen(buf_string(pgptmpfile), "w");
   if (!fp_pgp_tmp)
   {
-    mutt_perror("%s", buf_string(pgptmpfile));
+    log_perror("%s", buf_string(pgptmpfile));
     mutt_file_fclose(&fp_pgp_err);
     goto cleanup;
   }
@@ -1107,7 +1107,7 @@ static struct Body *pgp_decrypt_part(struct Body *a, struct State *state,
   rewind(fp_pgp_err);
   if (pgp_check_decryption_okay(fp_pgp_err) < 0)
   {
-    mutt_error(_("Decryption failed"));
+    log_fault(_("Decryption failed"));
     pgp_class_void_passphrase();
     mutt_file_fclose(&fp_pgp_err);
     goto cleanup;
@@ -1129,7 +1129,7 @@ static struct Body *pgp_decrypt_part(struct Body *a, struct State *state,
 
   if (fgetc(fp_out) == EOF)
   {
-    mutt_error(_("Decryption failed"));
+    log_fault(_("Decryption failed"));
     pgp_class_void_passphrase();
     goto cleanup;
   }
@@ -1196,7 +1196,7 @@ int pgp_class_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct Bo
     fp_decoded = mutt_file_mkstemp();
     if (!fp_decoded)
     {
-      mutt_perror(_("Can't create temporary file"));
+      log_perror(_("Can't create temporary file"));
       return -1;
     }
 
@@ -1220,7 +1220,7 @@ int pgp_class_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct Bo
   *fp_out = mutt_file_mkstemp();
   if (!*fp_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     rc = -1;
     goto bail;
   }
@@ -1253,7 +1253,7 @@ int pgp_class_encrypted_handler(struct Body *b, struct State *state)
   FILE *fp_out = mutt_file_mkstemp();
   if (!fp_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     if (state->flags & STATE_DISPLAY)
     {
       state_attach_puts(state, _("[-- Error: could not create temporary file --]\n"));
@@ -1307,11 +1307,11 @@ int pgp_class_encrypted_handler(struct Body *b, struct State *state)
 
     mutt_body_free(&tattach);
     /* clear 'Invoking...' message, since there's no error */
-    mutt_message(_("PGP message successfully decrypted"));
+    log_message(_("PGP message successfully decrypted"));
   }
   else
   {
-    mutt_error(_("Could not decrypt PGP message"));
+    log_fault(_("Could not decrypt PGP message"));
     /* void the passphrase, even if it's not necessarily the problem */
     pgp_class_void_passphrase();
     rc = -1;
@@ -1353,7 +1353,7 @@ struct Body *pgp_class_sign_message(struct Body *b, const AddressList *from)
   fp_signed = mutt_file_fopen(buf_string(signedfile), "w");
   if (!fp_signed)
   {
-    mutt_perror("%s", buf_string(signedfile));
+    log_perror("%s", buf_string(signedfile));
     mutt_file_fclose(&fp_sig);
     unlink(buf_string(sigfile));
     goto cleanup;
@@ -1368,7 +1368,7 @@ struct Body *pgp_class_sign_message(struct Body *b, const AddressList *from)
                         buf_string(signedfile));
   if (pid == -1)
   {
-    mutt_perror(_("Can't open PGP subprocess"));
+    log_perror(_("Can't open PGP subprocess"));
     mutt_file_fclose(&fp_sig);
     unlink(buf_string(sigfile));
     unlink(buf_string(signedfile));
@@ -1411,7 +1411,7 @@ struct Body *pgp_class_sign_message(struct Body *b, const AddressList *from)
 
   if (mutt_file_fclose(&fp_sig) != 0)
   {
-    mutt_perror("fclose");
+    log_perror("fclose");
     unlink(buf_string(sigfile));
     goto cleanup;
   }
@@ -1600,14 +1600,14 @@ struct Body *pgp_class_encrypt_message(struct Body *b, char *keylist, bool sign,
   FILE *fp_out = mutt_file_fopen(buf_string(tempfile), "w+");
   if (!fp_out)
   {
-    mutt_perror("%s", buf_string(tempfile));
+    log_perror("%s", buf_string(tempfile));
     goto cleanup;
   }
 
   FILE *fp_pgp_err = mutt_file_mkstemp();
   if (!fp_pgp_err)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     unlink(buf_string(tempfile));
     mutt_file_fclose(&fp_out);
     goto cleanup;
@@ -1617,7 +1617,7 @@ struct Body *pgp_class_encrypt_message(struct Body *b, char *keylist, bool sign,
   fp_tmp = mutt_file_fopen(buf_string(pgpinfile), "w");
   if (!fp_tmp)
   {
-    mutt_perror("%s", buf_string(pgpinfile));
+    log_perror("%s", buf_string(pgpinfile));
     unlink(buf_string(tempfile));
     mutt_file_fclose(&fp_out);
     mutt_file_fclose(&fp_pgp_err);
@@ -1739,7 +1739,7 @@ struct Body *pgp_class_traditional_encryptsign(struct Body *b, SecurityFlags fla
   FILE *fp_body = mutt_file_fopen(b->filename, "r");
   if (!fp_body)
   {
-    mutt_perror("%s", b->filename);
+    log_perror("%s", b->filename);
     goto cleanup;
   }
 
@@ -1747,7 +1747,7 @@ struct Body *pgp_class_traditional_encryptsign(struct Body *b, SecurityFlags fla
   FILE *fp_pgp_in = mutt_file_fopen(buf_string(pgpinfile), "w");
   if (!fp_pgp_in)
   {
-    mutt_perror("%s", buf_string(pgpinfile));
+    log_perror("%s", buf_string(pgpinfile));
     mutt_file_fclose(&fp_body);
     goto cleanup;
   }
@@ -1793,7 +1793,7 @@ struct Body *pgp_class_traditional_encryptsign(struct Body *b, SecurityFlags fla
   FILE *fp_pgp_err = mutt_file_mkstemp();
   if (!fp_pgp_out || !fp_pgp_err)
   {
-    mutt_perror("%s", fp_pgp_out ? "Can't create temporary file" : buf_string(pgpoutfile));
+    log_perror("%s", fp_pgp_out ? "Can't create temporary file" : buf_string(pgpoutfile));
     unlink(buf_string(pgpinfile));
     if (fp_pgp_out)
     {
@@ -1808,7 +1808,7 @@ struct Body *pgp_class_traditional_encryptsign(struct Body *b, SecurityFlags fla
                                fileno(fp_pgp_err), buf_string(pgpinfile), keylist, flags);
   if (pid == -1)
   {
-    mutt_perror(_("Can't invoke PGP"));
+    log_perror(_("Can't invoke PGP"));
     mutt_file_fclose(&fp_pgp_out);
     mutt_file_fclose(&fp_pgp_err);
     mutt_file_unlink(buf_string(pgpinfile));

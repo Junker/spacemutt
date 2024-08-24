@@ -207,7 +207,7 @@ static enum CommandResult parse_object(struct Buffer *buf, struct Buffer *s,
   }
   else
   {
-    color_debug(LL_DEBUG5, "object: %s\n", mutt_map_get_name(rc, ColorFields));
+    log_color_debug("object: %s\n", mutt_map_get_name(rc, ColorFields));
   }
 
   *cid = rc;
@@ -248,7 +248,7 @@ static enum CommandResult parse_uncolor(struct Buffer *buf, struct Buffer *s,
 
   unsigned int cid = MT_COLOR_NONE;
   int ql = 0;
-  color_debug(LL_DEBUG5, "uncolor: %s\n", buf_string(buf));
+  log_color_debug("uncolor: %s\n", buf_string(buf));
   enum CommandResult rc = parse_object(buf, s, &cid, &ql, err);
   if (rc != MUTT_CMD_SUCCESS)
     return rc;
@@ -261,20 +261,20 @@ static enum CommandResult parse_uncolor(struct Buffer *buf, struct Buffer *s,
 
   if (cid == MT_COLOR_QUOTED)
   {
-    color_debug(LL_DEBUG5, "quoted\n");
+    log_color_debug("quoted\n");
     return quoted_colors_parse_uncolor(cid, ql, err);
   }
 
   if ((cid == MT_COLOR_STATUS) && !MoreArgs(s))
   {
-    color_debug(LL_DEBUG5, "simple\n");
+    log_color_debug("simple\n");
     simple_color_reset(cid); // default colour for the status bar
     return MUTT_CMD_SUCCESS;
   }
 
   if (!mutt_color_has_pattern(cid))
   {
-    color_debug(LL_DEBUG5, "simple\n");
+    log_color_debug("simple\n");
     simple_color_reset(cid);
     return MUTT_CMD_SUCCESS;
   }
@@ -345,7 +345,7 @@ static enum CommandResult parse_color(struct Buffer *buf, struct Buffer *s,
   }
 
   parse_extract_token(buf, s, TOKEN_NO_FLAGS);
-  color_debug(LL_DEBUG5, "color: %s\n", buf_string(buf));
+  log_color_debug("color: %s\n", buf_string(buf));
 
   rc = parse_object(buf, s, &cid, &q_level, err);
   if (rc != MUTT_CMD_SUCCESS)
@@ -386,7 +386,7 @@ static enum CommandResult parse_color(struct Buffer *buf, struct Buffer *s,
 
   if (mutt_color_has_pattern(cid) && (cid != MT_COLOR_STATUS))
   {
-    color_debug(LL_DEBUG5, "regex needed\n");
+    log_color_debug("regex needed\n");
     if (MoreArgs(s))
     {
       parse_extract_token(buf, s, TOKEN_NO_FLAGS);
@@ -406,19 +406,19 @@ static enum CommandResult parse_color(struct Buffer *buf, struct Buffer *s,
 
   if (regex_colors_parse_color_list(cid, buf->data, ac, &rc, err))
   {
-    color_debug(LL_DEBUG5, "regex_colors_parse_color_list done\n");
+    log_color_debug("regex_colors_parse_color_list done\n");
     goto done;
     // do nothing
   }
   else if (quoted_colors_parse_color(cid, ac, q_level, &rc, err))
   {
-    color_debug(LL_DEBUG5, "quoted_colors_parse_color done\n");
+    log_color_debug("quoted_colors_parse_color done\n");
     goto done;
     // do nothing
   }
   else if ((cid == MT_COLOR_STATUS) && MoreArgs(s))
   {
-    color_debug(LL_DEBUG5, "status\n");
+    log_color_debug("status\n");
     /* 'color status fg bg' can have up to 2 arguments:
      * 0 arguments: sets the default status color (handled below by else part)
      * 1 argument : colorize pattern on match
@@ -451,7 +451,7 @@ static enum CommandResult parse_color(struct Buffer *buf, struct Buffer *s,
   }
   else // Remaining simple colours
   {
-    color_debug(LL_DEBUG5, "simple\n");
+    log_color_debug("simple\n");
     if (simple_color_set(cid, ac))
       rc = MUTT_CMD_SUCCESS;
     else
@@ -461,7 +461,7 @@ static enum CommandResult parse_color(struct Buffer *buf, struct Buffer *s,
   if (rc == MUTT_CMD_SUCCESS)
   {
     get_colorid_name(cid, buf);
-    color_debug(LL_DEBUG5, "NT_COLOR_SET: %s\n", buf->data);
+    log_color_debug("NT_COLOR_SET: %s\n", buf->data);
     struct EventColor ev_c = { cid, NULL };
     notify_send(ColorsNotify, NT_COLOR, NT_COLOR_SET, &ev_c);
   }
@@ -486,7 +486,7 @@ enum CommandResult mutt_parse_uncolor(struct Buffer *buf, struct Buffer *s,
     return MUTT_CMD_SUCCESS;
   }
 
-  color_debug(LL_DEBUG5, "parse: %s\n", buf_string(buf));
+  log_color_debug("parse: %s\n", buf_string(buf));
   enum CommandResult rc = parse_uncolor(buf, s, err, true);
   curses_colors_dump(buf);
   return rc;
@@ -518,7 +518,7 @@ enum CommandResult mutt_parse_color(struct Buffer *buf, struct Buffer *s,
     return MUTT_CMD_SUCCESS;
   }
 
-  color_debug(LL_DEBUG5, "parse: %s\n", buf_string(buf));
+  log_color_debug("parse: %s\n", buf_string(buf));
   enum CommandResult rc = parse_color(buf, s, err, parse_color_pair, true);
   curses_colors_dump(buf);
   return rc;
@@ -540,7 +540,7 @@ enum CommandResult mutt_parse_mono(struct Buffer *buf, struct Buffer *s,
     return MUTT_CMD_SUCCESS;
   }
 
-  color_debug(LL_DEBUG5, "parse: %s\n", buf_string(buf));
+  log_color_debug("parse: %s\n", buf_string(buf));
   enum CommandResult rc = parse_color(buf, s, err, parse_attr_spec, false);
   curses_colors_dump(buf);
   return rc;

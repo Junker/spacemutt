@@ -367,7 +367,7 @@ static int start_curses(void)
 
   if (!initscr())
   {
-    mutt_error(_("Error initializing terminal"));
+    log_fault(_("Error initializing terminal"));
     return 1;
   }
 
@@ -437,13 +437,13 @@ static bool get_user_info(struct ConfigSet *cs)
 
   if (!Username)
   {
-    mutt_error(_("unable to determine username"));
+    log_fault(_("unable to determine username"));
     return false; // TEST05: neomutt (unset $USER, delete user from /etc/passwd)
   }
 
   if (!HomeDir)
   {
-    mutt_error(_("unable to determine home directory"));
+    log_fault(_("unable to determine home directory"));
     return false; // TEST06: neomutt (unset $HOME, delete user from /etc/passwd)
   }
 
@@ -478,7 +478,7 @@ static void log_translation(void)
     lang = "NONE";
   }
 
-  mutt_debug(LL_DEBUG1, "Translation: %.*s\n", len, lang);
+  log_debug1("Translation: %.*s", len, lang);
 }
 
 /**
@@ -493,14 +493,14 @@ static void log_gui(void)
   true_color = true;
 #endif
 
-  mutt_debug(LL_DEBUG1, "GUI:\n");
-  mutt_debug(LL_DEBUG1, "    Curses: %s\n", curses_version());
-  mutt_debug(LL_DEBUG1, "    COLORS=%d\n", COLORS);
-  mutt_debug(LL_DEBUG1, "    COLOR_PAIRS=%d\n", COLOR_PAIRS);
-  mutt_debug(LL_DEBUG1, "    TERM=%s\n", NONULL(term));
-  mutt_debug(LL_DEBUG1, "    COLORTERM=%s\n", NONULL(color_term));
-  mutt_debug(LL_DEBUG1, "    True color support: %s\n", true_color ? "YES" : "NO");
-  mutt_debug(LL_DEBUG1, "    Screen: %dx%d\n", RootWindow->state.cols,
+  log_debug1("GUI:");
+  log_debug1("    Curses: %s", curses_version());
+  log_debug1("    COLORS=%d", COLORS);
+  log_debug1("    COLOR_PAIRS=%d", COLOR_PAIRS);
+  log_debug1("    TERM=%s", NONULL(term));
+  log_debug1("    COLORTERM=%s", NONULL(color_term));
+  log_debug1("    True color support: %s", true_color ? "YES" : "NO");
+  log_debug1("    Screen: %dx%d", RootWindow->state.cols,
              RootWindow->state.rows);
 }
 
@@ -532,7 +532,7 @@ int main_timeout_observer(struct NotifyCallback *nc)
   mutt_timeout_hook();
 
 done:
-  mutt_debug(LL_DEBUG5, "timeout done\n");
+  log_debug5("timeout done");
   return 0;
 }
 
@@ -579,17 +579,19 @@ main
   int double_dash = argc, nargc = 1;
   int rc = 1;
   bool repeat_error = false;
+
+  MuttLogWriter = log_writer_terminal;
+  logging_init();
+
   struct Buffer *folder = buf_pool_get();
   struct Buffer *expanded_infile = buf_pool_get();
   struct Buffer *tempfile = buf_pool_get();
   struct ConfigSet *cs = NULL;
 
-  MuttLogger = log_disp_terminal;
-
   /* sanity check against stupid administrators */
   if (getegid() != getgid())
   {
-    mutt_error("%s: I don't want to run with privileges!", (argc != 0) ? argv[0] : "neomutt");
+    log_fault("%s: I don't want to run with privileges!", (argc != 0) ? argv[0] : "neomutt");
     goto main_exit; // TEST01: neomutt (as root, chgrp mail neomutt; chmod +s neomutt)
   }
 
@@ -730,7 +732,7 @@ main
 
   if (version > 0)
   {
-    log_queue_flush(log_disp_terminal);
+    log_queue_flush(log_writer_terminal);
     bool done;
     if (version == 1)
       done = print_version(stdout);
@@ -780,9 +782,9 @@ main
   if (dlevel)
   {
     short num = 0;
-    if (!mutt_str_atos_full(dlevel, &num) || (num < LL_MESSAGE) || (num >= LL_MAX))
+    if (!mutt_str_atos_full(dlevel, &num) || num < 0 || num > DEBUG_LEVEL_MAX)
     {
-      mutt_error(_("Error: value '%s' is invalid for -d"), dlevel);
+      log_fault(_("Error: value '%s' is invalid for -d"), dlevel);
       goto main_exit; // TEST07: neomutt -d xyz
     }
     cs_str_initial_set(cs, "debug_level", dlevel, NULL);
@@ -790,10 +792,10 @@ main
   }
 
   mutt_log_prep();
-  MuttLogger = log_disp_queue;
+  MuttLogWriter = log_writer_queue;
   log_translation();
-  mutt_debug(LL_DEBUG1, "user's umask %03o\n", NeoMutt->user_default_umask);
-  mutt_debug(LL_DEBUG3, "umask set to 077\n");
+  log_debug1("user's umask %03o", NeoMutt->user_default_umask);
+  log_debug3("umask set to 077");
 
   if (cc_list || bcc_list)
   {
@@ -820,8 +822,8 @@ main
   {
     OptNoCurses = true;
     sendflags |= SEND_BATCH;
-    MuttLogger = log_disp_terminal;
-    log_queue_flush(log_disp_terminal);
+    MuttLogWriter = log_writer_terminal;
+    log_queue_flush(log_writer_terminal);
   }
 
   /* Check to make sure stdout is available in curses mode. */
@@ -884,7 +886,7 @@ main
     int r = cs_str_initial_set(cs, "mbox_type", new_type, err);
     if (CSR_RESULT(r) != CSR_SUCCESS)
     {
-      mutt_error("%s", buf_string(err));
+      log_fault("%s", buf_string(err));
       buf_pool_release(&err);
       goto main_curses;
     }
@@ -939,8 +941,8 @@ main
   {
     mutt_curses_set_color_by_id(MT_COLOR_NORMAL);
     clear();
-    MuttLogger = log_disp_curses;
-    log_queue_flush(log_disp_curses);
+    MuttLogWriter = log_writer_curses;
+    log_queue_flush(log_writer_curses);
     log_queue_set_max_size(100);
   }
 
@@ -973,7 +975,7 @@ main
       if (query_yesorno(msg2, MUTT_YES) == MUTT_YES)
       {
         if ((mkdir(buf_string(fpath), 0700) == -1) && (errno != EEXIST))
-          mutt_error(_("Can't create %s: %s"), c_folder, strerror(errno)); // TEST21: neomutt -n -F /dev/null (and ~/Mail doesn't exist)
+          log_fault(_("Can't create %s: %s"), c_folder, strerror(errno)); // TEST21: neomutt -n -F /dev/null (and ~/Mail doesn't exist)
       }
     }
     buf_pool_release(&fpath);
@@ -1025,7 +1027,7 @@ main
       {
         if (!mutt_parse_mailto(e->env, &bodytext, argv[i]))
         {
-          mutt_error(_("Failed to parse mailto: link"));
+          log_fault(_("Failed to parse mailto: link"));
           email_free(&e);
           goto main_curses; // TEST25: neomutt mailto:?
         }
@@ -1040,7 +1042,7 @@ main
     if (!draft_file && c_auto_edit && g_queue_is_empty(e->env->to) &&
         g_queue_is_empty(e->env->cc))
     {
-      mutt_error(_("No recipients specified"));
+      log_fault(_("No recipients specified"));
       email_free(&e);
       goto main_curses; // TEST26: neomutt -s test (with auto_edit=yes)
     }
@@ -1075,7 +1077,7 @@ main
         {
           if (edit_infile)
           {
-            mutt_error(_("Can't use -E flag with stdin"));
+            log_fault(_("Can't use -E flag with stdin"));
             email_free(&e);
             goto main_curses; // TEST27: neomutt -E -H -
           }
@@ -1088,7 +1090,7 @@ main
           fp_in = mutt_file_fopen(buf_string(expanded_infile), "r");
           if (!fp_in)
           {
-            mutt_perror("%s", buf_string(expanded_infile));
+            log_perror("%s", buf_string(expanded_infile));
             email_free(&e);
             goto main_curses; // TEST28: neomutt -E -H missing
           }
@@ -1112,7 +1114,7 @@ main
         if (!fp_out)
         {
           mutt_file_fclose(&fp_in);
-          mutt_perror("%s", buf_string(tempfile));
+          log_perror("%s", buf_string(tempfile));
           email_free(&e);
           goto main_curses; // TEST29: neomutt -H existing-file (where tmpdir=/path/to/FILE blocking tmpdir)
         }
@@ -1133,7 +1135,7 @@ main
         fp_in = mutt_file_fopen(buf_string(tempfile), "r");
         if (!fp_in)
         {
-          mutt_perror("%s", buf_string(tempfile));
+          log_perror("%s", buf_string(tempfile));
           email_free(&e);
           goto main_curses; // TEST30: can't test
         }
@@ -1156,7 +1158,7 @@ main
         e_tmp->body = mutt_body_new();
         if (fstat(fileno(fp_in), &st) != 0)
         {
-          mutt_perror("%s", draft_file);
+          log_perror("%s", draft_file);
           email_free(&e);
           email_free(&e_tmp);
           goto main_curses; // TEST31: can't test
@@ -1165,7 +1167,7 @@ main
 
         if (mutt_prepare_template(fp_in, NULL, e, e_tmp, false) < 0)
         {
-          mutt_error(_("Can't parse message template: %s"), draft_file);
+          log_fault(_("Can't parse message template: %s"), draft_file);
           email_free(&e);
           email_free(&e_tmp);
           goto main_curses;
@@ -1230,7 +1232,7 @@ main
         }
         if (!b)
         {
-          mutt_error(_("%s: unable to attach file"), (char*)np->data);
+          log_fault(_("%s: unable to attach file"), (char*)np->data);
           g_slist_free_full(g_steal_pointer(&attach), g_free);
           email_free(&e);
           goto main_curses; // TEST32: neomutt john@example.com -a missing
@@ -1243,7 +1245,7 @@ main
     /* We WANT the "Mail sent." and any possible, later error */
     log_queue_empty();
     if (ErrorBufMessage)
-      mutt_message("%s", ErrorBuf);
+      log_message("%s", ErrorBuf);
 
     if (edit_infile)
     {
@@ -1251,14 +1253,14 @@ main
       {
         if (truncate(buf_string(expanded_infile), 0) == -1)
         {
-          mutt_perror("%s", buf_string(expanded_infile));
+          log_perror("%s", buf_string(expanded_infile));
           email_free(&e);
           goto main_curses; // TEST33: neomutt -H read-only -s test john@example.com -E
         }
         fp_out = mutt_file_fopen(buf_string(expanded_infile), "a");
         if (!fp_out)
         {
-          mutt_perror("%s", buf_string(expanded_infile));
+          log_perror("%s", buf_string(expanded_infile));
           email_free(&e);
           goto main_curses; // TEST34: can't test
         }
@@ -1308,7 +1310,7 @@ main
   {
     /* This guards against invoking `neomutt < /dev/null` and accidentally
      * sending an email due to a my_hdr or other setting.  */
-    mutt_error(_("No recipients specified"));
+    log_fault(_("No recipients specified"));
     goto main_curses;
   }
   else
@@ -1320,7 +1322,7 @@ main
       const CheckStatsFlags csflags = MUTT_MAILBOX_CHECK_IMMEDIATE;
       if (mutt_mailbox_check(NULL, csflags) == 0)
       {
-        mutt_message(_("No mailbox with new mail"));
+        log_message(_("No mailbox with new mail"));
         goto main_curses; // TEST37: neomutt -Z (no new mail)
       }
       buf_reset(folder);
@@ -1339,7 +1341,7 @@ main
       }
       else if (g_queue_is_empty(NeoMutt->accounts))
       {
-        mutt_error(_("No incoming mailboxes defined"));
+        log_fault(_("No incoming mailboxes defined"));
         goto main_curses; // TEST39: neomutt -n -F /dev/null -y
       }
       buf_reset(folder);
@@ -1389,10 +1391,10 @@ main
       switch (mx_path_is_empty(folder))
       {
         case -1:
-          mutt_perror("%s", buf_string(folder));
+          log_perror("%s", buf_string(folder));
           goto main_curses; // TEST41: neomutt -z -f missing
         case 1:
-          mutt_error(_("Mailbox is empty"));
+          log_fault(_("Mailbox is empty"));
           goto main_curses; // TEST42: neomutt -z -f /dev/null
       }
     }
@@ -1400,7 +1402,7 @@ main
     struct Mailbox *m_cur = mailbox_find(buf_string(folder));
     mutt_folder_hook(buf_string(folder), m_cur ? m_cur->name : NULL);
     mutt_startup_shutdown_hook(MUTT_STARTUP_HOOK);
-    mutt_debug(LL_NOTIFY, "NT_GLOBAL_STARTUP\n");
+    log_notify("NT_GLOBAL_STARTUP");
     notify_send(NeoMutt->notify, NT_GLOBAL, NT_GLOBAL_STARTUP, NULL);
 
     notify_send(NeoMutt->notify_resize, NT_RESIZE, 0, NULL);
@@ -1415,7 +1417,7 @@ main
         account_mailbox_remove(m->account, m);
 
       mailbox_free(&m);
-      mutt_error(_("Unable to open mailbox %s"), buf_string(folder));
+      log_fault(_("Unable to open mailbox %s"), buf_string(folder));
       repeat_error = false;
     }
     if (m || !explicit_folder)
@@ -1464,7 +1466,7 @@ main_exit:
     notify_observer_remove(NeoMutt->notify, main_timeout_observer, NULL);
   }
   g_slist_free_full(g_steal_pointer(&commands), g_free);
-  MuttLogger = log_disp_queue;
+  MuttLogWriter = log_writer_queue;
   buf_pool_release(&folder);
   buf_pool_release(&expanded_infile);
   buf_pool_release(&tempfile);
@@ -1487,7 +1489,7 @@ main_exit:
   config_cache_cleanup();
   neomutt_free(&NeoMutt);
   cs_free(&cs);
-  log_queue_flush(log_disp_terminal);
+  log_queue_flush(log_writer_terminal);
   mutt_log_stop();
   return rc;
 }

@@ -53,7 +53,7 @@ void simple_colors_init(void)
   }
 
   // Set some defaults
-  color_debug(LL_DEBUG5, "init indicator, markers, etc\n");
+  log_color_debug("init indicator, markers, etc\n");
   SimpleColors[MT_COLOR_BOLD].attrs = A_BOLD;
   SimpleColors[MT_COLOR_INDICATOR].attrs = A_REVERSE;
   SimpleColors[MT_COLOR_ITALIC].attrs = A_ITALIC;
@@ -70,7 +70,7 @@ void simple_colors_init(void)
  */
 void simple_colors_cleanup(void)
 {
-  color_debug(LL_DEBUG5, "clean up defs\n");
+  log_color_debug("clean up defs\n");
   for (size_t i = 0; i < MT_COLOR_MAX; i++)
   {
     attr_color_clear(&SimpleColors[i]);
@@ -89,12 +89,12 @@ struct AttrColor *simple_color_get(enum ColorId cid)
 {
   if (cid >= MT_COLOR_MAX)
   {
-    mutt_debug(LL_DEBUG1, "color overflow %d/%d", cid, MT_COLOR_MAX);
+    log_debug1("color overflow %d/%d", cid, MT_COLOR_MAX);
     return NULL;
   }
   if (cid <= MT_COLOR_NONE)
   {
-    mutt_debug(LL_DEBUG1, "color underflow %d/%d", cid, MT_COLOR_NONE);
+    log_debug1("color underflow %d/%d", cid, MT_COLOR_NONE);
     return NULL;
   }
 
@@ -137,7 +137,7 @@ struct AttrColor *simple_color_set(enum ColorId cid, struct AttrColor *ac_val)
 
   struct Buffer *buf = buf_pool_get();
   get_colorid_name(cid, buf);
-  color_debug(LL_DEBUG5, "NT_COLOR_SET: %s\n", buf->data);
+  log_color_debug("NT_COLOR_SET: %s\n", buf->data);
   buf_pool_release(&buf);
 
   struct EventColor ev_c = { cid, NULL };
@@ -158,7 +158,7 @@ void simple_color_reset(enum ColorId cid)
 
   struct Buffer *buf = buf_pool_get();
   get_colorid_name(cid, buf);
-  color_debug(LL_DEBUG5, "NT_COLOR_RESET: %s\n", buf->data);
+  log_color_debug("NT_COLOR_RESET: %s\n", buf->data);
   buf_pool_release(&buf);
 
   attr_color_clear(ac);

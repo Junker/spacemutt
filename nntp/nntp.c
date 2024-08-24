@@ -127,7 +127,7 @@ void nntp_hashelem_free(int type, void *obj, intptr_t data)
 static int nntp_connect_error(struct NntpAccountData *adata)
 {
   adata->status = NNTP_NONE;
-  mutt_error(_("Server closed connection"));
+  log_fault(_("Server closed connection"));
   return -1;
 }
 
@@ -247,7 +247,7 @@ static int nntp_capabilities(struct NntpAccountData *adata)
 
   mutt_socket_close(conn);
   adata->status = NNTP_BYE;
-  mutt_error(_("Server doesn't support reader mode"));
+  log_fault(_("Server doesn't support reader mode"));
   return -1;
 }
 
@@ -352,7 +352,7 @@ static int nntp_attempt_features(struct NntpAccountData *adata)
         }
 
         const int chunk = mutt_socket_readln_d(adata->overview_fmt + off,
-                                               buflen - off, conn, MUTT_SOCK_LOG_HDR);
+                                               buflen - off, conn, MUTT_SOCK_LOG_LEVEL_HDR);
         if (chunk < 0)
         {
           FREE(&adata->overview_fmt);
@@ -426,20 +426,20 @@ static bool nntp_memchr(char **haystack, const char *sentinel, int needle)
  * @param pfx logging prefix (protocol etc.)
  * @param dbg which loglevel does message belong
  */
-static void nntp_log_binbuf(const char *buf, size_t len, const char *pfx, int dbg)
+static void nntp_log_binbuf(const char *buf, size_t len, const char *pfx, GLogLevelFlags dbg)
 {
   char tmp[1024] = { 0 };
   char *p = tmp;
   char *sentinel = tmp + len;
 
   const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
-  if (c_debug_level < dbg)
+  if (c_debug_level < log_level_to_debug_level(dbg))
     return;
   memcpy(tmp, buf, len);
   tmp[len] = '\0';
   while (nntp_memchr(&p, sentinel, '\0'))
     *p = '.';
-  mutt_debug(dbg, "%s> %s\n", pfx, tmp);
+  log(dbg, "%s> %s\n", pfx, tmp);
 }
 #endif
 
@@ -490,13 +490,13 @@ static int nntp_auth(struct NntpAccountData *adata)
       p++;
     }
 
-    mutt_debug(LL_DEBUG1, "available methods: %s\n", adata->authenticators);
+    log_debug1("available methods: %s", adata->authenticators);
     a = authenticators;
     while (true)
     {
       if (!a)
       {
-        mutt_error(_("No authenticators available"));
+        log_fault(_("No authenticators available"));
         break;
       }
 
@@ -519,16 +519,16 @@ static int nntp_auth(struct NntpAccountData *adata)
         if ((*m != '\0') && (*m != ' '))
           continue;
       }
-      mutt_debug(LL_DEBUG1, "trying method %s\n", method);
+      log_debug1("trying method %s", method);
 
       /* AUTHINFO USER authentication */
       if (mutt_str_equal(method, "USER"))
       {
         // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-        mutt_message(_("Authenticating (%s)..."), method);
+        log_message(_("Authenticating (%s)..."), method);
         buf_printf(buf, "AUTHINFO USER %s\r\n", conn->account.user);
         if ((mutt_socket_send(conn, buf_string(buf)) < 0) ||
-            (mutt_socket_buffer_readln_d(buf, conn, MUTT_SOCK_LOG_FULL) < 0))
+            (mutt_socket_buffer_readln_d(buf, conn, MUTT_SOCK_LOG_LEVEL_FULL) < 0))
         {
           break;
         }
@@ -543,10 +543,10 @@ static int nntp_auth(struct NntpAccountData *adata)
         /* username accepted, sending password */
         if (mutt_str_startswith(buf_string(buf), "381"))
         {
-          mutt_debug(MUTT_SOCK_LOG_FULL, "%d> AUTHINFO PASS *\n", conn->fd);
+          log(MUTT_SOCK_LOG_LEVEL_FULL, "%d> AUTHINFO PASS *\n", conn->fd);
           buf_printf(buf, "AUTHINFO PASS %s\r\n", conn->account.pass);
-          if ((mutt_socket_send_d(conn, buf_string(buf), MUTT_SOCK_LOG_FULL) < 0) ||
-              (mutt_socket_buffer_readln_d(buf, conn, MUTT_SOCK_LOG_FULL) < 0))
+          if ((mutt_socket_send_d(conn, buf_string(buf), MUTT_SOCK_LOG_LEVEL_FULL) < 0) ||
+              (mutt_socket_buffer_readln_d(buf, conn, MUTT_SOCK_LOG_LEVEL_FULL) < 0))
           {
             break;
           }
@@ -576,7 +576,7 @@ static int nntp_auth(struct NntpAccountData *adata)
 
         if (mutt_sasl_client_new(conn, &saslconn) < 0)
         {
-          mutt_debug(LL_DEBUG1, "error allocating SASL connection\n");
+          log_debug1("error allocating SASL connection");
           continue;
         }
 
@@ -591,12 +591,12 @@ static int nntp_auth(struct NntpAccountData *adata)
         if ((rc != SASL_OK) && (rc != SASL_CONTINUE))
         {
           sasl_dispose(&saslconn);
-          mutt_debug(LL_DEBUG1, "error starting SASL authentication exchange\n");
+          log_debug1("error starting SASL authentication exchange");
           continue;
         }
 
         // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-        mutt_message(_("Authenticating (%s)..."), method);
+        log_message(_("Authenticating (%s)..."), method);
         buf_printf(buf, "AUTHINFO SASL %s", method);
 
         /* looping protocol */
@@ -605,14 +605,14 @@ static int nntp_auth(struct NntpAccountData *adata)
           /* send out client response */
           if (client_len)
           {
-            nntp_log_binbuf(client_out, client_len, "SASL", MUTT_SOCK_LOG_FULL);
+            nntp_log_binbuf(client_out, client_len, "SASL", MUTT_SOCK_LOG_LEVEL_FULL);
             if (!buf_is_empty(buf))
               buf_addch(buf, ' ');
             len = buf_len(buf);
             if (sasl_encode64(client_out, client_len, buf->data + len,
                               buf->dsize - len, &len) != SASL_OK)
             {
-              mutt_debug(LL_DEBUG1, "error base64-encoding client response\n");
+              log_debug1("error base64-encoding client response");
               break;
             }
           }
@@ -620,38 +620,38 @@ static int nntp_auth(struct NntpAccountData *adata)
           buf_addstr(buf, "\r\n");
           if (buf_find_char(buf, ' '))
           {
-            mutt_debug(MUTT_SOCK_LOG_CMD, "%d> AUTHINFO SASL %s%s\n", conn->fd,
+            log(MUTT_SOCK_LOG_LEVEL_CMD, "%d> AUTHINFO SASL %s%s\n", conn->fd,
                        method, client_len ? " sasl_data" : "");
           }
           else
           {
-            mutt_debug(MUTT_SOCK_LOG_CMD, "%d> sasl_data\n", conn->fd);
+            log(MUTT_SOCK_LOG_LEVEL_CMD, "%d> sasl_data\n", conn->fd);
           }
           client_len = 0;
-          if ((mutt_socket_send_d(conn, buf_string(buf), MUTT_SOCK_LOG_FULL) < 0) ||
-              (mutt_socket_readln_d(inbuf, sizeof(inbuf), conn, MUTT_SOCK_LOG_FULL) < 0))
+          if ((mutt_socket_send_d(conn, buf_string(buf), MUTT_SOCK_LOG_LEVEL_FULL) < 0) ||
+              (mutt_socket_readln_d(inbuf, sizeof(inbuf), conn, MUTT_SOCK_LOG_LEVEL_FULL) < 0))
           {
             break;
           }
           if (!mutt_str_startswith(inbuf, "283 ") && !mutt_str_startswith(inbuf, "383 "))
           {
-            mutt_debug(MUTT_SOCK_LOG_FULL, "%d< %s\n", conn->fd, inbuf);
+            log(MUTT_SOCK_LOG_LEVEL_FULL, "%d< %s\n", conn->fd, inbuf);
             break;
           }
           inbuf[3] = '\0';
-          mutt_debug(MUTT_SOCK_LOG_FULL, "%d< %s sasl_data\n", conn->fd, inbuf);
+          log(MUTT_SOCK_LOG_LEVEL_FULL, "%d< %s sasl_data\n", conn->fd, inbuf);
 
           if (mutt_str_equal("=", inbuf + 4))
             len = 0;
           else if (sasl_decode64(inbuf + 4, strlen(inbuf + 4), buf->data,
                                  buf->dsize - 1, &len) != SASL_OK)
           {
-            mutt_debug(LL_DEBUG1, "error base64-decoding server response\n");
+            log_debug1("error base64-decoding server response");
             break;
           }
           else
           {
-            nntp_log_binbuf(buf_string(buf), len, "SASL", MUTT_SOCK_LOG_FULL);
+            nntp_log_binbuf(buf_string(buf), len, "SASL", MUTT_SOCK_LOG_LEVEL_FULL);
           }
 
           while (true)
@@ -697,7 +697,7 @@ static int nntp_auth(struct NntpAccountData *adata)
       }
 
       // L10N: %s is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-      mutt_error(_("%s authentication failed"), method);
+      log_fault(_("%s authentication failed"), method);
       break;
     }
     break;
@@ -708,7 +708,7 @@ static int nntp_auth(struct NntpAccountData *adata)
   conn->account.flags = flags;
   if (conn->fd < 0)
   {
-    mutt_error(_("Server closed connection"));
+    log_fault(_("Server closed connection"));
   }
   else
   {
@@ -846,7 +846,7 @@ static int nntp_fetch_lines(struct NntpMboxData *mdata, char *query, size_t qlen
     while (true)
     {
       char *p = NULL;
-      int chunk = mutt_socket_readln_d(buf, sizeof(buf), mdata->adata->conn, MUTT_SOCK_LOG_FULL);
+      int chunk = mutt_socket_readln_d(buf, sizeof(buf), mdata->adata->conn, MUTT_SOCK_LOG_LEVEL_FULL);
       if (chunk < 0)
       {
         mdata->adata->status = NNTP_NONE;
@@ -918,7 +918,7 @@ static int fetch_description(char *line, void *data)
   if (mdata && !mutt_str_equal(desc, mdata->desc))
   {
     mutt_str_replace(&mdata->desc, desc);
-    mutt_debug(LL_DEBUG2, "group: %s, desc: %s\n", line, desc);
+    log_debug2("group: %s, desc: %s", line, desc);
   }
   return 0;
 }
@@ -953,7 +953,7 @@ static int get_description(struct NntpMboxData *mdata, const char *wildmat, cons
   int rc = nntp_fetch_lines(mdata, buf, sizeof(buf), msg, fetch_description, adata);
   if (rc > 0)
   {
-    mutt_error("%s: %s", cmd, buf);
+    log_fault("%s: %s", cmd, buf);
   }
   return rc;
 }
@@ -1067,7 +1067,7 @@ static int parse_overview_line(char *line, void *data)
     *field++ = '\0';
   if (sscanf(line, ANUM_FMT, &anum) != 1)
     return 0;
-  mutt_debug(LL_DEBUG2, "" ANUM_FMT "\n", anum);
+  log_debug2("" ANUM_FMT "", anum);
 
   /* out of bounds */
   if ((anum < fc->first) || (anum > fc->last))
@@ -1132,7 +1132,7 @@ static int parse_overview_line(char *line, void *data)
     struct HCacheEntry hce = hcache_fetch_email(fc->hc, buf, strlen(buf), 0);
     if (hce.email)
     {
-      mutt_debug(LL_DEBUG2, "hcache_fetch_email %s\n", buf);
+      log_debug2("hcache_fetch_email %s", buf);
       email_free(&e);
       e = hce.email;
       m->emails[m->msg_count] = e;
@@ -1145,7 +1145,7 @@ static int parse_overview_line(char *line, void *data)
       {
         if (mdata->bcache)
         {
-          mutt_debug(LL_DEBUG2, "mutt_bcache_del %s\n", buf);
+          log_debug2("mutt_bcache_del %s", buf);
           mutt_bcache_del(mdata->bcache, buf);
         }
         save = false;
@@ -1154,7 +1154,7 @@ static int parse_overview_line(char *line, void *data)
     else
     {
       /* not cached yet, store header */
-      mutt_debug(LL_DEBUG2, "hcache_store_email %s\n", buf);
+      log_debug2("hcache_store_email %s", buf);
       hcache_store_email(fc->hc, buf, strlen(buf), e, 0);
     }
   }
@@ -1233,7 +1233,7 @@ static int nntp_fetch_headers(struct Mailbox *m, void *hc, anum_t first, anum_t 
   if (c_nntp_listgroup && mdata->adata->hasLISTGROUP && !mdata->deleted)
   {
     if (m->verbose)
-      mutt_message(_("Fetching list of articles..."));
+      log_message(_("Fetching list of articles..."));
     if (mdata->adata->hasLISTGROUPrange)
     {
       snprintf(buf, sizeof(buf), "LISTGROUP %s " ANUM_FMT "-" ANUM_FMT "\r\n",
@@ -1246,7 +1246,7 @@ static int nntp_fetch_headers(struct Mailbox *m, void *hc, anum_t first, anum_t 
     rc = nntp_fetch_lines(mdata, buf, sizeof(buf), NULL, fetch_numbers, &fc);
     if (rc > 0)
     {
-      mutt_error("LISTGROUP: %s", buf);
+      log_fault("LISTGROUP: %s", buf);
     }
     if (rc == 0)
     {
@@ -1258,14 +1258,14 @@ static int nntp_fetch_headers(struct Mailbox *m, void *hc, anum_t first, anum_t 
         snprintf(buf, sizeof(buf), ANUM_FMT, current);
         if (mdata->bcache)
         {
-          mutt_debug(LL_DEBUG2, "#1 mutt_bcache_del %s\n", buf);
+          log_debug2("#1 mutt_bcache_del %s", buf);
           mutt_bcache_del(mdata->bcache, buf);
         }
 
 #ifdef USE_HCACHE
         if (fc.hc)
         {
-          mutt_debug(LL_DEBUG2, "hcache_delete_email %s\n", buf);
+          log_debug2("hcache_delete_email %s", buf);
           hcache_delete_email(fc.hc, buf, strlen(buf));
         }
 #endif
@@ -1304,7 +1304,7 @@ static int nntp_fetch_headers(struct Mailbox *m, void *hc, anum_t first, anum_t 
     struct HCacheEntry hce = hcache_fetch_email(fc.hc, buf, strlen(buf), 0);
     if (hce.email)
     {
-      mutt_debug(LL_DEBUG2, "hcache_fetch_email %s\n", buf);
+      log_debug2("hcache_fetch_email %s", buf);
       e = hce.email;
       m->emails[m->msg_count] = e;
       e->edata = NULL;
@@ -1315,7 +1315,7 @@ static int nntp_fetch_headers(struct Mailbox *m, void *hc, anum_t first, anum_t 
         email_free(&e);
         if (mdata->bcache)
         {
-          mutt_debug(LL_DEBUG2, "#2 mutt_bcache_del %s\n", buf);
+          log_debug2("#2 mutt_bcache_del %s", buf);
           mutt_bcache_del(mdata->bcache, buf);
         }
         continue;
@@ -1345,7 +1345,7 @@ static int nntp_fetch_headers(struct Mailbox *m, void *hc, anum_t first, anum_t 
       FILE *fp = mutt_file_mkstemp();
       if (!fp)
       {
-        mutt_perror(_("Can't create temporary file"));
+        log_perror(_("Can't create temporary file"));
         rc = -1;
         break;
       }
@@ -1361,7 +1361,7 @@ static int nntp_fetch_headers(struct Mailbox *m, void *hc, anum_t first, anum_t 
         /* invalid response */
         if (!mutt_str_startswith(buf, "423"))
         {
-          mutt_error("HEAD: %s", buf);
+          log_fault("HEAD: %s", buf);
           break;
         }
 
@@ -1369,7 +1369,7 @@ static int nntp_fetch_headers(struct Mailbox *m, void *hc, anum_t first, anum_t 
         if (mdata->bcache)
         {
           snprintf(buf, sizeof(buf), ANUM_FMT, current);
-          mutt_debug(LL_DEBUG2, "#3 mutt_bcache_del %s\n", buf);
+          log_debug2("#3 mutt_bcache_del %s", buf);
           mutt_bcache_del(mdata->bcache, buf);
         }
         rc = 0;
@@ -1418,7 +1418,7 @@ static int nntp_fetch_headers(struct Mailbox *m, void *hc, anum_t first, anum_t 
     rc = nntp_fetch_lines(mdata, buf, sizeof(buf), NULL, parse_overview_line, &fc);
     if (rc > 0)
     {
-      mutt_error("%s: %s", cmd, buf);
+      log_fault("%s: %s", cmd, buf);
     }
   }
 
@@ -1503,7 +1503,7 @@ static enum MxStatus check_mailbox(struct Mailbox *m)
   if (adata->check_time + c_nntp_poll > now)
     return MX_STATUS_OK;
 
-  mutt_message(_("Checking for new messages..."));
+  log_message(_("Checking for new messages..."));
   if (nntp_newsrc_parse(adata) < 0)
     return MX_STATUS_ERROR;
 
@@ -1572,7 +1572,7 @@ static enum MxStatus check_mailbox(struct Mailbox *m)
         {
           bool deleted;
 
-          mutt_debug(LL_DEBUG2, "#1 hcache_fetch_email %s\n", buf);
+          log_debug2("#1 hcache_fetch_email %s", buf);
           e = hce.email;
           e->edata = NULL;
           deleted = e->deleted;
@@ -1615,7 +1615,7 @@ static enum MxStatus check_mailbox(struct Mailbox *m)
       struct HCacheEntry hce = hcache_fetch_email(hc, buf, strlen(buf), 0);
       if (hce.email)
       {
-        mutt_debug(LL_DEBUG2, "#2 hcache_fetch_email %s\n", buf);
+        log_debug2("#2 hcache_fetch_email %s", buf);
         mx_alloc_memory(m, m->msg_count);
 
         e = hce.email;
@@ -1626,7 +1626,7 @@ static enum MxStatus check_mailbox(struct Mailbox *m)
           email_free(&e);
           if (mdata->bcache)
           {
-            mutt_debug(LL_DEBUG2, "mutt_bcache_del %s\n", buf);
+            log_debug2("mutt_bcache_del %s", buf);
             mutt_bcache_del(mdata->bcache, buf);
           }
           continue;
@@ -1718,7 +1718,7 @@ static int nntp_date(struct NntpAccountData *adata, time_t *now)
       *now = timegm(&tm);
       if (*now >= 0)
       {
-        mutt_debug(LL_DEBUG1, "server time is %llu\n", (unsigned long long) *now);
+        log_debug1("server time is %llu", (unsigned long long) *now);
         return 0;
       }
     }
@@ -1794,7 +1794,7 @@ int nntp_open_connection(struct NntpAccountData *adata)
   {
     mutt_socket_close(conn);
     mutt_str_remove_trailing_ws(buf);
-    mutt_error("%s", buf);
+    log_fault("%s", buf);
     goto done;
   }
 
@@ -1825,7 +1825,7 @@ int nntp_open_connection(struct NntpAccountData *adata)
     {
       /* error if has capabilities, ignore result if no capabilities */
       mutt_socket_close(conn);
-      mutt_error(_("Could not switch to reader mode"));
+      log_fault(_("Could not switch to reader mode"));
       goto done;
     }
 
@@ -1838,7 +1838,7 @@ int nntp_open_connection(struct NntpAccountData *adata)
     }
   }
 
-  mutt_message(_("Connected to %s. %s"), conn->account.host,
+  log_message(_("Connected to %s. %s"), conn->account.host,
                posting ? _("Posting is ok") : _("Posting is NOT ok"));
   mutt_sleep(1);
 
@@ -1868,14 +1868,14 @@ int nntp_open_connection(struct NntpAccountData *adata)
       if (!mutt_str_startswith(buf, "382"))
       {
         adata->use_tls = 0;
-        mutt_error("STARTTLS: %s", buf);
+        log_fault("STARTTLS: %s", buf);
       }
       else if (mutt_ssl_starttls(conn))
       {
         adata->use_tls = 0;
         adata->status = NNTP_NONE;
         mutt_socket_close(adata->conn);
-        mutt_error(_("Could not negotiate TLS connection"));
+        log_fault(_("Could not negotiate TLS connection"));
         goto done;
       }
       else
@@ -1920,7 +1920,7 @@ int nntp_open_connection(struct NntpAccountData *adata)
     if (cap > 0)
     {
       mutt_socket_close(conn);
-      mutt_error(_("Could not switch to reader mode"));
+      log_fault(_("Could not switch to reader mode"));
       goto done;
     }
   }
@@ -1969,7 +1969,7 @@ int nntp_post(struct Mailbox *m, const char *msg)
   FILE *fp = mutt_file_fopen(msg, "r");
   if (!fp)
   {
-    mutt_perror("%s", msg);
+    log_perror("%s", msg);
     goto done;
   }
 
@@ -1981,7 +1981,7 @@ int nntp_post(struct Mailbox *m, const char *msg)
   }
   if (buf[0] != '3')
   {
-    mutt_error(_("Can't post article: %s"), buf);
+    log_fault(_("Can't post article: %s"), buf);
     mutt_file_fclose(&fp);
     goto done;
   }
@@ -1999,7 +1999,7 @@ int nntp_post(struct Mailbox *m, const char *msg)
       buf[len] = '\0';
     }
     if (mutt_socket_send_d(mdata->adata->conn, (buf[1] == '.') ? buf : buf + 1,
-                           MUTT_SOCK_LOG_FULL) < 0)
+                           MUTT_SOCK_LOG_LEVEL_FULL) < 0)
     {
       mutt_file_fclose(&fp);
       nntp_connect_error(mdata->adata);
@@ -2009,8 +2009,8 @@ int nntp_post(struct Mailbox *m, const char *msg)
   mutt_file_fclose(&fp);
 
   if (((buf[strlen(buf) - 1] != '\n') &&
-       (mutt_socket_send_d(mdata->adata->conn, "\r\n", MUTT_SOCK_LOG_FULL) < 0)) ||
-      (mutt_socket_send_d(mdata->adata->conn, ".\r\n", MUTT_SOCK_LOG_FULL) < 0) ||
+       (mutt_socket_send_d(mdata->adata->conn, "\r\n", MUTT_SOCK_LOG_LEVEL_FULL) < 0)) ||
+      (mutt_socket_send_d(mdata->adata->conn, ".\r\n", MUTT_SOCK_LOG_LEVEL_FULL) < 0) ||
       (mutt_socket_readln(buf, sizeof(buf), mdata->adata->conn) < 0))
   {
     nntp_connect_error(mdata->adata);
@@ -2018,7 +2018,7 @@ int nntp_post(struct Mailbox *m, const char *msg)
   }
   if (buf[0] != '2')
   {
-    mutt_error(_("Can't post article: %s"), buf);
+    log_fault(_("Can't post article: %s"), buf);
     goto done;
   }
   rc = 0;
@@ -2044,7 +2044,7 @@ int nntp_active_fetch(struct NntpAccountData *adata, bool mark_new)
 
   snprintf(msg, sizeof(msg), _("Loading list of groups from server %s..."),
            adata->conn->account.host);
-  mutt_message("%s", msg);
+  log_message("%s", msg);
   if (nntp_date(adata, &adata->newgroups_time) < 0)
     return -1;
 
@@ -2057,7 +2057,7 @@ int nntp_active_fetch(struct NntpAccountData *adata, bool mark_new)
   {
     if (rc > 0)
     {
-      mutt_error("LIST: %s", buf);
+      log_fault("LIST: %s", buf);
     }
     return -1;
   }
@@ -2118,7 +2118,7 @@ int nntp_check_new_groups(struct Mailbox *m, struct NntpAccountData *adata)
   const bool c_show_new_news = cs_subset_bool(NeoMutt->sub, "show_new_news");
   if (c_show_new_news)
   {
-    mutt_message(_("Checking for new messages..."));
+    log_message(_("Checking for new messages..."));
     for (i = 0; i < adata->groups_num; i++)
     {
       struct NntpMboxData *mdata = adata->groups_list[i];
@@ -2139,7 +2139,7 @@ int nntp_check_new_groups(struct Mailbox *m, struct NntpAccountData *adata)
   }
 
   /* get list of new groups */
-  mutt_message("%s", msg);
+  log_message("%s", msg);
   if (nntp_date(adata, &now) < 0)
     return -1;
   tmp_mdata.adata = adata;
@@ -2156,7 +2156,7 @@ int nntp_check_new_groups(struct Mailbox *m, struct NntpAccountData *adata)
   {
     if (rc > 0)
     {
-      mutt_error("NEWGROUPS: %s", buf);
+      log_fault("NEWGROUPS: %s", buf);
     }
     return -1;
   }
@@ -2223,7 +2223,7 @@ int nntp_check_msgid(struct Mailbox *m, const char *msgid)
   FILE *fp = mutt_file_mkstemp();
   if (!fp)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     return -1;
   }
 
@@ -2236,7 +2236,7 @@ int nntp_check_msgid(struct Mailbox *m, const char *msgid)
       return -1;
     if (mutt_str_startswith(buf, "430"))
       return 1;
-    mutt_error("HEAD: %s", buf);
+    log_fault("HEAD: %s", buf);
     return -1;
   }
 
@@ -2316,11 +2316,11 @@ int nntp_check_children(struct Mailbox *m, const char *msgid)
     {
       if (!mutt_str_startswith(buf, "500"))
       {
-        mutt_error("XPAT: %s", buf);
+        log_fault("XPAT: %s", buf);
       }
       else
       {
-        mutt_error(_("Unable to find child articles because server does not support XPAT command"));
+        log_fault(_("Unable to find child articles because server does not support XPAT command"));
       }
     }
     return -1;
@@ -2397,7 +2397,7 @@ static enum MxOpenReturns nntp_mbox_open(struct Mailbox *m)
       !((url->scheme == U_NNTP) || (url->scheme == U_NNTPS)))
   {
     url_free(&url);
-    mutt_error(_("%s is an invalid newsgroup specification"), mailbox_path(m));
+    log_fault(_("%s is an invalid newsgroup specification"), mailbox_path(m));
     return MX_OPEN_ERROR;
   }
 
@@ -2438,7 +2438,7 @@ static enum MxOpenReturns nntp_mbox_open(struct Mailbox *m)
   if (!mdata)
   {
     nntp_newsrc_close(adata);
-    mutt_error(_("Newsgroup %s not found on the server"), group);
+    log_fault(_("Newsgroup %s not found on the server"), group);
     url_free(&url);
     return MX_OPEN_ERROR;
   }
@@ -2449,7 +2449,7 @@ static enum MxOpenReturns nntp_mbox_open(struct Mailbox *m)
     m->readonly = true;
 
   /* select newsgroup */
-  mutt_message(_("Selecting %s..."), group);
+  log_message(_("Selecting %s..."), group);
   url_free(&url);
   buf[0] = '\0';
   if (nntp_query(mdata, buf, sizeof(buf)) < 0)
@@ -2461,7 +2461,7 @@ static enum MxOpenReturns nntp_mbox_open(struct Mailbox *m)
   /* newsgroup not found, remove it */
   if (mutt_str_startswith(buf, "411"))
   {
-    mutt_error(_("Newsgroup %s has been removed from the server"), mdata->group);
+    log_fault(_("Newsgroup %s has been removed from the server"), mdata->group);
     if (!mdata->deleted)
     {
       mdata->deleted = true;
@@ -2481,7 +2481,7 @@ static enum MxOpenReturns nntp_mbox_open(struct Mailbox *m)
     if (sscanf(buf, "211 " ANUM_FMT " " ANUM_FMT " " ANUM_FMT, &count, &first, &last) != 3)
     {
       nntp_newsrc_close(adata);
-      mutt_error("GROUP: %s", buf);
+      log_fault("GROUP: %s", buf);
       return MX_OPEN_ERROR;
     }
     mdata->first_message = first;
@@ -2587,7 +2587,7 @@ static enum MxStatus nntp_mbox_sync(struct Mailbox *m)
     snprintf(buf, sizeof(buf), ANUM_FMT, nntp_edata_get(e)->article_num);
     if (mdata->bcache && e->deleted)
     {
-      mutt_debug(LL_DEBUG2, "mutt_bcache_del %s\n", buf);
+      log_debug2("mutt_bcache_del %s", buf);
       mutt_bcache_del(mdata->bcache, buf);
     }
 
@@ -2596,7 +2596,7 @@ static enum MxStatus nntp_mbox_sync(struct Mailbox *m)
     {
       if (e->deleted && !e->read)
         mdata->unread--;
-      mutt_debug(LL_DEBUG2, "hcache_store_email %s\n", buf);
+      log_debug2("hcache_store_email %s", buf);
       hcache_store_email(hc, buf, strlen(buf), e, 0);
     }
 #endif
@@ -2680,7 +2680,7 @@ static bool nntp_msg_open(struct Mailbox *m, struct Message *msg, struct Email *
 
     /* create new cache file */
     const char *fetch_msg = _("Fetching message...");
-    mutt_message("%s", fetch_msg);
+    log_message("%s", fetch_msg);
     msg->fp = mutt_bcache_put(mdata->bcache, article);
     if (!msg->fp)
     {
@@ -2692,7 +2692,7 @@ static bool nntp_msg_open(struct Mailbox *m, struct Message *msg, struct Email *
       msg->fp = mutt_file_fopen(acache->path, "w+");
       if (!msg->fp)
       {
-        mutt_perror("%s", acache->path);
+        log_perror("%s", acache->path);
         unlink(acache->path);
         FREE(&acache->path);
         return false;
@@ -2716,12 +2716,12 @@ static bool nntp_msg_open(struct Mailbox *m, struct Message *msg, struct Email *
       {
         if (mutt_str_startswith(buf, nntp_edata_get(e)->article_num ? "423" : "430"))
         {
-          mutt_error(_("Article %s not found on the server"),
+          log_fault(_("Article %s not found on the server"),
                      nntp_edata_get(e)->article_num ? article : e->env->message_id);
         }
         else
         {
-          mutt_error("ARTICLE: %s", buf);
+          log_fault("ARTICLE: %s", buf);
         }
       }
       return false;

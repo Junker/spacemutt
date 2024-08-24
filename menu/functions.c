@@ -97,7 +97,7 @@ static int search(struct Menu *menu, int op)
   if (rc != 0)
   {
     regerror(rc, &re, buf->data, buf->dsize);
-    mutt_error("%s", buf_string(buf));
+    log_fault("%s", buf_string(buf));
     rc = -1;
     goto done;
   }
@@ -105,7 +105,7 @@ static int search(struct Menu *menu, int op)
   rc = menu->current + search_dir;
 search_next:
   if (wrap)
-    mutt_message(_("Search wrapped to top"));
+    log_message(_("Search wrapped to top"));
   while ((rc >= 0) && (rc < menu->max))
   {
     if (menu->search(menu, &re, rc) == 0)
@@ -124,7 +124,7 @@ search_next:
     goto search_next;
   }
   regfree(&re);
-  mutt_error(_("Not found"));
+  log_fault(_("Not found"));
   rc = -1;
 
 done:
@@ -241,7 +241,7 @@ static int op_jump(struct Menu *menu, int op)
 {
   if (menu->max == 0)
   {
-    mutt_error(_("No entries"));
+    log_fault(_("No entries"));
     return FR_SUCCESS;
   }
 
@@ -262,7 +262,7 @@ static int op_jump(struct Menu *menu, int op)
     }
     else
     {
-      mutt_error(_("Invalid index number"));
+      log_fault(_("Invalid index number"));
     }
   }
 
@@ -337,7 +337,7 @@ int menu_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return rc;
 }

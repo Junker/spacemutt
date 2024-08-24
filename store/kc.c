@@ -54,7 +54,7 @@ static StoreHandle *store_kyotocabinet_open(const char *path, bool create)
   if (!kcdbopen(db, buf_string(kcdbpath), KCOWRITER | (create ? KCOCREATE : 0)))
   {
     int ecode = kcdbecode(db);
-    mutt_debug(LL_DEBUG2, "kcdbopen failed for %s: %s (ecode %d)\n",
+    log_debug2("kcdbopen failed for %s: %s (ecode %d)",
                buf_string(kcdbpath), kcdbemsg(db), ecode);
     kcdbdel(db);
     db = NULL;
@@ -141,7 +141,7 @@ static void store_kyotocabinet_close(StoreHandle **ptr)
   if (!kcdbclose(db))
   {
     int ecode = kcdbecode(db);
-    mutt_debug(LL_DEBUG2, "kcdbclose failed: %s (ecode %d)\n", kcdbemsg(db), ecode);
+    log_debug2("kcdbclose failed: %s (ecode %d)", kcdbemsg(db), ecode);
   }
   kcdbdel(db);
   *ptr = NULL;

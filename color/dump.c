@@ -457,7 +457,7 @@ void color_dump(void)
   {
     // LCOV_EXCL_START
     // L10N: '%s' is the file name of the temporary file
-    mutt_error(_("Could not create temporary file %s"), buf_string(tmp_file));
+    log_fault(_("Could not create temporary file %s"), buf_string(tmp_file));
     buf_pool_release(&tmp_file);
     return;
     // LCOV_EXCL_STOP
@@ -474,7 +474,7 @@ void color_dump(void)
   merged_colors_dump(buf);
   ansi_colors_dump(buf);
   curses_colors_dump(buf);
-  log_multiline(LL_DEBUG1, buf_string(buf));
+  log_debug1(buf_string(buf));
 #endif
 
   mutt_file_save_str(fp, buf_string(buf));

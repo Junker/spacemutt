@@ -43,7 +43,7 @@ static void win_dump(struct MuttWindow *win, int indent)
 {
   bool visible = mutt_window_is_visible(win);
 
-  mutt_debug(LL_DEBUG1, "%*s%s[%d,%d] %s-%c \033[1;33m%s\033[0m (%d,%d)%s%s\n",
+  log_debug1("%*s%s[%d,%d] %s-%c \033[1;33m%s\033[0m (%d,%d)%s%s",
              indent, "", visible ? "✓" : "✗\033[1;30m", win->state.col_offset,
              win->state.row_offset, name_window_size(win),
              (win->orient == MUTT_WIN_ORIENT_VERTICAL) ? 'V' : 'H',
@@ -96,13 +96,13 @@ static void win_serialise(struct MuttWindow *win, struct Buffer *buf)
 void debug_win_dump(void)
 {
   WinFocus = window_get_focus();
-  mutt_debug(LL_DEBUG1, "\n");
+  log_debug1("\n");
   win_dump(RootWindow, 0);
-  mutt_debug(LL_DEBUG1, "\n");
+  log_debug1("\n");
 #ifdef DEBUG_SHOW_SERIALISE
   struct Buffer buf = buf_pool_get();
   win_serialise(RootWindow, buf);
-  mutt_debug(LL_DEBUG1, "%s\n", buf_string(buf));
+  log_debug1("%s", buf_string(buf));
   buf_pool_release(&buf);
 #endif
   WinFocus = NULL;

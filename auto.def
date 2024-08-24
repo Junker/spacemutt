@@ -446,6 +446,10 @@ if {[get-define want-everything]} {
   set conf_options "$::argv"
 }
 ###############################################################################
+# Math
+define-append LDFLAGS -lm
+
+###############################################################################
 # Glib
 pkgconf true glib-2.0
 

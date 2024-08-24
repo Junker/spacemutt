@@ -123,7 +123,7 @@ static bool send(struct Notify *source, struct Notify *current,
   if (!source || !current)
     return false;
 
-  mutt_debug(LL_NOTIFY, "send: %d, %p\n", event_type, event_data);
+  log_notify("send: %d, %p", event_type, event_data);
   struct ObserverNode *np = NULL;
   STAILQ_FOREACH(np, &current->observers, entries)
   {
@@ -137,7 +137,7 @@ static bool send(struct Notify *source, struct Notify *current,
                                    event_data, o->global_data };
       if (o->callback(&nc) < 0)
       {
-        mutt_debug(LL_DEBUG1, "failed to send notification: %s/%d, global %p, event %p\n",
+        log_debug1("failed to send notification: %s/%d, global %p, event %p",
                    NotifyTypeNames[event_type], event_subtype, o->global_data, event_data);
       }
     }
@@ -173,7 +173,7 @@ static bool send(struct Notify *source, struct Notify *current,
 bool notify_send(struct Notify *notify, enum NotifyType event_type,
                  int event_subtype, void *event_data)
 {
-  mutt_debug(LL_NOTIFY, "sending: %s/%d\n", NotifyTypeNames[event_type], event_subtype);
+  log_notify("sending: %s/%d", NotifyTypeNames[event_type], event_subtype);
   return send(notify, notify, event_type, event_subtype, event_data);
 }
 

@@ -113,7 +113,7 @@ bool mutt_path_tidy_dotdot(char *buf)
 
   char *dd = buf;
 
-  mutt_debug(LL_DEBUG3, "Collapse path: %s\n", buf);
+  log_debug3("Collapse path: %s", buf);
   while ((dd = strstr(dd, "/..")))
   {
     if (dd[3] == '/') /* paths follow dots */
@@ -154,7 +154,7 @@ bool mutt_path_tidy_dotdot(char *buf)
     dd = buf; /* restart at the beginning */
   }
 
-  mutt_debug(LL_DEBUG3, "Collapsed to:  %s\n", buf);
+  log_debug3("Collapsed to:  %s", buf);
   return true;
 }
 
@@ -204,7 +204,7 @@ bool mutt_path_tilde(struct Buffer *path, const char *homedir)
   {
     if (!homedir)
     {
-      mutt_debug(LL_DEBUG3, "no homedir\n");
+      log_debug3("no homedir");
       return false;
     }
 
@@ -223,7 +223,7 @@ bool mutt_path_tilde(struct Buffer *path, const char *homedir)
     struct passwd *pw = getpwnam(user);
     if (!pw || !pw->pw_dir)
     {
-      mutt_debug(LL_DEBUG1, "no such user: %s\n", user);
+      log_debug1("no such user: %s", user);
       return false;
     }
 
@@ -259,7 +259,7 @@ bool mutt_path_canon(struct Buffer *path, const char *homedir, bool is_dir)
     char cwd[PATH_MAX] = { 0 };
     if (!getcwd(cwd, sizeof(cwd)))
     {
-      mutt_debug(LL_DEBUG1, "getcwd failed: %s (%d)\n", strerror(errno), errno); // LCOV_EXCL_LINE
+      log_debug1("getcwd failed: %s (%d)", strerror(errno), errno); // LCOV_EXCL_LINE
       return false; // LCOV_EXCL_LINE
     }
 
@@ -350,7 +350,7 @@ bool mutt_path_to_absolute(char *path, const char *reference)
   path = realpath(buf_string(abs_path), path);
   if (!path && (errno != ENOENT))
   {
-    mutt_perror(_("Error: converting path to absolute"));
+    log_perror(_("Error: converting path to absolute"));
     buf_pool_release(&abs_path);
     return false;
   }

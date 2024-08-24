@@ -644,7 +644,7 @@ iconv_t mutt_ch_iconv_open(const char *tocode, const char *fromcode, uint8_t fla
 
   if (IconvCacheUsed == ICONV_CACHE_SIZE)
   {
-    mutt_debug(LL_DEBUG2, "iconv: dropping %s -> %s from the cache\n",
+    log_debug2("iconv: dropping %s -> %s from the cache",
                IconvCache[IconvCacheUsed - 1].fromcode1,
                IconvCache[IconvCacheUsed - 1].tocode1);
     /* get rid of the oldest entry */
@@ -665,7 +665,7 @@ iconv_t mutt_ch_iconv_open(const char *tocode, const char *fromcode, uint8_t fla
 
   IconvCacheUsed++;
 
-  mutt_debug(LL_DEBUG2, "iconv: adding %s -> %s to the cache\n", fromcode1, tocode1);
+  log_debug2("iconv: adding %s -> %s to the cache", fromcode1, tocode1);
   IconvCache[0].fromcode1 = strdup(fromcode1);
   IconvCache[0].tocode1 = strdup(tocode1);
   IconvCache[0].cd = cd;

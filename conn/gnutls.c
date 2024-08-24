@@ -100,7 +100,7 @@ static int tls_init(void)
   err = gnutls_global_init();
   if (err < 0)
   {
-    mutt_error("gnutls_global_init: %s", gnutls_strerror(err));
+    log_fault("gnutls_global_init: %s", gnutls_strerror(err));
     return -1;
   }
 
@@ -143,9 +143,9 @@ static int tls_verify_peers(gnutls_session_t tlsstate, gnutls_certificate_status
     return 0;
 
   if (rc == GNUTLS_E_NO_CERTIFICATE_FOUND)
-    mutt_error(_("Unable to get certificate from peer"));
+    log_fault(_("Unable to get certificate from peer"));
   else
-    mutt_error(_("Certificate verification error (%s)"), gnutls_strerror(rc));
+    log_fault(_("Certificate verification error (%s)"), gnutls_strerror(rc));
 
   return rc;
 }
@@ -320,13 +320,13 @@ static int tls_check_preauth(const gnutls_datum_t *certdata,
 
   if (gnutls_x509_crt_init(&cert) < 0)
   {
-    mutt_error(_("Error initialising gnutls certificate data"));
+    log_fault(_("Error initialising gnutls certificate data"));
     return -1;
   }
 
   if (gnutls_x509_crt_import(cert, certdata, GNUTLS_X509_FMT_DER) < 0)
   {
-    mutt_error(_("Error processing certificate data"));
+    log_fault(_("Error processing certificate data"));
     gnutls_x509_crt_deinit(cert);
     return -1;
   }
@@ -484,21 +484,21 @@ static int tls_check_one_certificate(const gnutls_datum_t *certdata,
 
   if (OptNoCurses)
   {
-    mutt_debug(LL_DEBUG1, "unable to prompt for certificate in batch mode\n");
-    mutt_error(_("Untrusted server certificate"));
+    log_debug1("unable to prompt for certificate in batch mode");
+    log_fault(_("Untrusted server certificate"));
     return 0;
   }
 
   /* interactive check from user */
   if (gnutls_x509_crt_init(&cert) < 0)
   {
-    mutt_error(_("Error initialising gnutls certificate data"));
+    log_fault(_("Error initialising gnutls certificate data"));
     return 0;
   }
 
   if (gnutls_x509_crt_import(cert, certdata, GNUTLS_X509_FMT_DER) < 0)
   {
-    mutt_error(_("Error processing certificate data"));
+    log_fault(_("Error processing certificate data"));
     gnutls_x509_crt_deinit(cert);
     return 0;
   }
@@ -597,9 +597,9 @@ static int tls_check_one_certificate(const gnutls_datum_t *certdata,
       mutt_file_fclose(&fp);
     }
     if (saved)
-      mutt_message(_("Certificate saved"));
+      log_message(_("Certificate saved"));
     else
-      mutt_error(_("Warning: Couldn't save certificate"));
+      log_fault(_("Warning: Couldn't save certificate"));
   }
 
   buf_pool_release(&fpbuf);
@@ -637,7 +637,7 @@ static int tls_check_certificate(struct Connection *conn)
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
   if (!cert_list)
   {
-    mutt_error(_("Unable to get certificate from peer"));
+    log_fault(_("Unable to get certificate from peer"));
     return 0;
   }
 
@@ -677,7 +677,7 @@ static int tls_check_certificate(struct Connection *conn)
       int rcsettrust = gnutls_certificate_set_x509_trust_mem(data->xcred, &cert_list[i],
                                                              GNUTLS_X509_FMT_DER);
       if (rcsettrust != 1)
-        mutt_debug(LL_DEBUG1, "error trusting certificate %d: %d\n", i, rcsettrust);
+        log_debug1("error trusting certificate %d: %d", i, rcsettrust);
 
       if (tls_verify_peers(session, &certstat) != 0)
         return 0;
@@ -714,13 +714,13 @@ static void tls_get_client_cert(struct Connection *conn)
 
   if (gnutls_x509_crt_init(&clientcrt) < 0)
   {
-    mutt_debug(LL_DEBUG1, "Failed to init gnutls crt\n");
+    log_debug1("Failed to init gnutls crt");
     return;
   }
 
   if (gnutls_x509_crt_import(clientcrt, crtdata, GNUTLS_X509_FMT_DER) < 0)
   {
-    mutt_debug(LL_DEBUG1, "Failed to import gnutls client crt\n");
+    log_debug1("Failed to import gnutls client crt");
     goto err;
   }
 
@@ -735,7 +735,7 @@ static void tls_get_client_cert(struct Connection *conn)
     {
       goto err;
     }
-    mutt_debug(LL_DEBUG2, "client certificate CN: %s\n", cn);
+    log_debug2("client certificate CN: %s", cn);
   }
 
 err:
@@ -796,14 +796,14 @@ static int tls_set_priority(struct TlsSockData *data)
 
   if (nproto == 0)
   {
-    mutt_error(_("All available protocols for TLS/SSL connection disabled"));
+    log_fault(_("All available protocols for TLS/SSL connection disabled"));
     goto cleanup;
   }
 
   int err = gnutls_priority_set_direct(data->session, buf_string(priority), NULL);
   if (err < 0)
   {
-    mutt_error("gnutls_priority_set_direct(%s): %s", buf_string(priority),
+    log_fault("gnutls_priority_set_direct(%s): %s", buf_string(priority),
                gnutls_strerror(err));
     goto cleanup;
   }
@@ -842,14 +842,14 @@ static int tls_set_priority(struct TlsSockData *data)
 
   if (nproto == 0)
   {
-    mutt_error(_("All available protocols for TLS/SSL connection disabled"));
+    log_fault(_("All available protocols for TLS/SSL connection disabled"));
     return -1;
   }
 
   const char *const c_ssl_ciphers = cs_subset_string(NeoMutt->sub, "ssl_ciphers");
   if (c_ssl_ciphers)
   {
-    mutt_error(_("Explicit ciphersuite selection via $ssl_ciphers not supported"));
+    log_fault(_("Explicit ciphersuite selection via $ssl_ciphers not supported"));
   }
 
   /* We use default priorities (see gnutls documentation),
@@ -877,7 +877,7 @@ static int tls_negotiate(struct Connection *conn)
   if (err < 0)
   {
     FREE(&conn->sockdata);
-    mutt_error("gnutls_certificate_allocate_credentials: %s", gnutls_strerror(err));
+    log_fault("gnutls_certificate_allocate_credentials: %s", gnutls_strerror(err));
     return -1;
   }
 
@@ -895,7 +895,7 @@ static int tls_negotiate(struct Connection *conn)
   const char *const c_ssl_client_cert = cs_subset_path(NeoMutt->sub, "ssl_client_cert");
   if (c_ssl_client_cert)
   {
-    mutt_debug(LL_DEBUG2, "Using client certificate %s\n", c_ssl_client_cert);
+    log_debug2("Using client certificate %s", c_ssl_client_cert);
     gnutls_certificate_set_x509_key_file(data->xcred, c_ssl_client_cert,
                                          c_ssl_client_cert, GNUTLS_X509_FMT_PEM);
   }
@@ -909,7 +909,7 @@ static int tls_negotiate(struct Connection *conn)
   err = gnutls_init(&data->session, GNUTLS_CLIENT);
   if (err)
   {
-    mutt_error("gnutls_init: %s", gnutls_strerror(err));
+    log_fault("gnutls_init: %s", gnutls_strerror(err));
     goto fail;
   }
 
@@ -919,7 +919,7 @@ static int tls_negotiate(struct Connection *conn)
   if (gnutls_server_name_set(data->session, GNUTLS_NAME_DNS, conn->account.host,
                              mutt_str_len(conn->account.host)))
   {
-    mutt_error(_("Warning: unable to set TLS SNI host name"));
+    log_fault(_("Warning: unable to set TLS SNI host name"));
   }
 
   if (tls_set_priority(data) < 0)
@@ -944,12 +944,12 @@ static int tls_negotiate(struct Connection *conn)
   {
     if (err == GNUTLS_E_FATAL_ALERT_RECEIVED)
     {
-      mutt_error("gnutls_handshake: %s(%s)", gnutls_strerror(err),
+      log_fault("gnutls_handshake: %s(%s)", gnutls_strerror(err),
                  gnutls_alert_get_name(gnutls_alert_get(data->session)));
     }
     else
     {
-      mutt_error("gnutls_handshake: %s", gnutls_strerror(err));
+      log_fault("gnutls_handshake: %s", gnutls_strerror(err));
     }
     goto fail;
   }
@@ -965,7 +965,7 @@ static int tls_negotiate(struct Connection *conn)
 
   if (!OptNoCurses)
   {
-    mutt_message(_("SSL/TLS connection using %s (%s/%s/%s)"),
+    log_message(_("SSL/TLS connection using %s (%s/%s/%s)"),
                  gnutls_protocol_get_name(gnutls_protocol_get_version(data->session)),
                  gnutls_kx_get_name(gnutls_kx_get(data->session)),
                  gnutls_cipher_get_name(gnutls_cipher_get(data->session)),
@@ -1047,7 +1047,7 @@ static int tls_socket_read(struct Connection *conn, char *buf, size_t count)
   struct TlsSockData *data = conn->sockdata;
   if (!data)
   {
-    mutt_error(_("Error: no TLS socket open"));
+    log_fault(_("Error: no TLS socket open"));
     return -1;
   }
 
@@ -1059,7 +1059,7 @@ static int tls_socket_read(struct Connection *conn, char *buf, size_t count)
 
   if (rc < 0)
   {
-    mutt_error("tls_socket_read (%s)", gnutls_strerror(rc));
+    log_fault("tls_socket_read (%s)", gnutls_strerror(rc));
     return -1;
   }
 
@@ -1076,7 +1076,7 @@ static int tls_socket_write(struct Connection *conn, const char *buf, size_t cou
 
   if (!data)
   {
-    mutt_error(_("Error: no TLS socket open"));
+    log_fault(_("Error: no TLS socket open"));
     return -1;
   }
 
@@ -1090,7 +1090,7 @@ static int tls_socket_write(struct Connection *conn, const char *buf, size_t cou
 
     if (rc < 0)
     {
-      mutt_error("tls_socket_write (%s)", gnutls_strerror(rc));
+      log_fault("tls_socket_write (%s)", gnutls_strerror(rc));
       return -1;
     }
 

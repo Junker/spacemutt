@@ -41,7 +41,7 @@ static struct ConfigDef Vars[] = {
 
 void test_simple_colors(void)
 {
-  MuttLogger = log_disp_null;
+  MuttLogWriter = log_writer_null;
 
   TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
 

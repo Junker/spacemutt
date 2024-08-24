@@ -489,7 +489,7 @@ void mutt_help(enum MenuType menu)
     fp = mutt_file_fopen(buf_string(tmp_file), "w");
     if (!fp)
     {
-      mutt_perror("%s", buf_string(tmp_file));
+      log_perror("%s", buf_string(tmp_file));
       goto cleanup;
     }
 

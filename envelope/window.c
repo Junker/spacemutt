@@ -538,30 +538,30 @@ static int draw_envelope_addr(int field, AddressList *al,
   try_again:
     more_len = snprintf(more, sizeof(more),
                         ngettext("(+%d more)", "(+%d more)", count), count);
-    mutt_debug(LL_DEBUG3, "text: '%s'  len: %d\n", more, more_len);
+    log_debug3("text: '%s'  len: %d", more, more_len);
 
     int reserve = ((count > 0) && (lines_used == max_lines)) ? more_len : 0;
-    mutt_debug(LL_DEBUG3, "processing: %s (al:%zu, wl:%d, r:%d, lu:%d)\n",
+    log_debug3("processing: %s (al:%zu, wl:%d, r:%d, lu:%d)",
                buf_string(buf), addr_len, width_left, reserve, lines_used);
     if (addr_len >= (width_left - reserve))
     {
-      mutt_debug(LL_DEBUG3, "not enough space\n");
+      log_debug3("not enough space");
       if (lines_used == max_lines)
       {
-        mutt_debug(LL_DEBUG3, "no more lines\n");
-        mutt_debug(LL_DEBUG3, "truncating: %s\n", buf_string(buf));
+        log_debug3("no more lines");
+        log_debug3("truncating: %s", buf_string(buf));
         mutt_paddstr(win, width_left, buf_string(buf));
         break;
       }
 
       if (width_left == (win->state.cols - MaxHeaderWidth))
       {
-        mutt_debug(LL_DEBUG3, "couldn't print: %s\n", buf_string(buf));
+        log_debug3("couldn't print: %s", buf_string(buf));
         mutt_paddstr(win, width_left, buf_string(buf));
         break;
       }
 
-      mutt_debug(LL_DEBUG3, "start a new line\n");
+      log_debug3("start a new line");
       mutt_window_clrtoeol(win);
       row++;
       lines_used++;
@@ -572,13 +572,13 @@ static int draw_envelope_addr(int field, AddressList *al,
 
     if (addr_len < width_left)
     {
-      mutt_debug(LL_DEBUG3, "space for: %s\n", buf_string(buf));
+      log_debug3("space for: %s", buf_string(buf));
       mutt_window_addstr(win, buf_string(buf));
       mutt_window_addstr(win, sep);
       width_left -= addr_len;
     }
-    mutt_debug(LL_DEBUG3, "%d addresses remaining\n", count);
-    mutt_debug(LL_DEBUG3, "%zd lines remaining\n", max_lines - lines_used);
+    log_debug3("%d addresses remaining", count);
+    log_debug3("%zd lines remaining", max_lines - lines_used);
   }
   buf_pool_release(&buf);
 
@@ -588,7 +588,7 @@ static int draw_envelope_addr(int field, AddressList *al,
     mutt_curses_set_normal_backed_color_by_id(MT_COLOR_BOLD);
     mutt_window_addstr(win, more);
     mutt_curses_set_color_by_id(MT_COLOR_NORMAL);
-    mutt_debug(LL_DEBUG3, "%d more (len %d)\n", count, more_len);
+    log_debug3("%d more (len %d)", count, more_len);
   }
   else
   {
@@ -601,7 +601,7 @@ static int draw_envelope_addr(int field, AddressList *al,
     mutt_window_clrtoeol(win);
   }
 
-  mutt_debug(LL_DEBUG3, "used %d lines\n", lines_used);
+  log_debug3("used %d lines", lines_used);
   return lines_used;
 }
 
@@ -720,7 +720,7 @@ static int env_recalc(struct MuttWindow *win)
   }
 
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+  log_debug5("recalc done, request WA_REPAINT");
   return 0;
 }
 
@@ -732,7 +732,7 @@ static int env_repaint(struct MuttWindow *win)
   struct EnvelopeWindowData *wdata = win->wdata;
 
   draw_envelope(win, wdata);
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
   return 0;
 }
 
@@ -762,7 +762,7 @@ static int env_color_observer(struct NotifyCallback *nc)
     case MT_COLOR_NORMAL:
     case MT_COLOR_STATUS:
     case MT_COLOR_MAX: // Sent on `uncolor *`
-      mutt_debug(LL_DEBUG5, "color done, request WA_REPAINT\n");
+      log_debug5("color done, request WA_REPAINT");
       win_env->actions |= WA_REPAINT;
       break;
 
@@ -821,7 +821,7 @@ static int env_config_observer(struct NotifyCallback *nc)
   }
 
   win_env->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC\n");
+  log_debug5("config done, request WA_RECALC");
   return 0;
 }
 
@@ -845,7 +845,7 @@ static int env_email_observer(struct NotifyCallback *nc)
   }
 
   win_env->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "email done, request WA_RECALC\n");
+  log_debug5("email done, request WA_RECALC");
   return 0;
 }
 
@@ -868,7 +868,7 @@ static int env_header_observer(struct NotifyCallback *nc)
   if ((nc->event_subtype == NT_HEADER_ADD) || (nc->event_subtype == NT_HEADER_CHANGE))
   {
     header_set(env->userhdrs, ev_h->header);
-    mutt_debug(LL_DEBUG5, "header done, request reflow\n");
+    log_debug5("header done, request reflow");
     win_env->actions |= WA_RECALC;
     return 0;
   }
@@ -879,7 +879,7 @@ static int env_header_observer(struct NotifyCallback *nc)
     if (removed)
     {
       header_free(env->userhdrs, removed);
-      mutt_debug(LL_DEBUG5, "header done, request reflow\n");
+      log_debug5("header done, request reflow");
       win_env->actions |= WA_RECALC;
     }
     return 0;
@@ -906,7 +906,7 @@ static int env_window_observer(struct NotifyCallback *nc)
   if (nc->event_subtype == NT_WINDOW_STATE)
   {
     win_env->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "window state done, request WA_RECALC\n");
+    log_debug5("window state done, request WA_RECALC");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
@@ -917,7 +917,7 @@ static int env_window_observer(struct NotifyCallback *nc)
     notify_observer_remove(NeoMutt->sub->notify, env_config_observer, win_env);
     notify_observer_remove(NeoMutt->notify, env_header_observer, win_env);
     notify_observer_remove(win_env->notify, env_window_observer, win_env);
-    mutt_debug(LL_DEBUG5, "window delete done\n");
+    log_debug5("window delete done");
   }
 
   return 0;

@@ -285,7 +285,7 @@ bool mutt_mailbox_list(void)
 
   if (any_new)
   {
-    mutt_message("%s", buf_string(mailboxlist));
+    log_message("%s", buf_string(mailboxlist));
     buf_pool_release(&mailboxlist);
     return true;
   }

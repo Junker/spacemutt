@@ -139,7 +139,7 @@ static int rootwin_config_observer(struct NotifyCallback *nc)
     TAILQ_INSERT_HEAD(&win_root->children, next, entries);
 
     mutt_window_reflow(win_root);
-    mutt_debug(LL_DEBUG5, "config done, request WA_REFLOW\n");
+    log_debug5("config done, request WA_REFLOW");
   }
 
   return 0;
@@ -160,7 +160,7 @@ static int rootwin_resize_observer(struct NotifyCallback *nc)
   window_invalidate_all();
   mutt_resize_screen();
 
-  mutt_debug(LL_DEBUG5, "window resize done\n");
+  log_debug5("window resize done");
   return 0;
 }
 
@@ -192,7 +192,7 @@ static int rootwin_window_observer(struct NotifyCallback *nc)
     notify_observer_remove(NeoMutt->notify_resize, rootwin_resize_observer, win_root);
   }
 
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
   return 0;
 }
 

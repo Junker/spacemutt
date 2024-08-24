@@ -50,7 +50,7 @@ enum ImapAuthRes imap_auth_login(struct ImapAccountData *adata, const char *meth
 
   if ((adata->capabilities & IMAP_CAP_LOGINDISABLED))
   {
-    mutt_message(_("LOGIN disabled on this server"));
+    log_message(_("LOGIN disabled on this server"));
     return IMAP_AUTH_UNAVAIL;
   }
 
@@ -59,7 +59,7 @@ enum ImapAuthRes imap_auth_login(struct ImapAccountData *adata, const char *meth
   if (mutt_account_getpass(&adata->conn->account) < 0)
     return IMAP_AUTH_FAILURE;
 
-  mutt_message(_("Logging in..."));
+  log_message(_("Logging in..."));
 
   imap_quote_string(q_user, sizeof(q_user), adata->conn->account.user, false);
   imap_quote_string(q_pass, sizeof(q_pass), adata->conn->account.pass, false);
@@ -68,8 +68,8 @@ enum ImapAuthRes imap_auth_login(struct ImapAccountData *adata, const char *meth
    * of 5 or higher */
 
   const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
-  if (c_debug_level < IMAP_LOG_PASS)
-    mutt_debug(LL_DEBUG2, "Sending LOGIN command for %s\n", adata->conn->account.user);
+  if (c_debug_level < log_level_to_debug_level(IMAP_LOG_LEVEL_PASS))
+    log_debug2("Sending LOGIN command for %s", adata->conn->account.user);
 
   snprintf(buf, sizeof(buf), "LOGIN %s %s", q_user, q_pass);
   if (imap_exec(adata, buf, IMAP_CMD_PASS) == IMAP_EXEC_SUCCESS)
@@ -78,6 +78,6 @@ enum ImapAuthRes imap_auth_login(struct ImapAccountData *adata, const char *meth
     return IMAP_AUTH_SUCCESS;
   }
 
-  mutt_error(_("Login failed"));
+  log_fault(_("Login failed"));
   return IMAP_AUTH_FAILURE;
 }

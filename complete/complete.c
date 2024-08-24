@@ -68,7 +68,7 @@ int mutt_complete(struct CompletionData *cd, struct Buffer *buf)
   struct Buffer *imap_path = NULL;
   int rc;
 
-  mutt_debug(LL_DEBUG2, "completing %s\n", buf_string(buf));
+  log_debug2("completing %s", buf_string(buf));
 
   if (OptNews)
     return nntp_complete(buf);
@@ -161,7 +161,7 @@ int mutt_complete(struct CompletionData *cd, struct Buffer *buf)
 
   if (!dir)
   {
-    mutt_debug(LL_DEBUG1, "%s: %s (errno %d)\n", buf_string(exp_dirpart),
+    log_debug1("%s: %s (errno %d)", buf_string(exp_dirpart),
                strerror(errno), errno);
     goto cleanup;
   }

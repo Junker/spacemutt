@@ -163,7 +163,7 @@ static int pbar_repaint(struct MuttWindow *win)
                        mutt_str_len(pbar_data->pager_format));
   mutt_curses_set_color_by_id(MT_COLOR_NORMAL);
 
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
   return 0;
 }
 
@@ -185,7 +185,7 @@ static int pbar_color_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_pbar = nc->global_data;
   win_pbar->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "color done, request WA_REPAINT\n");
+  log_debug5("color done, request WA_REPAINT");
 
   return 0;
 }
@@ -206,7 +206,7 @@ static int pbar_config_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_pbar = nc->global_data;
   win_pbar->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC\n");
+  log_debug5("config done, request WA_RECALC");
 
   return 0;
 }
@@ -227,7 +227,7 @@ static int pbar_index_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win_pbar = nc->global_data;
   win_pbar->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "index done, request WA_RECALC\n");
+  log_debug5("index done, request WA_RECALC");
 
   return 0;
 }
@@ -247,7 +247,7 @@ static int pbar_pager_observer(struct NotifyCallback *nc)
   if (nc->event_subtype & NT_PAGER_VIEW)
   {
     win_pbar->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "pager done, request WA_RECALC\n");
+    log_debug5("pager done, request WA_RECALC");
   }
 
   return 0;
@@ -271,7 +271,7 @@ static int pbar_window_observer(struct NotifyCallback *nc)
   if (nc->event_subtype == NT_WINDOW_STATE)
   {
     win_pbar->actions |= WA_RECALC | WA_REPAINT;
-    mutt_debug(LL_NOTIFY, "window state done, request WA_RECALC\n");
+    log_notify("window state done, request WA_RECALC");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
@@ -284,7 +284,7 @@ static int pbar_window_observer(struct NotifyCallback *nc)
     notify_observer_remove(pbar_data->priv->notify, pbar_pager_observer, win_pbar);
     notify_observer_remove(win_pbar->notify, pbar_window_observer, win_pbar);
 
-    mutt_debug(LL_DEBUG5, "window delete done\n");
+    log_debug5("window delete done");
   }
 
   return 0;

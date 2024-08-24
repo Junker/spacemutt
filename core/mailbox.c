@@ -95,7 +95,7 @@ void mailbox_free(struct Mailbox **ptr)
 
   const bool do_free = (m->opened == 0) && !m->visible;
 
-  mutt_debug(LL_DEBUG3, "%sfreeing %s mailbox %s with refcount %d\n",
+  log_debug3("%sfreeing %s mailbox %s with refcount %d",
              do_free ? "" : "not ", m->visible ? "visible" : "invisible",
              buf_string(&m->pathbuf), m->opened);
 
@@ -104,12 +104,12 @@ void mailbox_free(struct Mailbox **ptr)
     return;
   }
 
-  mutt_debug(LL_NOTIFY, "NT_MAILBOX_DELETE: %s %p\n",
+  log_notify("NT_MAILBOX_DELETE: %s %p",
              mailbox_get_type_name(m->type), (void *) m);
   struct EventMailbox ev_m = { m };
   notify_send(m->notify, NT_MAILBOX, NT_MAILBOX_DELETE, &ev_m);
 
-  mutt_debug(LL_NOTIFY, "NT_EMAIL_DELETE_ALL\n");
+  log_notify("NT_EMAIL_DELETE_ALL");
   struct EventEmail ev_e = { 0, NULL };
   notify_send(m->notify, NT_EMAIL, NT_EMAIL_DELETE_ALL, &ev_e);
 
@@ -235,7 +235,7 @@ void mailbox_changed(struct Mailbox *m, enum NotifyMailbox action)
   if (!m)
     return;
 
-  mutt_debug(LL_NOTIFY, "NT_MAILBOX_CHANGE: %s %p\n",
+  log_notify("NT_MAILBOX_CHANGE: %s %p",
              mailbox_get_type_name(m->type), (void *) m);
   struct EventMailbox ev_m = { m };
   notify_send(m->notify, NT_MAILBOX, action, &ev_m);

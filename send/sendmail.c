@@ -332,7 +332,7 @@ int mutt_invoke_sendmail(struct Mailbox *m, AddressList *from,
 
   if (!s)
   {
-    mutt_error(_("$sendmail must be set in order to send mail"));
+    log_fault(_("$sendmail must be set in order to send mail"));
     return -1;
   }
 
@@ -437,7 +437,7 @@ int mutt_invoke_sendmail(struct Mailbox *m, AddressList *from,
     if (i != S_BKG)
     {
       const char *e = mutt_str_sysexit(i);
-      mutt_error(_("Error sending message, child exited %d (%s)"), i, NONULL(e));
+      log_fault(_("Error sending message, child exited %d (%s)"), i, NONULL(e));
       if (childout)
       {
         struct stat st = { 0 };

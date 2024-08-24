@@ -92,7 +92,7 @@ int mutt_autocrypt_schema_init(void)
 
   if (sqlite3_exec(AutocryptDB, schema, NULL, NULL, &errmsg) != SQLITE_OK)
   {
-    mutt_debug(LL_DEBUG1, "mutt_autocrypt_schema_init() returned %s\n", errmsg);
+    log_debug1("mutt_autocrypt_schema_init() returned %s", errmsg);
     sqlite3_free(errmsg);
     return -1;
   }
@@ -123,7 +123,7 @@ int mutt_autocrypt_schema_update(void)
        This error occurs if the version number is too high.
        Presumably because this is an old version of NeoMutt and the
        database was upgraded by a future version.  */
-    mutt_error(_("Autocrypt database version is too new"));
+    log_fault(_("Autocrypt database version is too new"));
     goto cleanup;
   }
 

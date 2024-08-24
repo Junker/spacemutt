@@ -753,7 +753,7 @@ int mutt_save_confirm(const char *s, struct stat *st)
 
   if (type == MUTT_POP)
   {
-    mutt_error(_("Can't save message to POP mailbox"));
+    log_fault(_("Can't save message to POP mailbox"));
     return 1;
   }
 
@@ -776,7 +776,7 @@ int mutt_save_confirm(const char *s, struct stat *st)
 
   if (type == MUTT_NNTP)
   {
-    mutt_error(_("Can't save message to news server"));
+    log_fault(_("Can't save message to news server"));
     return 0;
   }
 
@@ -784,7 +784,7 @@ int mutt_save_confirm(const char *s, struct stat *st)
   {
     if (type == MUTT_MAILBOX_ERROR)
     {
-      mutt_error(_("%s is not a mailbox"), s);
+      log_fault(_("%s is not a mailbox"), s);
       return 1;
     }
   }
@@ -818,7 +818,7 @@ int mutt_save_confirm(const char *s, struct stat *st)
         if (mutt_file_mkdir(tmp_path, S_IRWXU) == -1)
         {
           /* report failure & abort */
-          mutt_perror("%s", s);
+          log_perror("%s", s);
           FREE(&tmp_path);
           return 1;
         }
@@ -827,7 +827,7 @@ int mutt_save_confirm(const char *s, struct stat *st)
     }
     else
     {
-      mutt_perror("%s", s);
+      log_perror("%s", s);
       return 1;
     }
   }

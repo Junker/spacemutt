@@ -253,14 +253,14 @@ static int mh_commit_msg(struct Mailbox *m, struct Message *msg, struct Email *e
 
   if (mutt_file_fsync_close(&msg->fp))
   {
-    mutt_perror(_("Could not flush message to disk"));
+    log_perror(_("Could not flush message to disk"));
     return -1;
   }
 
   DIR *dir = mutt_file_opendir(mailbox_path(m), MUTT_OPENDIR_NONE);
   if (!dir)
   {
-    mutt_perror("%s", mailbox_path(m));
+    log_perror("%s", mailbox_path(m));
     return -1;
   }
 
@@ -280,7 +280,7 @@ static int mh_commit_msg(struct Mailbox *m, struct Message *msg, struct Email *e
     if (*cp == '\0')
     {
       if (!mutt_str_atoui(dep, &n))
-        mutt_debug(LL_DEBUG2, "Invalid MH message number '%s'\n", dep);
+        log_debug2("Invalid MH message number '%s'", dep);
       if (n > hi)
         hi = n;
     }
@@ -305,7 +305,7 @@ static int mh_commit_msg(struct Mailbox *m, struct Message *msg, struct Email *e
     }
     else if (errno != EEXIST)
     {
-      mutt_perror("%s", mailbox_path(m));
+      log_perror("%s", mailbox_path(m));
       return -1;
     }
   }
@@ -463,7 +463,7 @@ static int mh_parse_dir(struct Mailbox *m, struct MhEmailArray *mha, struct Prog
     if (!mh_valid_message(de->d_name))
       continue;
 
-    mutt_debug(LL_DEBUG2, "queueing %s\n", de->d_name);
+    log_debug2("queueing %s", de->d_name);
 
     e = email_new();
 
@@ -605,7 +605,7 @@ static void mh_delayed_parsing(struct Mailbox *m, struct MhEmailArray *mha,
   const enum SortType c_sort = cs_subset_sort(NeoMutt->sub, "sort");
   if (m && mha && (ARRAY_SIZE(mha) > 0) && (c_sort == SORT_ORDER))
   {
-    mutt_debug(LL_DEBUG3, "mh: sorting %s into natural order\n", mailbox_path(m));
+    log_debug3("mh: sorting %s into natural order", mailbox_path(m));
     ARRAY_SORT(mha, mh_sort_path, NULL);
   }
 }
@@ -629,11 +629,11 @@ static int mh_move_to_mailbox(struct Mailbox *m, const struct MhEmailArray *mha)
   ARRAY_FOREACH(mdp, mha)
   {
     md = *mdp;
-    mutt_debug(LL_DEBUG2, "Considering %s\n", NONULL(md->canon_fname));
+    log_debug2("Considering %s", NONULL(md->canon_fname));
     if (!md->email)
       continue;
 
-    mutt_debug(LL_DEBUG2, "Adding header structure. Flags: %s%s%s%s%s\n",
+    log_debug2("Adding header structure. Flags: %s%s%s%s%s",
                md->email->flagged ? "f" : "", md->email->deleted ? "D" : "",
                md->email->replied ? "r" : "", md->email->old ? "O" : "",
                md->email->read ? "R" : "");
@@ -829,7 +829,7 @@ static bool mh_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
 
   if (mutt_file_mkdir(mailbox_path(m), S_IRWXU))
   {
-    mutt_perror("%s", mailbox_path(m));
+    log_perror("%s", mailbox_path(m));
     return false;
   }
 
@@ -838,7 +838,7 @@ static bool mh_mbox_open_append(struct Mailbox *m, OpenMailboxFlags flags)
   const int i = creat(tmp, S_IRWXU);
   if (i == -1)
   {
-    mutt_perror("%s", tmp);
+    log_perror("%s", tmp);
     rmdir(mailbox_path(m));
     return false;
   }
@@ -1149,7 +1149,7 @@ static bool mh_msg_open(struct Mailbox *m, struct Message *msg, struct Email *e)
   msg->fp = mutt_file_fopen(path, "r");
   if (!msg->fp)
   {
-    mutt_perror("%s", path);
+    log_perror("%s", path);
     return false;
   }
 

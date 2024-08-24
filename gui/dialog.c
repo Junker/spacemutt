@@ -119,7 +119,7 @@ void dialog_push(struct MuttWindow *dlg)
   notify_set_parent(dlg->notify, AllDialogsWindow->notify);
 
   // Notify the world, allowing plugins to integrate
-  mutt_debug(LL_NOTIFY, "NT_WINDOW_DIALOG visible: %s, %p\n",
+  log_notify("NT_WINDOW_DIALOG visible: %s, %p",
              mutt_window_win_name(dlg), (void *) dlg);
   struct EventWindow ev_w = { dlg, WN_VISIBLE };
   notify_send(dlg->notify, NT_WINDOW, NT_WINDOW_DIALOG, &ev_w);
@@ -149,7 +149,7 @@ void dialog_pop(void)
     return;
 
   // Notify the world, allowing plugins to clean up
-  mutt_debug(LL_NOTIFY, "NT_WINDOW_DIALOG hidden: %s, %p\n",
+  log_notify("NT_WINDOW_DIALOG hidden: %s, %p",
              mutt_window_win_name(last), (void *) last);
   struct EventWindow ev_w = { last, WN_HIDDEN };
   notify_send(last->notify, NT_WINDOW, NT_WINDOW_DIALOG, &ev_w);
@@ -197,7 +197,7 @@ static int alldialogs_window_observer(struct NotifyCallback *nc)
   notify_observer_remove(win_alldlgs->notify, alldialogs_window_observer, win_alldlgs);
 
   AllDialogsWindow = NULL;
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
   return 0;
 }
 

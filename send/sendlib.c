@@ -107,7 +107,7 @@ enum ContentType mutt_lookup_mime_type(struct Body *b, const char *path)
         snprintf(buf, sizeof(buf), "%s/.mime.types", NONULL(HomeDir));
         break;
       default:
-        mutt_debug(LL_DEBUG1, "Internal error, count = %d\n", count);
+        log_debug1("Internal error, count = %d", count);
         goto bye; /* shouldn't happen */
     }
 
@@ -174,7 +174,7 @@ bye:
   /* no mime.types file found */
   if (!found_mimetypes)
   {
-    mutt_error(_("Could not find any mime.types file"));
+    log_fault(_("Could not find any mime.types file"));
   }
 
   if ((type != TYPE_OTHER) || (*xtype != '\0'))
@@ -222,7 +222,7 @@ static void transform_to_7bit(struct Body *b, FILE *fp_in, struct ConfigSubset *
       state.fp_out = mutt_file_fopen(buf_string(buf), "w");
       if (!state.fp_out)
       {
-        mutt_perror("fopen");
+        log_perror("fopen");
         buf_pool_release(&buf);
         return;
       }
@@ -236,7 +236,7 @@ static void transform_to_7bit(struct Body *b, FILE *fp_in, struct ConfigSubset *
       b->unlink = true;
       if (stat(b->filename, &st) == -1)
       {
-        mutt_perror("stat");
+        log_perror("stat");
         return;
       }
       b->length = st.st_size;
@@ -269,7 +269,7 @@ void mutt_message_to_7bit(struct Body *b, FILE *fp, struct ConfigSubset *sub)
   }
   else if (!b->filename || !(fp_in = mutt_file_fopen(b->filename, "r")))
   {
-    mutt_error(_("Could not open %s"), b->filename ? b->filename : "(null)");
+    log_fault(_("Could not open %s"), b->filename ? b->filename : "(null)");
     return;
   }
   else
@@ -277,7 +277,7 @@ void mutt_message_to_7bit(struct Body *b, FILE *fp, struct ConfigSubset *sub)
     b->offset = 0;
     if (stat(b->filename, &st) == -1)
     {
-      mutt_perror("stat");
+      log_perror("stat");
       mutt_file_fclose(&fp_in);
       goto cleanup;
     }
@@ -289,7 +289,7 @@ void mutt_message_to_7bit(struct Body *b, FILE *fp, struct ConfigSubset *sub)
   fp_out = mutt_file_fopen(buf_string(temp), "w+");
   if (!fp_out)
   {
-    mutt_perror("fopen");
+    log_perror("fopen");
     goto cleanup;
   }
 
@@ -322,7 +322,7 @@ void mutt_message_to_7bit(struct Body *b, FILE *fp, struct ConfigSubset *sub)
   b->unlink = true;
   if (stat(b->filename, &st) == -1)
   {
-    mutt_perror("stat");
+    log_perror("stat");
     goto cleanup;
   }
   b->length = st.st_size;
@@ -578,7 +578,7 @@ static void run_mime_type_query(struct Body *b, struct ConfigSubset *sub)
   pid = filter_create(buf_string(cmd), NULL, &fp, &fp_err, EnvList);
   if (pid < 0)
   {
-    mutt_error(_("Error running \"%s\""), buf_string(cmd));
+    log_fault(_("Error running \"%s\""), buf_string(cmd));
     buf_pool_release(&cmd);
     return;
   }
@@ -881,7 +881,7 @@ static int bounce_message(FILE *fp, struct Mailbox *m, struct Email *e,
     mutt_file_copy_bytes(fp, fp_tmp, e->body->length);
     if (mutt_file_fclose(&fp_tmp) != 0)
     {
-      mutt_perror("%s", buf_string(tempfile));
+      log_perror("%s", buf_string(tempfile));
       unlink(buf_string(tempfile));
       return -1;
     }
@@ -942,7 +942,7 @@ int mutt_bounce_message(FILE *fp, struct Mailbox *m, struct Email *e,
   rfc2047_encode_addrlist(from_list, "Resent-From");
   if (mutt_addrlist_to_intl(from_list, &err))
   {
-    mutt_error(_("Bad IDN %s while preparing resent-from"), err);
+    log_fault(_("Bad IDN %s while preparing resent-from"), err);
     FREE(&err);
     mutt_addrlist_free_full(from_list);
     return -1;
@@ -1011,7 +1011,7 @@ int mutt_write_multiple_fcc(const char *path, struct Email *e, const char *msgid
   if (!tok)
     return -1;
 
-  mutt_debug(LL_DEBUG1, "Fcc: initial mailbox = '%s'\n", tok);
+  log_debug1("Fcc: initial mailbox = '%s'", tok);
   /* buf_expand_path already called above for the first token */
   int status = mutt_write_fcc(tok, e, msgid, post, fcc, finalpath, sub);
   if (status != 0)
@@ -1024,10 +1024,10 @@ int mutt_write_multiple_fcc(const char *path, struct Email *e, const char *msgid
       continue;
 
     /* Only call buf_expand_path if tok has some data */
-    mutt_debug(LL_DEBUG1, "Fcc: additional mailbox token = '%s'\n", tok);
+    log_debug1("Fcc: additional mailbox token = '%s'", tok);
     buf_strcpy(fcc_expanded, tok);
     buf_expand_path(fcc_expanded);
-    mutt_debug(LL_DEBUG1, "     Additional mailbox expanded = '%s'\n",
+    log_debug1("     Additional mailbox expanded = '%s'",
                buf_string(fcc_expanded));
     status = mutt_write_fcc(buf_string(fcc_expanded), e, msgid, post, fcc, finalpath, sub);
     if (status != 0)
@@ -1074,7 +1074,7 @@ int mutt_write_fcc(const char *path, struct Email *e, const char *msgid, bool po
   bool old_append = m_fcc->append;
   if (!mx_mbox_open(m_fcc, MUTT_APPEND | MUTT_QUIET))
   {
-    mutt_debug(LL_DEBUG1, "unable to open mailbox %s in append-mode, aborting\n", path);
+    log_debug1("unable to open mailbox %s in append-mode, aborting", path);
     goto done;
   }
 
@@ -1087,7 +1087,7 @@ int mutt_write_fcc(const char *path, struct Email *e, const char *msgid, bool po
     fp_tmp = mutt_file_fopen(buf_string(tempfile), "w+");
     if (!fp_tmp)
     {
-      mutt_perror("%s", buf_string(tempfile));
+      log_perror("%s", buf_string(tempfile));
       mx_mbox_close(m_fcc);
       goto done;
     }
@@ -1203,7 +1203,7 @@ int mutt_write_fcc(const char *path, struct Email *e, const char *msgid, bool po
     fflush(fp_tmp);
     if (ferror(fp_tmp))
     {
-      mutt_debug(LL_DEBUG1, "%s: write failed\n", buf_string(tempfile));
+      log_debug1("%s: write failed", buf_string(tempfile));
       mutt_file_fclose(&fp_tmp);
       unlink(buf_string(tempfile));
       mx_msg_commit(m_fcc, msg); /* XXX really? */

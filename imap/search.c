@@ -153,7 +153,7 @@ static bool compile_search_self(const struct ImapAccountData *adata,
       delim = strchr(pat->p.str, ':');
       if (!delim)
       {
-        mutt_error(_("Header search without header name: %s"), pat->p.str);
+        log_fault(_("Header search without header name: %s"), pat->p.str);
         return false;
       }
       *delim = '\0';
@@ -181,7 +181,7 @@ static bool compile_search_self(const struct ImapAccountData *adata,
     case MUTT_PAT_SERVERSEARCH:
       if (!(adata->capabilities & IMAP_CAP_X_GM_EXT_1))
       {
-        mutt_error(_("Server-side custom search not supported: %s"), pat->p.str);
+        log_fault(_("Server-side custom search not supported: %s"), pat->p.str);
         return false;
       }
       buf_addstr(buf, "X-GM-RAW ");
@@ -259,7 +259,7 @@ void cmd_parse_search(struct ImapAccountData *adata, const char *s)
   struct Email *e = NULL;
   struct ImapMboxData *mdata = adata->mailbox->mdata;
 
-  mutt_debug(LL_DEBUG2, "Handling SEARCH\n");
+  log_debug2("Handling SEARCH");
 
   while ((s = imap_next_word((char *) s)) && (*s != '\0'))
   {

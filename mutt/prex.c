@@ -308,7 +308,7 @@ regmatch_t *mutt_prex_capture(enum Prex which, const char *str)
   {
     PCRE2_UCHAR errmsg[1024];
     pcre2_get_error_message(rc, errmsg, sizeof(errmsg));
-    mutt_debug(LL_DEBUG2, "pcre2_match - <%s> -> <%s> =  %s\n", h->str, str, errmsg);
+    log_debug2("pcre2_match - <%s> -> <%s> =  %s", h->str, str, errmsg);
     return NULL;
   }
   PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(h->mdata);

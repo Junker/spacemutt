@@ -66,7 +66,7 @@ struct NeoMutt *neomutt_new(struct ConfigSet *cs)
 
   if (!n->time_c_locale)
   {
-    mutt_error("%s", strerror(errno)); // LCOV_EXCL_LINE
+    log_fault("%s", strerror(errno)); // LCOV_EXCL_LINE
     mutt_exit(1);                      // LCOV_EXCL_LINE
   }
 
@@ -117,7 +117,7 @@ bool neomutt_account_add(struct NeoMutt *n, struct Account *a)
   g_queue_push_tail(n->accounts, a);
   notify_set_parent(a->notify, n->notify);
 
-  mutt_debug(LL_NOTIFY, "NT_ACCOUNT_ADD: %s %p\n",
+  log_notify("NT_ACCOUNT_ADD: %s %p",
              mailbox_get_type_name(a->type), (void *) a);
   struct EventAccount ev_a = { a };
   notify_send(n->notify, NT_ACCOUNT, NT_ACCOUNT_ADD, &ev_a);
@@ -139,7 +139,7 @@ bool neomutt_account_remove(struct NeoMutt *n, const struct Account *a)
 
   if (!a)
   {
-    mutt_debug(LL_NOTIFY, "NT_ACCOUNT_DELETE_ALL\n");
+    log_notify("NT_ACCOUNT_DELETE_ALL");
     struct EventAccount ev_a = { NULL };
     notify_send(n->notify, NT_ACCOUNT, NT_ACCOUNT_DELETE_ALL, &ev_a);
   }
@@ -233,13 +233,13 @@ FILE *mutt_file_fopen_masked_full(const char *path, const char *mode,
 {
   // Set the user's umask (saved on startup)
   mode_t old_umask = umask(NeoMutt->user_default_umask);
-  mutt_debug(LL_DEBUG3, "umask set to %03o\n", NeoMutt->user_default_umask);
+  log_debug3("umask set to %03o", NeoMutt->user_default_umask);
 
   // The permissions will be limited by the umask
   FILE *fp = mutt_file_fopen_full(path, mode, 0666, file, line, func);
 
   umask(old_umask); // Immediately restore the umask
-  mutt_debug(LL_DEBUG3, "umask set to %03o\n", old_umask);
+  log_debug3("umask set to %03o", old_umask);
 
   return fp;
 }

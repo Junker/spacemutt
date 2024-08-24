@@ -133,7 +133,7 @@ void curses_color_dump(struct CursesColor *cc, const char *prefix)
     snprintf(bg, sizeof(bg), "#%06x", cc->bg);
 
   const char *color = color_log_color(cc->fg, cc->bg);
-  color_debug(LL_DEBUG5, "%s index %d, %s %s %s rc %d\n", NONULL(prefix),
+  log_color_debug("%s index %d, %s %s %s rc %d\n", NONULL(prefix),
               cc->index, fg, bg, color, cc->ref_count);
 }
 

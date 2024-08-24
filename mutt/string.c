@@ -258,7 +258,7 @@ char *mutt_str_dup(const char *str)
   char *p = strdup(str);
   if (!p)
   {
-    mutt_error("%s", strerror(errno)); // LCOV_EXCL_LINE
+    log_fault("%s", strerror(errno)); // LCOV_EXCL_LINE
     mutt_exit(1);                      // LCOV_EXCL_LINE
   }
   return p;
@@ -766,7 +766,7 @@ int mutt_str_asprintf(char **strp, const char *fmt, ...)
    * is undefined when the return code is -1.  */
   if (n < 0)
   {
-    mutt_error("%s", strerror(errno)); /* LCOV_EXCL_LINE */
+    log_fault("%s", strerror(errno)); /* LCOV_EXCL_LINE */
     mutt_exit(1);                      /* LCOV_EXCL_LINE */
   }
 

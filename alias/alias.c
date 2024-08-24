@@ -120,7 +120,7 @@ static void expand_aliases_r(AddressList *al, GSList **expn)
         {
           if (mutt_str_equal(buf_string(a->mailbox), np->data)) /* alias already found */
           {
-            mutt_debug(LL_DEBUG1, "loop in alias found for '%s'\n", buf_string(a->mailbox));
+            log_debug1("loop in alias found for '%s'", buf_string(a->mailbox));
             duplicate = true;
             break;
           }
@@ -404,7 +404,7 @@ retry_name:
   /* check to see if the user already has an alias defined */
   if (alias_lookup(buf_string(buf)))
   {
-    mutt_error(_("You already have an alias defined with that name"));
+    log_fault(_("You already have an alias defined with that name"));
     goto done;
   }
 
@@ -447,7 +447,7 @@ retry_name:
       mutt_beep(false);
     if (mutt_addrlist_to_intl(alias->addr, &err))
     {
-      mutt_error(_("Bad IDN: '%s'"), err);
+      log_fault(_("Bad IDN: '%s'"), err);
       FREE(&err);
       continue;
     }
@@ -526,7 +526,7 @@ retry_name:
   fp_alias = mutt_file_fopen(buf_string(buf), "a+");
   if (!fp_alias)
   {
-    mutt_perror("%s", buf_string(buf));
+    log_perror("%s", buf_string(buf));
     goto done;
   }
 
@@ -543,7 +543,7 @@ retry_name:
     }
     if (fread(buf->data, 1, 1, fp_alias) != 1)
     {
-      mutt_perror(_("Error reading alias file"));
+      log_perror(_("Error reading alias file"));
       goto done;
     }
     if (!mutt_file_seek(fp_alias, 0, SEEK_END))
@@ -582,9 +582,9 @@ retry_name:
   }
   fputc('\n', fp_alias);
   if (mutt_file_fsync_close(&fp_alias) != 0)
-    mutt_perror(_("Trouble adding alias"));
+    log_perror(_("Trouble adding alias"));
   else
-    mutt_message(_("Alias added"));
+    log_message(_("Alias added"));
 
 done:
   mutt_file_fclose(&fp_alias);
@@ -603,37 +603,37 @@ bool mutt_addr_is_user(const struct Address *addr)
 {
   if (!addr)
   {
-    mutt_debug(LL_DEBUG5, "no, NULL address\n");
+    log_debug5("no, NULL address");
     return false;
   }
   if (!addr->mailbox)
   {
-    mutt_debug(LL_DEBUG5, "no, no mailbox\n");
+    log_debug5("no, no mailbox");
     return false;
   }
 
   if (mutt_istr_equal(buf_string(addr->mailbox), Username))
   {
-    mutt_debug(LL_DEBUG5, "#1 yes, %s = %s\n", buf_string(addr->mailbox), Username);
+    log_debug5("#1 yes, %s = %s", buf_string(addr->mailbox), Username);
     return true;
   }
   if (string_is_address(buf_string(addr->mailbox), Username, ShortHostname))
   {
-    mutt_debug(LL_DEBUG5, "#2 yes, %s = %s @ %s\n", buf_string(addr->mailbox),
+    log_debug5("#2 yes, %s = %s @ %s", buf_string(addr->mailbox),
                Username, ShortHostname);
     return true;
   }
   const char *fqdn = mutt_fqdn(false, NeoMutt->sub);
   if (string_is_address(buf_string(addr->mailbox), Username, fqdn))
   {
-    mutt_debug(LL_DEBUG5, "#3 yes, %s = %s @ %s\n", buf_string(addr->mailbox),
+    log_debug5("#3 yes, %s = %s @ %s", buf_string(addr->mailbox),
                Username, NONULL(fqdn));
     return true;
   }
   fqdn = mutt_fqdn(true, NeoMutt->sub);
   if (string_is_address(buf_string(addr->mailbox), Username, fqdn))
   {
-    mutt_debug(LL_DEBUG5, "#4 yes, %s = %s @ %s\n", buf_string(addr->mailbox),
+    log_debug5("#4 yes, %s = %s @ %s", buf_string(addr->mailbox),
                Username, NONULL(fqdn));
     return true;
   }
@@ -641,7 +641,7 @@ bool mutt_addr_is_user(const struct Address *addr)
   const struct Address *c_from = cs_subset_address(NeoMutt->sub, "from");
   if (c_from && mutt_istr_equal(buf_string(c_from->mailbox), buf_string(addr->mailbox)))
   {
-    mutt_debug(LL_DEBUG5, "#5 yes, %s = %s\n", buf_string(addr->mailbox),
+    log_debug5("#5 yes, %s = %s", buf_string(addr->mailbox),
                buf_string(c_from->mailbox));
     return true;
   }
@@ -649,7 +649,7 @@ bool mutt_addr_is_user(const struct Address *addr)
   if (mutt_alternates_match(buf_string(addr->mailbox)))
     return true;
 
-  mutt_debug(LL_DEBUG5, "no, all failed\n");
+  log_debug5("no, all failed");
   return false;
 }
 
@@ -678,7 +678,7 @@ void alias_free(struct Alias **ptr)
 
   struct Alias *alias = *ptr;
 
-  mutt_debug(LL_NOTIFY, "NT_ALIAS_DELETE: %s\n", alias->name);
+  log_notify("NT_ALIAS_DELETE: %s", alias->name);
   struct EventAlias ev_a = { alias };
   notify_send(NeoMutt->notify, NT_ALIAS, NT_ALIAS_DELETE, &ev_a);
 

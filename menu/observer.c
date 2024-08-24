@@ -59,7 +59,7 @@ static int menu_color_observer(struct NotifyCallback *nc)
 
   menu->redraw = MENU_REDRAW_FULL;
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "color done, request WA_REPAINT, MENU_REDRAW_FULL\n");
+  log_debug5("color done, request WA_REPAINT, MENU_REDRAW_FULL");
 
   return 0;
 }
@@ -87,7 +87,7 @@ static int menu_config_observer(struct NotifyCallback *nc)
   menu->redraw |= MENU_REDRAW_FULL;
   menu->win->actions |= WA_RECALC;
 
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC, MENU_REDRAW_FULL\n");
+  log_debug5("config done, request WA_RECALC, MENU_REDRAW_FULL");
   return 0;
 }
 
@@ -113,7 +113,7 @@ static int menu_window_observer(struct NotifyCallback *nc)
     menu->redraw |= MENU_REDRAW_FULL;
 
     win->actions |= WA_RECALC | WA_REPAINT;
-    mutt_debug(LL_DEBUG5, "window state done, request MENU_REDRAW_INDEX, WA_REPAINT\n");
+    log_debug5("window state done, request MENU_REDRAW_INDEX, WA_REPAINT");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
@@ -121,7 +121,7 @@ static int menu_window_observer(struct NotifyCallback *nc)
     notify_observer_remove(win->notify, menu_window_observer, menu);
     mutt_color_observer_remove(menu_color_observer, menu);
     msgwin_clear_text(NULL);
-    mutt_debug(LL_DEBUG5, "window delete done\n");
+    log_debug5("window delete done");
   }
 
   return 0;

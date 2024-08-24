@@ -121,7 +121,7 @@ void mutt_edit_file(const char *editor, const char *file)
   buf_file_expand_fmt_quote(cmd, editor, file);
   if (mutt_system(buf_string(cmd)) != 0)
   {
-    mutt_error(_("Error running \"%s\""), buf_string(cmd));
+    log_fault(_("Error running \"%s\""), buf_string(cmd));
   }
   /* the terminal may have been resized while the editor owned it */
   mutt_resize_screen();

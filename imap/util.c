@@ -96,7 +96,7 @@ int imap_adata_find(const char *path, struct ImapAccountData **adata,
       return 0;
     }
   }
-  mutt_debug(LL_DEBUG3, "no ImapAccountData found\n");
+  log_debug3("no ImapAccountData found");
   return -1;
 }
 
@@ -365,7 +365,7 @@ struct Email *imap_hcache_get(struct ImapMboxData *mdata, unsigned int uid)
                                               mdata->uidvalidity);
   if (!hce.email && hce.uidvalidity)
   {
-    mutt_debug(LL_DEBUG3, "hcache uidvalidity mismatch: %u\n", hce.uidvalidity);
+    log_debug3("hcache uidvalidity mismatch: %u", hce.uidvalidity);
   }
 
   return hce.email;
@@ -423,7 +423,7 @@ int imap_hcache_store_uid_seqset(struct ImapMboxData *mdata)
   imap_msn_index_to_uid_seqset(buf, mdata);
 
   int rc = hcache_store_raw(mdata->hcache, "UIDSEQSET", 9, buf->data, buf_len(buf) + 1);
-  mutt_debug(LL_DEBUG3, "Stored UIDSEQSET %s\n", buf_string(buf));
+  log_debug3("Stored UIDSEQSET %s", buf_string(buf));
   buf_pool_release(&buf);
   return rc;
 }
@@ -454,7 +454,7 @@ char *imap_hcache_get_uid_seqset(struct ImapMboxData *mdata)
     return NULL;
 
   char *seqset = hcache_fetch_raw_str(mdata->hcache, "UIDSEQSET", 9);
-  mutt_debug(LL_DEBUG3, "Retrieved UIDSEQSET %s\n", NONULL(seqset));
+  log_debug3("Retrieved UIDSEQSET %s", NONULL(seqset));
 
   return seqset;
 }
@@ -484,7 +484,7 @@ int imap_parse_path(const char *path, struct ConnAccount *cac, char *mailbox, si
       ImapPort = ntohs(service->s_port);
     else
       ImapPort = IMAP_PORT;
-    mutt_debug(LL_DEBUG3, "Using default IMAP port %d\n", ImapPort);
+    log_debug3("Using default IMAP port %d", ImapPort);
   }
 
   if (ImapsPort == 0)
@@ -494,7 +494,7 @@ int imap_parse_path(const char *path, struct ConnAccount *cac, char *mailbox, si
       ImapsPort = ntohs(service->s_port);
     else
       ImapsPort = IMAP_SSL_PORT;
-    mutt_debug(LL_DEBUG3, "Using default IMAPS port %d\n", ImapsPort);
+    log_debug3("Using default IMAPS port %d", ImapsPort);
   }
 
   /* Defaults */
@@ -657,7 +657,7 @@ enum QuadOption imap_continue(const char *msg, const char *resp)
  */
 void imap_error(const char *where, const char *msg)
 {
-  mutt_error("%s [%s]", where, msg);
+  log_fault("%s [%s]", where, msg);
 }
 
 /**

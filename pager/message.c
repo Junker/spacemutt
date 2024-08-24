@@ -219,7 +219,7 @@ static int email_to_file(struct Message *msg, struct Buffer *tempfile,
   FILE *fp_out = mutt_file_fopen(buf_string(tempfile), "w");
   if (!fp_out)
   {
-    mutt_error(_("Could not create temporary file"));
+    log_fault(_("Could not create temporary file"));
     goto cleanup;
   }
 
@@ -232,7 +232,7 @@ static int email_to_file(struct Message *msg, struct Buffer *tempfile,
                                  fileno(fp_filter_out), -1, EnvList);
     if (filterpid < 0)
     {
-      mutt_error(_("Can't create display filter"));
+      log_fault(_("Can't create display filter"));
       mutt_file_fclose(&fp_filter_out);
       unlink(buf_string(tempfile));
       goto cleanup;
@@ -256,7 +256,7 @@ static int email_to_file(struct Message *msg, struct Buffer *tempfile,
 
   if (((mutt_file_fclose(&fp_out) != 0) && (errno != EPIPE)) || (rc < 0))
   {
-    mutt_error(_("Could not copy message"));
+    log_fault(_("Could not copy message"));
     if (fp_filter_out)
     {
       filter_wait(filterpid);
@@ -327,7 +327,7 @@ int external_pager(struct MailboxView *mv, struct Email *e, const char *command)
   buf_printf(cmd, "%s %s", command, buf_string(tempfile));
   int r = mutt_system(buf_string(cmd));
   if (r == -1)
-    mutt_error(_("Error running \"%s\""), buf_string(cmd));
+    log_fault(_("Error running \"%s\""), buf_string(cmd));
   unlink(buf_string(tempfile));
   buf_pool_release(&cmd);
 
@@ -366,28 +366,28 @@ static void notify_crypto(struct Email *e, struct Message *msg, CopyMessageFlags
     if (e->security & SEC_GOODSIGN)
     {
       if (crypt_smime_verify_sender(e, msg) == 0)
-        mutt_message(_("S/MIME signature successfully verified"));
+        log_message(_("S/MIME signature successfully verified"));
       else
-        mutt_error(_("S/MIME certificate owner does not match sender"));
+        log_fault(_("S/MIME certificate owner does not match sender"));
     }
     else if (e->security & SEC_PARTSIGN)
     {
-      mutt_message(_("Warning: Part of this message has not been signed"));
+      log_message(_("Warning: Part of this message has not been signed"));
     }
     else if (e->security & SEC_SIGN || e->security & SEC_BADSIGN)
     {
-      mutt_error(_("S/MIME signature could NOT be verified"));
+      log_fault(_("S/MIME signature could NOT be verified"));
     }
   }
 
   if ((WithCrypto != 0) && (e->security & APPLICATION_PGP) && (cmflags & MUTT_CM_VERIFY))
   {
     if (e->security & SEC_GOODSIGN)
-      mutt_message(_("PGP signature successfully verified"));
+      log_message(_("PGP signature successfully verified"));
     else if (e->security & SEC_PARTSIGN)
-      mutt_message(_("Warning: Part of this message has not been signed"));
+      log_message(_("Warning: Part of this message has not been signed"));
     else if (e->security & SEC_SIGN)
-      mutt_message(_("PGP signature could NOT be verified"));
+      log_message(_("PGP signature could NOT be verified"));
   }
 }
 

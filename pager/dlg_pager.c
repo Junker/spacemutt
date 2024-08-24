@@ -336,13 +336,13 @@ int dlg_pager(struct PagerView *pview)
   // ---------- try to open the pdata file -------------------------------------
   if (!priv->fp)
   {
-    mutt_perror("%s", pview->pdata->fname);
+    log_perror("%s", pview->pdata->fname);
     return -1;
   }
 
   if (stat(pview->pdata->fname, &priv->st) != 0)
   {
-    mutt_perror("%s", pview->pdata->fname);
+    log_perror("%s", pview->pdata->fname);
     mutt_file_fclose(&priv->fp);
     return -1;
   }
@@ -427,7 +427,7 @@ int dlg_pager(struct PagerView *pview)
 
             if (e && !e->read)
             {
-              mutt_message(_("New mail in this mailbox"));
+              log_message(_("New mail in this mailbox"));
               do_new_mail = true;
               break;
             }
@@ -452,7 +452,7 @@ int dlg_pager(struct PagerView *pview)
           struct Buffer *cmd = buf_pool_get();
           menu_status_line(cmd, shared, NULL, -1, c_new_mail_command);
           if (mutt_system(buf_string(cmd)) != 0)
-            mutt_error(_("Error running \"%s\""), buf_string(cmd));
+            log_fault(_("Error running \"%s\""), buf_string(cmd));
           buf_pool_release(&cmd);
         }
       }
@@ -517,7 +517,7 @@ int dlg_pager(struct PagerView *pview)
     if (op >= OP_NULL)
       mutt_clear_error();
 
-    mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+    log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
 
     if (op < OP_NULL)
     {
@@ -583,8 +583,7 @@ int dlg_pager(struct PagerView *pview)
   }
   FREE(&priv->lines);
   attr_color_list_clear(priv->ansi_list);
-  color_debug(LL_DEBUG5, "AnsiColors %d\n", priv->ansi_list->length);
-  
+  log_color_debug("AnsiColors %d\n", priv->ansi_list->length);
 
   priv->pview = NULL;
 

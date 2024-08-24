@@ -112,7 +112,7 @@ static enum CommandResult km_bind_err(const char *s, enum MenuType mtype, int op
           buf_printf(tmp, err_msg, old_binding, new_binding,
                      mutt_map_get_name(mtype, MenuNames), new_binding);
           buf_add_printf(tmp, "  %s", guide_link);
-          mutt_error("%s", buf_string(tmp));
+          log_fault("%s", buf_string(tmp));
           buf_pool_release(&tmp);
         }
         rc = MUTT_CMD_WARNING;
@@ -401,7 +401,7 @@ enum CommandResult mutt_parse_bind(struct Buffer *buf, struct Buffer *s,
         char keystr[32] = { 0 };
         km_expand_key_string(key, keystr, sizeof(keystr));
         const char *mname = mutt_map_get_name(mtypes[i], MenuNames);
-        mutt_debug(LL_NOTIFY, "NT_BINDING_DELETE: %s %s\n", mname, keystr);
+        log_notify("NT_BINDING_DELETE: %s %s", mname, keystr);
 
         int op = get_op(OpGeneric, buf->data, mutt_str_len(buf->data));
         struct EventBinding ev_b = { mtypes[i], key, op };
@@ -423,7 +423,7 @@ enum CommandResult mutt_parse_bind(struct Buffer *buf, struct Buffer *s,
           char keystr[32] = { 0 };
           km_expand_key_string(key, keystr, sizeof(keystr));
           const char *mname = mutt_map_get_name(mtypes[i], MenuNames);
-          mutt_debug(LL_NOTIFY, "NT_BINDING_NEW: %s %s\n", mname, keystr);
+          log_notify("NT_BINDING_NEW: %s %s", mname, keystr);
 
           int op = get_op(OpGeneric, buf->data, mutt_str_len(buf->data));
           struct EventBinding ev_b = { mtypes[i], key, op };
@@ -445,7 +445,7 @@ enum CommandResult mutt_parse_bind(struct Buffer *buf, struct Buffer *s,
           char keystr[32] = { 0 };
           km_expand_key_string(key, keystr, sizeof(keystr));
           const char *mname = mutt_map_get_name(mtypes[i], MenuNames);
-          mutt_debug(LL_NOTIFY, "NT_BINDING_NEW: %s %s\n", mname, keystr);
+          log_notify("NT_BINDING_NEW: %s %s", mname, keystr);
 
           int op = get_op(funcs, buf->data, mutt_str_len(buf->data));
           struct EventBinding ev_b = { mtypes[i], key, op };
@@ -527,7 +527,7 @@ enum CommandResult mutt_parse_unbind(struct Buffer *buf, struct Buffer *s,
       }
 
       const char *mname = mutt_map_get_name(i, MenuNames);
-      mutt_debug(LL_NOTIFY, "NT_MACRO_DELETE_ALL: %s\n", mname);
+      log_notify("NT_MACRO_DELETE_ALL: %s", mname);
 
       struct EventBinding ev_b = { i, NULL, OP_NULL };
       notify_send(NeoMutt->notify, NT_BINDING,
@@ -539,7 +539,7 @@ enum CommandResult mutt_parse_unbind(struct Buffer *buf, struct Buffer *s,
       char keystr[32] = { 0 };
       km_expand_key_string(key, keystr, sizeof(keystr));
       const char *mname = mutt_map_get_name(i, MenuNames);
-      mutt_debug(LL_NOTIFY, "NT_MACRO_DELETE: %s %s\n", mname, keystr);
+      log_notify("NT_MACRO_DELETE: %s %s", mname, keystr);
 
       km_bindkey(key, i, OP_NULL);
       struct EventBinding ev_b = { i, key, OP_NULL };
@@ -605,7 +605,7 @@ enum CommandResult mutt_parse_macro(struct Buffer *buf, struct Buffer *s,
             char keystr[32] = { 0 };
             km_expand_key_string(key, keystr, sizeof(keystr));
             const char *mname = mutt_map_get_name(mtypes[i], MenuNames);
-            mutt_debug(LL_NOTIFY, "NT_MACRO_NEW: %s %s\n", mname, keystr);
+            log_notify("NT_MACRO_NEW: %s %s", mname, keystr);
 
             struct EventBinding ev_b = { mtypes[i], key, OP_MACRO };
             notify_send(NeoMutt->notify, NT_BINDING, NT_MACRO_ADD, &ev_b);
@@ -626,7 +626,7 @@ enum CommandResult mutt_parse_macro(struct Buffer *buf, struct Buffer *s,
           char keystr[32] = { 0 };
           km_expand_key_string(key, keystr, sizeof(keystr));
           const char *mname = mutt_map_get_name(mtypes[i], MenuNames);
-          mutt_debug(LL_NOTIFY, "NT_MACRO_NEW: %s %s\n", mname, keystr);
+          log_notify("NT_MACRO_NEW: %s %s", mname, keystr);
 
           struct EventBinding ev_b = { mtypes[i], key, OP_MACRO };
           notify_send(NeoMutt->notify, NT_BINDING, NT_MACRO_ADD, &ev_b);
@@ -675,7 +675,7 @@ enum CommandResult mutt_parse_exec(struct Buffer *buf, struct Buffer *s,
     if (ops[nops] == OP_NULL)
     {
       mutt_flushinp();
-      mutt_error(_("%s: no such function"), function);
+      log_fault(_("%s: no such function"), function);
       return MUTT_CMD_ERROR;
     }
     nops++;

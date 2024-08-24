@@ -52,7 +52,7 @@ enum ImapAuthRes imap_auth_plain(struct ImapAccountData *adata, const char *meth
   if (mutt_account_getpass(cac) < 0)
     return IMAP_AUTH_FAILURE;
 
-  mutt_message(_("Logging in..."));
+  log_message(_("Logging in..."));
 
   int rc_step = IMAP_RES_CONTINUE;
   enum ImapAuthRes rc = IMAP_AUTH_SUCCESS;
@@ -94,7 +94,7 @@ enum ImapAuthRes imap_auth_plain(struct ImapAccountData *adata, const char *meth
   }
   else if (rc_step == IMAP_RES_NO)
   {
-    mutt_error(_("Login failed"));
+    log_fault(_("Login failed"));
     rc = IMAP_AUTH_FAILURE;
   }
 

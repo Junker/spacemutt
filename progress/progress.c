@@ -178,7 +178,7 @@ void progress_set_message(struct Progress *progress, const char *fmt, ...)
   {
     char msg[1024] = { 0 };
     vsnprintf(msg, sizeof(msg), fmt, ap);
-    mutt_message("%s", msg);
+    log_message("%s", msg);
   }
 
   va_end(ap);

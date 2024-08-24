@@ -90,7 +90,7 @@ static int simple_config_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *dlg = nc->global_data;
   window_status_on_top(dlg, NeoMutt->sub);
-  mutt_debug(LL_DEBUG5, "config done\n");
+  log_debug5("config done");
   return 0;
 }
 
@@ -118,7 +118,7 @@ static int simple_window_observer(struct NotifyCallback *nc)
   notify_observer_remove(NeoMutt->sub->notify, simple_config_observer, dlg);
   notify_observer_remove(dlg->notify, simple_window_observer, dlg);
 
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
   return 0;
 }
 

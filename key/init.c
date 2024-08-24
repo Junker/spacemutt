@@ -241,13 +241,13 @@ void mutt_init_abort_key(void)
   size_t len = parsekeys(c_abort_key, buf, mutt_array_size(buf));
   if (len == 0)
   {
-    mutt_error(_("Abort key is not set, defaulting to Ctrl-G"));
+    log_fault(_("Abort key is not set, defaulting to Ctrl-G"));
     AbortKey = ctrl('G');
     return;
   }
   if (len > 1)
   {
-    mutt_warning(_("Specified abort key sequence (%s) will be truncated to first key"),
+    log_warning(_("Specified abort key sequence (%s) will be truncated to first key"),
                  c_abort_key);
   }
   AbortKey = buf[0];
@@ -269,6 +269,6 @@ int main_config_observer(struct NotifyCallback *nc)
     return 0;
 
   mutt_init_abort_key();
-  mutt_debug(LL_DEBUG5, "config done\n");
+  log_debug5("config done");
   return 0;
 }

@@ -179,7 +179,7 @@ int parse_extract_token(struct Buffer *dest, struct Buffer *tok, TokenFlags flag
       } while (pc && (pc[0] != '`'));
       if (!pc)
       {
-        mutt_debug(LL_DEBUG1, "mismatched backticks\n");
+        log_debug1("mismatched backticks");
         return -1;
       }
       struct Buffer *cmd = buf_pool_get();
@@ -199,7 +199,7 @@ int parse_extract_token(struct Buffer *dest, struct Buffer *tok, TokenFlags flag
       pid = filter_create(buf_string(cmd), NULL, &fp, NULL, EnvList);
       if (pid < 0)
       {
-        mutt_debug(LL_DEBUG1, "unable to fork command: %s\n", buf_string(cmd));
+        log_debug1("unable to fork command: %s", buf_string(cmd));
         buf_pool_release(&cmd);
         return -1;
       }
@@ -214,7 +214,7 @@ int parse_extract_token(struct Buffer *dest, struct Buffer *tok, TokenFlags flag
       int rc = filter_wait(pid);
       if (rc != 0)
       {
-        mutt_debug(LL_DEBUG1, "backticks exited code %d for command: %s\n", rc,
+        log_debug1("backticks exited code %d for command: %s", rc,
                    buf_string(cmd));
       }
       buf_pool_release(&cmd);

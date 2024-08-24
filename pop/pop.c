@@ -121,7 +121,7 @@ static int pop_read_header(struct PopAccountData *adata, struct Email *e)
   FILE *fp = mutt_file_mkstemp();
   if (!fp)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     return -3;
   }
 
@@ -146,14 +146,14 @@ static int pop_read_header(struct PopAccountData *adata, struct Email *e)
       {
         adata->cmd_top = 1;
 
-        mutt_debug(LL_DEBUG1, "set TOP capability\n");
+        log_debug1("set TOP capability");
       }
 
       if (rc == -2)
       {
         adata->cmd_top = 0;
 
-        mutt_debug(LL_DEBUG1, "unset TOP capability\n");
+        log_debug1("unset TOP capability");
         snprintf(adata->err_msg, sizeof(adata->err_msg), "%s",
                  _("Command TOP is not supported by server"));
       }
@@ -178,12 +178,12 @@ static int pop_read_header(struct PopAccountData *adata, struct Email *e)
     }
     case -2:
     {
-      mutt_error("%s", adata->err_msg);
+      log_fault("%s", adata->err_msg);
       break;
     }
     case -3:
     {
-      mutt_error(_("Can't write header to temporary file"));
+      log_fault(_("Can't write header to temporary file"));
       break;
     }
   }
@@ -227,7 +227,7 @@ static int fetch_uidl(const char *line, void *data)
 
   if (i == m->msg_count)
   {
-    mutt_debug(LL_DEBUG1, "new header %d %s\n", index, line);
+    log_debug1("new header %d %s", index, line);
 
     mx_alloc_memory(m, i);
 
@@ -353,14 +353,14 @@ static int pop_fetch_headers(struct Mailbox *m)
     {
       adata->cmd_uidl = 1;
 
-      mutt_debug(LL_DEBUG1, "set UIDL capability\n");
+      log_debug1("set UIDL capability");
     }
 
     if ((rc == -2) && (adata->cmd_uidl == 2))
     {
       adata->cmd_uidl = 0;
 
-      mutt_debug(LL_DEBUG1, "unset UIDL capability\n");
+      log_debug1("unset UIDL capability");
       snprintf(adata->err_msg, sizeof(adata->err_msg), "%s",
                _("Command UIDL is not supported by server"));
     }
@@ -386,7 +386,7 @@ static int pop_fetch_headers(struct Mailbox *m)
     }
     if (deleted > 0)
     {
-      mutt_error(ngettext("%d message has been lost. Try reopening the mailbox.",
+      log_fault(ngettext("%d message has been lost. Try reopening the mailbox.",
                           "%d messages have been lost. Try reopening the mailbox.", deleted),
                  deleted);
     }
@@ -495,7 +495,7 @@ static void pop_clear_cache(struct PopAccountData *adata)
   if (!adata->clear_cache)
     return;
 
-  mutt_debug(LL_DEBUG1, "delete cached messages\n");
+  log_debug1("delete cached messages");
 
   for (int i = 0; i < POP_CACHE_LEN; i++)
   {
@@ -515,7 +515,7 @@ void pop_fetch_mail(void)
   const char *const c_pop_host = cs_subset_string(NeoMutt->sub, "pop_host");
   if (!c_pop_host)
   {
-    mutt_error(_("POP host is not defined"));
+    log_fault(_("POP host is not defined"));
     return;
   }
 
@@ -537,7 +537,7 @@ void pop_fetch_mail(void)
   FREE(&url);
   if (rc)
   {
-    mutt_error(_("%s is an invalid POP path"), c_pop_host);
+    log_fault(_("%s is an invalid POP path"), c_pop_host);
     return;
   }
 
@@ -554,7 +554,7 @@ void pop_fetch_mail(void)
     return;
   }
 
-  mutt_message(_("Checking for new messages..."));
+  log_message(_("Checking for new messages..."));
 
   /* find out how many messages are in the mailbox. */
   mutt_str_copy(buf, "STAT\r\n", sizeof(buf));
@@ -563,7 +563,7 @@ void pop_fetch_mail(void)
     goto fail;
   if (rc == -2)
   {
-    mutt_error("%s", adata->err_msg);
+    log_fault("%s", adata->err_msg);
     goto finish;
   }
 
@@ -583,7 +583,7 @@ void pop_fetch_mail(void)
 
   if (msgs <= last)
   {
-    mutt_message(_("No new mail in POP mailbox"));
+    log_message(_("No new mail in POP mailbox"));
     goto finish;
   }
 
@@ -605,7 +605,7 @@ void pop_fetch_mail(void)
            ngettext("Reading new messages (%d byte)...",
                     "Reading new messages (%d bytes)...", bytes),
            bytes);
-  mutt_message("%s", msgbuf);
+  log_message("%s", msgbuf);
 
   for (int i = last + 1; i <= msgs; i++)
   {
@@ -645,18 +645,18 @@ void pop_fetch_mail(void)
     }
     if (rc == -2)
     {
-      mutt_error("%s", adata->err_msg);
+      log_fault("%s", adata->err_msg);
       break;
     }
     if (rc == -3)
     {
-      mutt_error(_("Error while writing mailbox"));
+      log_fault(_("Error while writing mailbox"));
       break;
     }
 
     /* L10N: The plural is picked by the second numerical argument, i.e.
        the %d right before 'messages', i.e. the total number of messages. */
-    mutt_message(ngettext("%s [%d of %d message read]",
+    log_message(ngettext("%s [%d of %d message read]",
                           "%s [%d of %d messages read]", msgs - last),
                  msgbuf, i - last, msgs - last);
   }
@@ -682,7 +682,7 @@ finish:
   return;
 
 fail:
-  mutt_error(_("Server closed connection"));
+  log_fault(_("Server closed connection"));
   mutt_socket_close(conn);
   pop_adata_free((void **) &adata);
 }
@@ -716,7 +716,7 @@ static bool pop_ac_add(struct Account *a, struct Mailbox *m)
   struct ConnAccount cac = { { 0 } };
   if (pop_parse_path(mailbox_path(m), &cac))
   {
-    mutt_error(_("%s is an invalid POP path"), mailbox_path(m));
+    log_fault(_("%s is an invalid POP path"), mailbox_path(m));
     return false;
   }
 
@@ -749,7 +749,7 @@ static enum MxOpenReturns pop_mbox_open(struct Mailbox *m)
 
   if (pop_parse_path(mailbox_path(m), &cac))
   {
-    mutt_error(_("%s is an invalid POP path"), mailbox_path(m));
+    log_fault(_("%s is an invalid POP path"), mailbox_path(m));
     return MX_OPEN_ERROR;
   }
 
@@ -800,7 +800,7 @@ static enum MxOpenReturns pop_mbox_open(struct Mailbox *m)
 
     m->size = adata->size;
 
-    mutt_message(_("Fetching list of messages..."));
+    log_message(_("Fetching list of messages..."));
 
     const int rc = pop_fetch_headers(m);
 
@@ -835,7 +835,7 @@ static enum MxStatus pop_mbox_check(struct Mailbox *m)
 
   m->size = adata->size;
 
-  mutt_message(_("Checking for new messages..."));
+  log_message(_("Checking for new messages..."));
 
   int old_msg_count = m->msg_count;
   int rc = pop_fetch_headers(m);
@@ -938,7 +938,7 @@ static enum MxStatus pop_mbox_sync(struct Mailbox *m)
 
     if (rc == -2)
     {
-      mutt_error("%s", adata->err_msg);
+      log_fault("%s", adata->err_msg);
       return MX_STATUS_ERROR;
     }
   }
@@ -1000,7 +1000,7 @@ static bool pop_msg_open(struct Mailbox *m, struct Message *msg, struct Email *e
       if (msg->fp)
         return true;
 
-      mutt_perror("%s", cache->path);
+      log_perror("%s", cache->path);
       return false;
     }
     else
@@ -1021,7 +1021,7 @@ static bool pop_msg_open(struct Mailbox *m, struct Message *msg, struct Email *e
     /* verify that massage index is correct */
     if (edata->refno < 0)
     {
-      mutt_error(_("The message index is incorrect. Try reopening the mailbox."));
+      log_fault(_("The message index is incorrect. Try reopening the mailbox."));
       goto cleanup;
     }
 
@@ -1035,7 +1035,7 @@ static bool pop_msg_open(struct Mailbox *m, struct Message *msg, struct Email *e
       msg->fp = mutt_file_fopen(buf_string(path), "w+");
       if (!msg->fp)
       {
-        mutt_perror("%s", buf_string(path));
+        log_perror("%s", buf_string(path));
         goto cleanup;
       }
     }
@@ -1061,13 +1061,13 @@ static bool pop_msg_open(struct Mailbox *m, struct Message *msg, struct Email *e
 
     if (rc == -2)
     {
-      mutt_error("%s", adata->err_msg);
+      log_fault("%s", adata->err_msg);
       goto cleanup;
     }
 
     if (rc == -3)
     {
-      mutt_error(_("Can't write message to temporary file"));
+      log_fault(_("Can't write message to temporary file"));
       goto cleanup;
     }
   }

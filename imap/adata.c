@@ -48,18 +48,18 @@ static int imap_timeout_observer(struct NotifyCallback *nc)
     return -1;
 
   struct ImapAccountData *adata = nc->global_data;
-  mutt_debug(LL_DEBUG5, "imap timeout start\n");
+  log_debug5("imap timeout start");
 
   time_t now = mutt_date_now();
   const short c_imap_keep_alive = cs_subset_number(NeoMutt->sub, "imap_keep_alive");
 
   if ((adata->state >= IMAP_AUTHENTICATED) && (now >= (adata->lastread + c_imap_keep_alive)))
   {
-    mutt_debug(LL_DEBUG5, "imap_keep_alive\n");
+    log_debug5("imap_keep_alive");
     imap_check_mailbox(adata->mailbox, true);
   }
 
-  mutt_debug(LL_DEBUG5, "imap timeout done\n");
+  log_debug5("imap timeout done");
   return 0;
 }
 

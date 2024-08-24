@@ -35,34 +35,26 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <glib.h>
 #include "date.h"
 #include "file.h"
 #include "logging2.h"
 #include "memory.h"
 #include "message.h"
-#include "queue.h"
 #include "string2.h"
 
-const char *LevelAbbr = "PEWM12345N"; ///< Abbreviations of logging level names
 
-/**
- * MuttLogger - The log dispatcher - @ingroup logging_api
- *
- * This function pointer controls where log messages are redirected.
- */
-log_dispatcher_t MuttLogger = log_disp_terminal;
 
 static FILE *LogFileFP = NULL;      ///< Log file handle
 static char *LogFileName = NULL;    ///< Log file name
-static int LogFileLevel = 0;        ///< Log file level
+static GLogLevelFlags LogFileLevel; ///< Log file level
 static char *LogFileVersion = NULL; ///< Program version
+GLogWriterFunc MuttLogWriter = log_writer_terminal;
 
 /**
  * LogQueue - In-memory list of log lines
  */
-static struct LogLineList LogQueue = STAILQ_HEAD_INITIALIZER(LogQueue);
-
-static int LogQueueCount = 0; ///< Number of entries currently in the log queue
+static GQueue *LogQueue = NULL;
 static int LogQueueMax = 0;   ///< Maximum number of entries in the log queue
 
 /**
@@ -92,6 +84,130 @@ static const char *timestamp(time_t stamp)
   return buf;
 }
 
+
+gconstpointer log_get_field(const GLogField* fields, gsize n_fields, char *name)
+{
+  size_t i;
+
+  for (i = 0; i < n_fields; i++)
+  {
+    if (mutt_str_equal((fields + i)->key, name))
+    {
+      return (fields + i)->value;
+    }
+  }
+
+  return NULL;
+}
+
+static const gchar* log_level_to_str(GLogLevelFlags lvl)
+{
+	switch (lvl & G_LOG_LEVEL_MASK)
+  {
+		case G_LOG_LEVEL_ERROR:
+			return "EROR";
+		case G_LOG_LEVEL_CRITICAL:
+			return "CRIT";
+		case G_LOG_LEVEL_WARNING:
+			return "WARN";
+		case G_LOG_LEVEL_MESSAGE:
+			return "MESG";
+		case G_LOG_LEVEL_INFO:
+			return "INFO";
+		case G_LOG_LEVEL_DEBUG:
+			return "DBG";
+		case LOG_LEVEL_FAULT:
+			return "FALT";
+		case LOG_LEVEL_DEBUG1:
+			return "DBG1";
+		case LOG_LEVEL_DEBUG2:
+			return "DBG2";
+		case LOG_LEVEL_DEBUG3:
+			return "DBG3";
+		case LOG_LEVEL_DEBUG4:
+			return "DBG4";
+		case LOG_LEVEL_DEBUG5:
+			return "DBG5";
+		case LOG_LEVEL_NOTIFY:
+			return "NTFY";
+	}
+}
+
+gchar * log_writer_format_fields(GLogLevelFlags level, const GLogField *fields, gsize n_fields)
+{
+  gsize i;
+  const gchar *message = NULL;
+  const gchar *log_domain = NULL;
+  gssize message_length = -1;
+  gssize log_domain_length = -1;
+  const gchar *level_str;
+  GString *gstring;
+  gchar time_buf[128];
+
+  /* Extract some common fields. */
+  for (i = 0; (message == NULL || log_domain == NULL) && i < n_fields; i++)
+  {
+    const GLogField *field = &fields[i];
+
+    if (mutt_str_equal(field->key, "MESSAGE"))
+    {
+      message = field->value;
+      message_length = field->length;
+    }
+    else if (mutt_str_equal(field->key, "GLIB_DOMAIN"))
+    {
+      log_domain = field->value;
+      log_domain_length = field->length;
+    }
+  }
+
+  /* Format things. */
+  level_str = log_level_to_str(level);
+
+  gstring = g_string_new(NULL);
+  if (!log_domain)
+    g_string_append(gstring, "");
+  else
+  {
+    g_string_append_len(gstring, log_domain, log_domain_length);
+    g_string_append_c(gstring, '-');
+  }
+  g_string_append(gstring, level_str);
+  g_string_append(gstring, ": ");
+
+  /* Timestamp */
+  mutt_date_localtime_format(time_buf, sizeof(time_buf), "%H:%M:%S", mutt_date_now());
+  g_string_append(gstring, time_buf);
+  g_string_append(gstring, ": ");
+
+  if (message == NULL)
+    g_string_append(gstring, "(NULL) message");
+  else
+    g_string_append_len(gstring, message, message_length);
+
+  return g_string_free(gstring, FALSE);
+}
+
+static GLogWriterOutput log_writer(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data)
+{
+  if (level <= G_LOG_LEVEL_ERROR)
+    return g_log_writer_default(level, fields, n_fields, user_data);
+
+  /* return G_LOG_WRITER_HANDLED; */
+  return MuttLogWriter(level, fields, n_fields, user_data);
+}
+
+
+void logging_init()
+{
+  LogQueue = g_queue_new();
+  g_log_set_writer_func(log_writer, NULL, NULL);
+}
+
+
+
+
+
 /**
  * log_file_close - Close the log file
  * @param verbose If true, then log the event
@@ -105,7 +221,7 @@ void log_file_close(bool verbose)
   fprintf(LogFileFP, "# vim: syntax=neomuttlog\n");
   mutt_file_fclose(&LogFileFP);
   if (verbose)
-    mutt_message(_("Closed log file: %s"), LogFileName);
+    log_message(_("Closed log file: %s"), LogFileName);
 }
 
 /**
@@ -125,7 +241,7 @@ int log_file_open(bool verbose)
   if (LogFileFP)
     log_file_close(false);
 
-  if (LogFileLevel < LL_DEBUG1)
+  if (LogFileLevel < LOG_LEVEL_DEBUG1)
     return -1;
 
   LogFileFP = mutt_file_fopen(LogFileName, "a+");
@@ -136,7 +252,7 @@ int log_file_open(bool verbose)
   fprintf(LogFileFP, "[%s] NeoMutt%s debugging at level %d\n", timestamp(0),
           NONULL(LogFileVersion), LogFileLevel);
   if (verbose)
-    mutt_message(_("Debugging at level %d to file '%s'"), LogFileLevel, LogFileName);
+    log_message(_("Debugging at level %d to file '%s'"), LogFileLevel, LogFileName);
   return 0;
 }
 
@@ -173,9 +289,9 @@ int log_file_set_filename(const char *file, bool verbose)
  *
  * The level should be: LL_MESSAGE <= level < LL_MAX.
  */
-int log_file_set_level(enum LogLevel level, bool verbose)
+int log_file_set_level(GLogLevelFlags level, bool verbose)
 {
-  if ((level < LL_MESSAGE) || (level >= LL_MAX))
+  if ((level < G_LOG_LEVEL_MESSAGE) || (level > LOG_LEVEL_NOTIFY))
     return -1;
 
   if (level == LogFileLevel)
@@ -183,14 +299,14 @@ int log_file_set_level(enum LogLevel level, bool verbose)
 
   LogFileLevel = level;
 
-  if (level == LL_MESSAGE)
+  if (level == G_LOG_LEVEL_MESSAGE)
   {
     log_file_close(verbose);
   }
   else if (LogFileFP)
   {
     if (verbose)
-      mutt_message(_("Logging at level %d to file '%s'"), LogFileLevel, LogFileName);
+      log_message(_("Logging at level %d to file '%s'"), LogFileLevel, LogFileName);
     fprintf(LogFileFP, "[%s] NeoMutt%s debugging at level %d\n", timestamp(0),
             NONULL(LogFileVersion), LogFileLevel);
   }
@@ -199,7 +315,7 @@ int log_file_set_level(enum LogLevel level, bool verbose)
     log_file_open(verbose);
   }
 
-  if (LogFileLevel >= LL_DEBUG5)
+  if (LogFileLevel >= LOG_LEVEL_DEBUG5)
   {
     fprintf(LogFileFP, "\n"
                        "WARNING:\n"
@@ -233,7 +349,7 @@ bool log_file_running(void)
 }
 
 /**
- * log_disp_file - Save a log line to a file - Implements ::log_dispatcher_t - @ingroup logging_api
+ * log_writer_file - Save a log line to a file
  *
  * This log dispatcher saves a line of text to a file.  The format is:
  * * `[TIMESTAMP]<LEVEL> FUNCTION() FORMATTED-MESSAGE`
@@ -243,36 +359,27 @@ bool log_file_running(void)
  *
  * If stamp is 0, then the current time will be used.
  */
-int log_disp_file(time_t stamp, const char *file, int line, const char *function,
-                  enum LogLevel level, const char *format, ...)
+GLogWriterOutput log_writer_file(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer from_queue)
 {
-  if (!LogFileFP || (level < LL_PERROR) || (level > LogFileLevel))
-    return 0;
+  if (!LogFileFP || level < G_LOG_LEVEL_ERROR || level < LogFileLevel)
+    return G_LOG_WRITER_HANDLED;
 
-  int rc = 0;
-  int err = errno;
+  const gchar *function = log_get_field(fields, n_fields, "CODE_FUNC");
+  const short _errno = (long)log_get_field(fields, n_fields, "ERRNO");
 
   if (!function)
     function = "UNKNOWN";
 
-  rc += fprintf(LogFileFP, "[%s]<%c> %s() ", timestamp(stamp), LevelAbbr[level + 3], function);
+  char *msg = log_writer_format_fields(level, fields, n_fields);
+  fputs(msg, LogFileFP);
+  FREE(&msg);
 
-  va_list ap;
-  va_start(ap, format);
-  rc += vfprintf(LogFileFP, format, ap);
-  va_end(ap);
-
-  if (level == LL_PERROR)
-  {
-    fprintf(LogFileFP, ": %s\n", strerror(err));
-  }
-  else if (level <= LL_MESSAGE)
-  {
+  if (_errno)
+    fprintf(LogFileFP, ": %s\n", strerror(_errno));
+  else
     fputs("\n", LogFileFP);
-    rc++;
-  }
 
-  return rc;
+  return G_LOG_WRITER_HANDLED;
 }
 
 /**
@@ -282,25 +389,22 @@ int log_disp_file(time_t stamp, const char *file, int line, const char *function
  *
  * If #LogQueueMax is non-zero, the queue will be limited to this many items.
  */
-int log_queue_add(struct LogLine *ll)
+int log_queue_add(LogLine *ll)
 {
   if (!ll)
     return -1;
 
-  STAILQ_INSERT_TAIL(&LogQueue, ll, entries);
+  g_queue_push_tail(LogQueue, ll);
 
-  if ((LogQueueMax > 0) && (LogQueueCount >= LogQueueMax))
+  if ((LogQueueMax > 0) && (LogQueue->length >= LogQueueMax))
   {
-    ll = STAILQ_FIRST(&LogQueue);
-    STAILQ_REMOVE_HEAD(&LogQueue, entries);
+    ll = g_queue_pop_head(LogQueue);
     FREE(&ll->message);
+    FREE(&ll->line);
     FREE(&ll);
+
   }
-  else
-  {
-    LogQueueCount++;
-  }
-  return LogQueueCount;
+  return LogQueue->length;
 }
 
 /**
@@ -323,17 +427,14 @@ void log_queue_set_max_size(int size)
  */
 void log_queue_empty(void)
 {
-  struct LogLine *ll = NULL;
-  struct LogLine *tmp = NULL;
+  LogLine *ll = NULL;
 
-  STAILQ_FOREACH_SAFE(ll, &LogQueue, entries, tmp)
+  while ((ll = g_queue_pop_tail(LogQueue)) != NULL)
   {
-    STAILQ_REMOVE(&LogQueue, ll, LogLine, entries);
     FREE(&ll->message);
+    FREE(&ll->line);
     FREE(&ll);
   }
-
-  LogQueueCount = 0;
 }
 
 /**
@@ -343,12 +444,21 @@ void log_queue_empty(void)
  * Pass all of the log entries in the queue to the log dispatcher provided.
  * The queue will be emptied afterwards.
  */
-void log_queue_flush(log_dispatcher_t disp)
+void log_queue_flush(GLogWriterFunc writer)
 {
-  struct LogLine *ll = NULL;
-  STAILQ_FOREACH(ll, &LogQueue, entries)
+  log_debug5("LogQueue flushing...");
+  for (GList *np = LogQueue->head; np != NULL; np = np->next)
   {
-    disp(ll->time, ll->file, ll->line, ll->function, ll->level, "%s", ll->message);
+    LogLine *ll = np->data;
+    const GLogField fields[] = {
+      { "GLIB_DOMAIN", G_LOG_DOMAIN, -1 },
+      { "MESSAGE", ll->message, -1 },
+      { "CODE_FILE", ll->file, -1 },
+      { "CODE_LINE", ll->line, -1 },
+      { "CODE_FUNC", ll->func, -1 },
+      { "ERRNO", (gpointer)(long)ll->err_no, -1 }
+    };
+    writer(ll->level, fields, G_N_ELEMENTS (fields), (gpointer)true);
   }
 
   log_queue_empty();
@@ -371,13 +481,15 @@ int log_queue_save(FILE *fp)
 
   char buf[32] = { 0 };
   int count = 0;
-  struct LogLine *ll = NULL;
-  STAILQ_FOREACH(ll, &LogQueue, entries)
+  for (GList *np = LogQueue->head; np != NULL; np = np->next)
   {
+    LogLine *ll = np->data;
     mutt_date_localtime_format(buf, sizeof(buf), "%H:%M:%S", ll->time);
-    fprintf(fp, "[%s]<%c> %s", buf, LevelAbbr[ll->level + 3], ll->message);
-    if (ll->level <= LL_MESSAGE)
-      fputs("\n", fp);
+    fprintf(fp, "[%s]<%s> %s", buf, log_level_to_str(ll->level), ll->message);
+    if (ll->err_no)
+      fprintf(fp, ": %s\n", strerror(ll->err_no));
+    else
+      fputs("\n", LogFileFP);
     count++;
   }
 
@@ -385,7 +497,7 @@ int log_queue_save(FILE *fp)
 }
 
 /**
- * log_disp_queue - Save a log line to an internal queue - Implements ::log_dispatcher_t - @ingroup logging_api
+ * log_queue_writer - Save a log line to an internal queue
  *
  * This log dispatcher saves a line of text to a queue.
  * The format string and parameters are expanded and the other parameters are
@@ -395,39 +507,46 @@ int log_queue_save(FILE *fp)
  *
  * @warning Log lines are limited to LOG_LINE_MAX_LEN bytes
  */
-int log_disp_queue(time_t stamp, const char *file, int line, const char *function,
-                   enum LogLevel level, const char *format, ...)
+GLogWriterOutput log_writer_queue(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data)
 {
-  char buf[LOG_LINE_MAX_LEN] = { 0 };
-  int err = errno;
-
-  va_list ap;
-  va_start(ap, format);
-  int rc = vsnprintf(buf, sizeof(buf), format, ap);
-  va_end(ap);
-
-  if (level == LL_PERROR)
-  {
-    if ((rc >= 0) && (rc < sizeof(buf)))
-      rc += snprintf(buf + rc, sizeof(buf) - rc, ": %s", strerror(err));
-    level = LL_ERROR;
-  }
-
-  struct LogLine *ll = mutt_mem_calloc(1, sizeof(*ll));
-  ll->time = (stamp != 0) ? stamp : mutt_date_now();
-  ll->file = file;
-  ll->line = line;
-  ll->function = function;
+  LogLine *ll = g_slice_new0(LogLine);
+  ll->time = mutt_date_now();
   ll->level = level;
-  ll->message = mutt_str_dup(buf);
+
+  for (int i = 0; i < n_fields; i++)
+  {
+    const char *key = (fields + i)->key;
+    gconstpointer value = (fields + i)->value;
+
+    if (mutt_str_equal(key, "MESSAGE"))
+    {
+      ll->message = mutt_str_dup(value);
+    }
+    else if (mutt_str_equal(key, "CODE_FILE"))
+    {
+      ll->file = value;
+    }
+    else if (mutt_str_equal(key, "CODE_LINE"))
+    {
+      ll->line = mutt_str_dup(value);
+    }
+    else if (mutt_str_equal(key, "CODE_FUNC"))
+    {
+      ll->func = value;
+    }
+    else if (mutt_str_equal(key, "ERRNO"))
+    {
+      ll->err_no = (long)value;
+    }
+  }
 
   log_queue_add(ll);
 
-  return rc;
+  return G_LOG_WRITER_HANDLED;
 }
 
 /**
- * log_disp_terminal - Save a log line to the terminal - Implements ::log_dispatcher_t - @ingroup logging_api
+ * log_terminal_writer - Save a log line to the terminal
  *
  * This log dispatcher saves a line of text to the terminal.
  * The format is:
@@ -438,83 +557,27 @@ int log_disp_queue(time_t stamp, const char *file, int line, const char *functio
  * @note The output will be coloured using ANSI escape sequences,
  *       unless the output is redirected.
  */
-int log_disp_terminal(time_t stamp, const char *file, int line, const char *function,
-                      enum LogLevel level, const char *format, ...)
+GLogWriterOutput log_writer_terminal(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer from_queue)
 {
-  char buf[LOG_LINE_MAX_LEN] = { 0 };
+  
+  log_writer_file(level, fields, n_fields, from_queue);
 
-  va_list ap;
-  va_start(ap, format);
-  int rc = vsnprintf(buf, sizeof(buf), format, ap);
-  va_end(ap);
+  if ((level > G_LOG_LEVEL_MESSAGE) && (level != LOG_LEVEL_FAULT))
+    return G_LOG_WRITER_HANDLED;
 
-  log_disp_file(stamp, file, line, function, level, "%s", buf);
+  FILE *stream;
+  if (level & (G_LOG_LEVEL_ERROR | G_LOG_LEVEL_CRITICAL | G_LOG_LEVEL_WARNING | LOG_LEVEL_FAULT))
+    stream = stderr;
+  else
+    stream = stdout;
 
-  if ((level < LL_PERROR) || (level > LL_MESSAGE))
-    return 0;
+  if (!stream || fileno(stream) < 0)
+    return G_LOG_WRITER_UNHANDLED;
 
-  FILE *fp = (level < LL_MESSAGE) ? stderr : stdout;
-  int err = errno;
-  int color = 0;
-  bool tty = (isatty(fileno(fp)) == 1);
+  char *msg = log_writer_format_fields(level, fields, n_fields);
+  fputs(msg, stream);
+  fputs("\n", stream);
+  FREE(&msg);
 
-  if (tty)
-  {
-    switch (level)
-    {
-      case LL_PERROR:
-      case LL_ERROR:
-        color = 31;
-        break;
-      case LL_WARNING:
-        color = 33;
-        break;
-      case LL_MESSAGE:
-      default:
-        break;
-    }
-  }
-
-  if (color > 0)
-    rc += fprintf(fp, "\033[1;%dm", color); // Escape
-
-  fputs(buf, fp);
-
-  if (level == LL_PERROR)
-    rc += fprintf(fp, ": %s", strerror(err));
-
-  if (color > 0)
-    rc += fprintf(fp, "\033[0m"); // Escape
-
-  rc += fprintf(fp, "\n");
-
-  return rc;
-}
-
-/**
- * log_multiline_full - Helper to dump multiline text to the log
- * @param level Logging level, e.g. LL_DEBUG1
- * @param str   Text to save
- * @param file  Source file
- * @param line  Source line number
- * @param func  Source function
- */
-void log_multiline_full(enum LogLevel level, const char *str, const char *file,
-                        int line, const char *func)
-{
-  while (str && (str[0] != '\0'))
-  {
-    const char *end = strchr(str, '\n');
-    if (end)
-    {
-      int len = end - str;
-      MuttLogger(0, file, line, func, level, "%.*s\n", len, str);
-      str = end + 1;
-    }
-    else
-    {
-      MuttLogger(0, file, line, func, level, "%s\n", str);
-      break;
-    }
-  }
+  return G_LOG_WRITER_HANDLED;
 }

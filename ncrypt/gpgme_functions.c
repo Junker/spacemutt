@@ -642,10 +642,10 @@ static void verify_key(struct CryptKeyInfo *key)
   FILE *fp = mutt_file_fopen(buf_string(tempfile), "w");
   if (!fp)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto cleanup;
   }
-  mutt_message(_("Collecting data..."));
+  log_message(_("Collecting data..."));
 
   print_key_info(key->kobj, fp);
 
@@ -752,7 +752,7 @@ static int op_generic_select_entry(struct GpgmeData *gd, int op)
   {
     if (!crypt_key_is_valid(cur_key))
     {
-      mutt_error(_("This key can't be used: expired/disabled/revoked"));
+      log_fault(_("This key can't be used: expired/disabled/revoked"));
       return FR_ERROR;
     }
   }
@@ -820,7 +820,7 @@ static int op_view_id(struct GpgmeData *gd, int op)
 {
   const int index = menu_get_index(gd->menu);
   struct CryptKeyInfo *cur_key = gd->key_table[index];
-  mutt_message("%s", cur_key->uid);
+  log_message("%s", cur_key->uid);
   return FR_SUCCESS;
 }
 
@@ -868,7 +868,7 @@ int gpgme_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return rc;
 }

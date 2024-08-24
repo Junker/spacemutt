@@ -86,7 +86,7 @@ static void toggle_active(struct AccountEntry *entry)
     entry->account->enabled = !entry->account->enabled;
     /* L10N: This error message is displayed if a database update of an
        account record fails for some odd reason.  */
-    mutt_error(_("Error updating account record"));
+    log_fault(_("Error updating account record"));
   }
 }
 
@@ -100,7 +100,7 @@ static void toggle_prefer_encrypt(struct AccountEntry *entry)
   if (mutt_autocrypt_db_account_update(entry->account))
   {
     entry->account->prefer_encrypt = !entry->account->prefer_encrypt;
-    mutt_error(_("Error updating account record"));
+    log_fault(_("Error updating account record"));
   }
 }
 
@@ -226,7 +226,7 @@ int autocrypt_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return rc;
 }

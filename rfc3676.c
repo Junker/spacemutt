@@ -244,18 +244,18 @@ static void print_flowed_line(char *line, struct State *state, int ql,
   width = quote_width(state, ql);
   last = line[mutt_str_len(line) - 1];
 
-  mutt_debug(LL_DEBUG5, "f=f: line [%s], width = %ld, spaces = %zu\n", line,
+  log_debug5("f=f: line [%s], width = %ld, spaces = %zu", line,
              (long) width, fst->spaces);
 
   for (words = 0; (p = mutt_str_sep(&line, " "));)
   {
-    mutt_debug(LL_DEBUG5, "f=f: word [%s], width: %zu, remaining = [%s]\n", p,
+    log_debug5("f=f: word [%s], width: %zu, remaining = [%s]", p,
                fst->width, line);
 
     /* remember number of spaces */
     if (*p == '\0')
     {
-      mutt_debug(LL_DEBUG3, "f=f: additional space\n");
+      log_debug3("f=f: additional space");
       fst->spaces++;
       continue;
     }
@@ -271,7 +271,7 @@ static void print_flowed_line(char *line, struct State *state, int ql,
     if (!(!fst->spaces && fst->delsp && (last != ' ')) && (w < width) &&
         (w + fst->width + fst->spaces > width))
     {
-      mutt_debug(LL_DEBUG3, "f=f: break line at %zu, %zu spaces left\n",
+      log_debug3("f=f: break line at %zu, %zu spaces left",
                  fst->width, fst->spaces);
       /* only honor trailing spaces for format=flowed replies */
       const bool c_text_flowed = cs_subset_bool(NeoMutt->sub, "text_flowed");
@@ -337,7 +337,7 @@ int rfc3676_handler(struct Body *b_email, struct State *state)
     fst.delsp = true;
   }
 
-  mutt_debug(LL_DEBUG3, "f=f: DelSp: %s\n", delsp ? "yes" : "no");
+  log_debug3("f=f: DelSp: %s", delsp ? "yes" : "no");
 
   while ((buf = mutt_file_read_line(buf, &sz, state->fp_in, NULL, MUTT_RL_NO_FLAGS)))
   {
@@ -461,7 +461,7 @@ static void rfc3676_space_stuff(const char *filename, bool unstuff)
 
   if ((truncate(filename, 0) == -1) || ((fp_out = mutt_file_fopen(filename, "a")) == NULL))
   {
-    mutt_perror("%s", filename);
+    log_perror("%s", filename);
     goto bail;
   }
 

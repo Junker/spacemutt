@@ -34,7 +34,7 @@ void test_mutt_path_to_absolute(void)
 {
   // int mutt_path_to_absolute(char *path, const char *reference);
 
-  MuttLogger = log_disp_null;
+  MuttLogWriter = log_writer_null;
 
   {
     TEST_CHECK(!mutt_path_to_absolute(NULL, "apple"));

@@ -31,10 +31,21 @@ void test_log_disp_terminal(void)
   // int log_disp_terminal(time_t stamp, const char *file, int line, const char *function, int level, ...);
 
   {
-    TEST_CHECK(log_disp_terminal(0, NULL, 0, "banana", 0, "fmt") != 0);
+    const GLogField fields[] = {
+      { "GLIB_DOMAIN", G_LOG_DOMAIN, -1 },
+      { "MESSAGE", "fmt", -1 }
+    };
+    TEST_CHECK(log_writer_terminal(G_LOG_LEVEL_MESSAGE, fields, G_N_ELEMENTS(fields), NULL) == G_LOG_WRITER_HANDLED);
   }
 
   {
-    TEST_CHECK(log_disp_terminal(0, "apple", 0, NULL, 0, "fmt") != 0);
+    const GLogField fields[] = {
+      { "GLIB_DOMAIN", G_LOG_DOMAIN, -1 },
+      { "MESSAGE", "fmt", -1 },
+      { "CODE_FILE", "", -1 },
+      { "CODE_LINE", "0", -1 },
+      { "CODE_FUNC", "banana", -1 },
+    };
+    TEST_CHECK(log_writer_terminal(G_LOG_LEVEL_WARNING, fields, G_N_ELEMENTS(fields), NULL) == G_LOG_WRITER_HANDLED);
   }
 }

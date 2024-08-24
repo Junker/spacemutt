@@ -111,7 +111,7 @@ int mw_multi_choice(const char *prompt, const char *letters)
   while (true)
   {
     event = mutt_getch(GETCH_NO_FLAGS);
-    mutt_debug(LL_DEBUG1, "mw_multi_choice: EVENT(%d,%d)\n", event.ch, event.op);
+    log_debug1("mw_multi_choice: EVENT(%d,%d)", event.ch, event.op);
 
     if (event.op == OP_REPAINT)
       window_redraw(NULL);

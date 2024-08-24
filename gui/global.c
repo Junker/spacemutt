@@ -104,7 +104,7 @@ static int op_show_log_messages(int op)
   FILE *fp = mutt_file_fopen(buf_string(tempfile), "a+");
   if (!fp)
   {
-    mutt_perror("fopen");
+    log_perror("fopen");
     buf_pool_release(&tempfile);
     return FR_ERROR;
   }
@@ -132,7 +132,7 @@ static int op_show_log_messages(int op)
  */
 static int op_version(int op)
 {
-  mutt_message("%s", mutt_make_version());
+  log_message("%s", mutt_make_version());
   return FR_SUCCESS;
 }
 
@@ -185,7 +185,7 @@ int global_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return FR_SUCCESS; // Whatever the outcome, we handled it
 }

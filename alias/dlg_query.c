@@ -287,14 +287,14 @@ int query_run(const char *s, bool verbose, AliasList *al, const struct ConfigSub
   pid_t pid = filter_create(buf_string(cmd), NULL, &fp, NULL, EnvList);
   if (pid < 0)
   {
-    mutt_debug(LL_DEBUG1, "unable to fork command: %s\n", buf_string(cmd));
+    log_debug1("unable to fork command: %s", buf_string(cmd));
     buf_pool_release(&cmd);
     return -1;
   }
   buf_pool_release(&cmd);
 
   if (verbose)
-    mutt_message(_("Waiting for response..."));
+    log_message(_("Waiting for response..."));
 
   /* The query protocol first reads one NL-terminated line. If an error
    * occurs, this is assumed to be an error message. Otherwise it's ignored. */
@@ -331,14 +331,14 @@ int query_run(const char *s, bool verbose, AliasList *al, const struct ConfigSub
   mutt_file_fclose(&fp);
   if (filter_wait(pid))
   {
-    mutt_debug(LL_DEBUG1, "Error: %s\n", msg);
+    log_debug1("Error: %s", msg);
     if (verbose)
-      mutt_error("%s", msg);
+      log_fault("%s", msg);
   }
   else
   {
     if (verbose)
-      mutt_message("%s", msg);
+      log_message("%s", msg);
   }
   FREE(&msg);
 
@@ -367,7 +367,7 @@ static int query_window_observer(struct NotifyCallback *nc)
   notify_observer_remove(NeoMutt->sub->notify, alias_config_observer, menu);
   notify_observer_remove(win_menu->notify, query_window_observer, win_menu);
 
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
   return 0;
 }
 
@@ -447,7 +447,7 @@ static bool dlg_query(struct Buffer *buf, struct AliasMenuData *mdata)
     window_redraw(NULL);
 
     op = km_dokey(MENU_QUERY, GETCH_NO_FLAGS);
-    mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+    log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
     if (op < 0)
       continue;
     if (op == OP_NULL)
@@ -486,7 +486,7 @@ int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
   const char *const c_query_command = cs_subset_string(sub, "query_command");
   if (!c_query_command)
   {
-    mutt_warning(_("Query command not defined"));
+    log_warning(_("Query command not defined"));
     goto done;
   }
 
@@ -564,7 +564,7 @@ void query_index(struct Mailbox *m, struct ConfigSubset *sub)
   const char *const c_query_command = cs_subset_string(sub, "query_command");
   if (!c_query_command)
   {
-    mutt_warning(_("Query command not defined"));
+    log_warning(_("Query command not defined"));
     return;
   }
 

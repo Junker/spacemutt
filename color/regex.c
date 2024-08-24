@@ -67,7 +67,7 @@ struct RegexColorList StatusList;         ///< List of colours applied to the st
  */
 void regex_colors_init(void)
 {
-  color_debug(LL_DEBUG5, "init AttachList, BodyList, etc\n");
+  log_color_debug("init AttachList, BodyList, etc\n");
   STAILQ_INIT(&AttachList);
   STAILQ_INIT(&BodyList);
   STAILQ_INIT(&HeaderList);
@@ -90,7 +90,7 @@ void regex_colors_init(void)
  */
 void regex_colors_cleanup(void)
 {
-  color_debug(LL_DEBUG5, "clean up regex\n");
+  log_color_debug("clean up regex\n");
   regex_color_list_clear(&AttachList);
   regex_color_list_clear(&BodyList);
   regex_color_list_clear(&HeaderList);
@@ -366,7 +366,7 @@ bool regex_colors_parse_color_list(enum ColorId cid, const char *pat,
 
   struct Buffer *buf = buf_pool_get();
   get_colorid_name(cid, buf);
-  color_debug(LL_DEBUG5, "NT_COLOR_SET: %s\n", buf->data);
+  log_color_debug("NT_COLOR_SET: %s\n", buf->data);
   buf_pool_release(&buf);
 
   if (!is_index) // else it will be logged in add_pattern()
@@ -399,7 +399,7 @@ int regex_colors_parse_status_list(enum ColorId cid, const char *pat,
 
   struct Buffer *buf = buf_pool_get();
   get_colorid_name(cid, buf);
-  color_debug(LL_DEBUG5, "NT_COLOR_SET: %s\n", buf->data);
+  log_color_debug("NT_COLOR_SET: %s\n", buf->data);
   buf_pool_release(&buf);
 
   struct EventColor ev_c = { cid, NULL };
@@ -426,7 +426,7 @@ bool regex_colors_parse_uncolor(enum ColorId cid, const char *pat, bool uncolor)
     if (STAILQ_EMPTY(cl))
       return true;
 
-    mutt_debug(LL_NOTIFY, "NT_COLOR_RESET: [ALL]\n");
+    log_notify("NT_COLOR_RESET: [ALL]");
     struct EventColor ev_c = { cid, NULL };
     notify_send(ColorsNotify, NT_COLOR, NT_COLOR_RESET, &ev_c);
 
@@ -443,13 +443,13 @@ bool regex_colors_parse_uncolor(enum ColorId cid, const char *pat, bool uncolor)
     {
       rc = true;
 
-      color_debug(LL_DEBUG1, "Freeing pattern \"%s\" from XXX\n", pat);
+      log_color_debug("Freeing pattern \"%s\" from XXX\n", pat);
       if (prev)
         STAILQ_REMOVE_AFTER(cl, prev, entries);
       else
         STAILQ_REMOVE_HEAD(cl, entries);
 
-      mutt_debug(LL_NOTIFY, "NT_COLOR_RESET: XXX\n");
+      log_notify("NT_COLOR_RESET: XXX");
       struct EventColor ev_c = { cid, &np->attr_color };
       notify_send(ColorsNotify, NT_COLOR, NT_COLOR_RESET, &ev_c);
 

@@ -244,7 +244,7 @@ struct SmimeKey *dlg_smime(struct SmimeKey *keys, const char *query)
     window_redraw(NULL);
 
     op = km_dokey(MENU_SMIME, GETCH_NO_FLAGS);
-    mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+    log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
     if (op < 0)
       continue;
     if (op == OP_NULL)

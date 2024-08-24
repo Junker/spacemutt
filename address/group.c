@@ -124,7 +124,7 @@ struct Group *mutt_pattern_group(const char *pat)
   struct Group *g = mutt_hash_find(Groups, pat);
   if (!g)
   {
-    mutt_debug(LL_DEBUG2, "Creating group %s\n", pat);
+    log_debug2("Creating group %s", pat);
     g = group_new(pat);
     mutt_hash_insert(Groups, g->name, g);
   }

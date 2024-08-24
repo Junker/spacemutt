@@ -74,7 +74,7 @@ static bool check_msg(struct Body *b, bool err)
   if (!mutt_is_message_type(b->type, b->subtype))
   {
     if (err)
-      mutt_error(_("You may only bounce message/rfc822 parts"));
+      log_fault(_("You may only bounce message/rfc822 parts"));
     return false;
   }
   return true;
@@ -182,7 +182,7 @@ void attach_bounce_message(struct Mailbox *m, FILE *fp, struct AttachCtx *actx,
   {
     if (g_queue_is_empty(b->email->env->from))
     {
-      mutt_error(_("Warning: message contains no From: header"));
+      log_fault(_("Warning: message contains no From: header"));
       mutt_clear_error();
     }
   }
@@ -194,7 +194,7 @@ void attach_bounce_message(struct Mailbox *m, FILE *fp, struct AttachCtx *actx,
       {
         if (g_queue_is_empty(actx->idx[i]->body->email->env->from))
         {
-          mutt_error(_("Warning: message contains no From: header"));
+          log_fault(_("Warning: message contains no From: header"));
           mutt_clear_error();
           break;
         }
@@ -219,7 +219,7 @@ void attach_bounce_message(struct Mailbox *m, FILE *fp, struct AttachCtx *actx,
   mutt_addrlist_parse(al, buf_string(buf));
   if (g_queue_is_empty(al))
   {
-    mutt_error(_("Error parsing address"));
+    log_fault(_("Error parsing address"));
     goto done;
   }
 
@@ -228,7 +228,7 @@ void attach_bounce_message(struct Mailbox *m, FILE *fp, struct AttachCtx *actx,
   char *err = NULL;
   if (mutt_addrlist_to_intl(al, &err) < 0)
   {
-    mutt_error(_("Bad IDN: '%s'"), err);
+    log_fault(_("Bad IDN: '%s'"), err);
     FREE(&err);
     goto done;
   }
@@ -243,7 +243,7 @@ void attach_bounce_message(struct Mailbox *m, FILE *fp, struct AttachCtx *actx,
   if (query_quadoption(buf_string(prompt), NeoMutt->sub, "bounce") != MUTT_YES)
   {
     msgwin_clear_text(NULL);
-    mutt_message(ngettext("Message not bounced", "Messages not bounced", num_msg));
+    log_message(ngettext("Message not bounced", "Messages not bounced", num_msg));
     goto done;
   }
 
@@ -270,9 +270,9 @@ void attach_bounce_message(struct Mailbox *m, FILE *fp, struct AttachCtx *actx,
   }
 
   if (rc == 0)
-    mutt_message(ngettext("Message bounced", "Messages bounced", num_msg));
+    log_message(ngettext("Message bounced", "Messages bounced", num_msg));
   else
-    mutt_error(ngettext("Error bouncing message", "Error bouncing messages", num_msg));
+    log_fault(ngettext("Error bouncing message", "Error bouncing messages", num_msg));
 
 done:
   mutt_addrlist_free_full(al);
@@ -510,7 +510,7 @@ static void attach_forward_bodies(FILE *fp, struct Email *e, struct AttachCtx *a
   FILE *fp_tmp = mutt_file_fopen(buf_string(tmpbody), "w");
   if (!fp_tmp)
   {
-    mutt_error(_("Can't open temporary file %s"), buf_string(tmpbody));
+    log_fault(_("Can't open temporary file %s"), buf_string(tmpbody));
     email_free(&e_tmp);
     goto bail;
   }
@@ -701,7 +701,7 @@ static void attach_forward_msgs(FILE *fp, struct AttachCtx *actx, struct Body *b
     fp_tmp = mutt_file_fopen(buf_string(tmpbody), "w");
     if (!fp_tmp)
     {
-      mutt_error(_("Can't create %s"), buf_string(tmpbody));
+      log_fault(_("Can't create %s"), buf_string(tmpbody));
       goto cleanup;
     }
 
@@ -849,7 +849,7 @@ static int attach_reply_envelope_defaults(struct Envelope *env, struct AttachCtx
 
   if (!curenv || !e)
   {
-    mutt_error(_("Can't find any tagged messages"));
+    log_fault(_("Can't find any tagged messages"));
     return -1;
   }
 
@@ -883,7 +883,7 @@ static int attach_reply_envelope_defaults(struct Envelope *env, struct AttachCtx
 
     if ((flags & SEND_LIST_REPLY) && g_queue_is_empty(env->to))
     {
-      mutt_error(_("No mailing lists found"));
+      log_fault(_("No mailing lists found"));
       return -1;
     }
 
@@ -1012,7 +1012,7 @@ void mutt_attach_reply(FILE *fp, struct Mailbox *m, struct Email *e,
   fp_tmp = mutt_file_fopen(buf_string(tmpbody), "w");
   if (!fp_tmp)
   {
-    mutt_error(_("Can't create %s"), buf_string(tmpbody));
+    log_fault(_("Can't create %s"), buf_string(tmpbody));
     goto cleanup;
   }
 
@@ -1130,7 +1130,7 @@ void mutt_attach_mail_sender(struct AttachCtx *actx, struct Body *b)
   {
     /* L10N: You will see this error message if you invoke <compose-to-sender>
        when you are on a normal attachment.  */
-    mutt_error(_("You may only compose to sender with message/rfc822 parts"));
+    log_fault(_("You may only compose to sender with message/rfc822 parts"));
     return;
   }
 

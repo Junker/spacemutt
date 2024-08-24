@@ -81,7 +81,7 @@ static int autocrypt_dir_init(bool can_create)
     {
       /* L10N: mkdir() on the directory %s failed.  The second %s is the
          error message returned by libc */
-      mutt_error(_("Can't create %s: %s"), c_autocrypt_dir, strerror(errno));
+      log_fault(_("Can't create %s: %s"), c_autocrypt_dir, strerror(errno));
       rc = -1;
     }
   }
@@ -188,7 +188,7 @@ int mutt_autocrypt_account_init(bool prompt)
       /* L10N: Autocrypt prompts for an account email address, and requires
          a single address.  This is shown if they entered something invalid,
          nothing, or more than one address for some reason.  */
-      mutt_error(_("Please enter a single email address"));
+      log_fault(_("Please enter a single email address"));
       done = false;
     }
     else
@@ -205,7 +205,7 @@ int mutt_autocrypt_account_init(bool prompt)
     /* L10N: When creating an autocrypt account, this message will be displayed
        if there is already an account in the database with the email address
        they just entered.  */
-    mutt_error(_("That email address already has an autocrypt account"));
+    log_fault(_("That email address already has an autocrypt account"));
     goto cleanup;
   }
 
@@ -232,13 +232,13 @@ cleanup:
   if (rc == 0)
   {
     /* L10N: Message displayed after an autocrypt account is successfully created.  */
-    mutt_message(_("Autocrypt account creation succeeded"));
+    log_message(_("Autocrypt account creation succeeded"));
   }
   else
   {
     /* L10N: Error message displayed if creating an autocrypt account failed
        or was aborted by the user.  */
-    mutt_error(_("Autocrypt account creation aborted"));
+    log_fault(_("Autocrypt account creation aborted"));
   }
 
   mutt_autocrypt_db_account_free(&account);
@@ -575,7 +575,7 @@ enum AutocryptRec mutt_autocrypt_ui_recommendation(const struct Email *e, char *
     {
       /* L10N: Error displayed if the user tries to force sending an Autocrypt
          email when the engine is not available.  */
-      mutt_message(_("Autocrypt is not available"));
+      log_message(_("Autocrypt is not available"));
     }
     return AUTOCRYPT_REC_OFF;
   }
@@ -584,14 +584,14 @@ enum AutocryptRec mutt_autocrypt_ui_recommendation(const struct Email *e, char *
   if (!from || e->env->from->length > 1)
   {
     if (keylist)
-      mutt_message(_("Autocrypt is not available"));
+      log_message(_("Autocrypt is not available"));
     return AUTOCRYPT_REC_OFF;
   }
 
   if (e->security & APPLICATION_SMIME)
   {
     if (keylist)
-      mutt_message(_("Autocrypt is not available"));
+      log_message(_("Autocrypt is not available"));
     return AUTOCRYPT_REC_OFF;
   }
 
@@ -603,7 +603,7 @@ enum AutocryptRec mutt_autocrypt_ui_recommendation(const struct Email *e, char *
          email when the account does not exist or is not enabled.
          %s is the From email address used to look up the Autocrypt account.
       */
-      mutt_message(_("Autocrypt is not enabled for %s"), buf_string(from->mailbox));
+      log_message(_("Autocrypt is not enabled for %s"), buf_string(from->mailbox));
     }
     goto cleanup;
   }
@@ -629,7 +629,7 @@ enum AutocryptRec mutt_autocrypt_ui_recommendation(const struct Email *e, char *
         /* L10N: s is an email address.  Autocrypt is scanning for the keyids
            to use to encrypt, but it can't find a valid keyid for this address.
            The message is printed and they are returned to the compose menu.  */
-        mutt_message(_("No (valid) autocrypt key found for %s"),
+        log_message(_("No (valid) autocrypt key found for %s"),
                      buf_string(recip->mailbox));
       }
       goto cleanup;
@@ -660,7 +660,7 @@ enum AutocryptRec mutt_autocrypt_ui_recommendation(const struct Email *e, char *
     {
       if (keylist)
       {
-        mutt_message(_("No (valid) autocrypt key found for %s"),
+        log_message(_("No (valid) autocrypt key found for %s"),
                      buf_string(recip->mailbox));
       }
       goto cleanup;

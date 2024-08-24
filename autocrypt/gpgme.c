@@ -56,7 +56,7 @@ static int create_gpgme_context(gpgme_ctx_t *ctx)
     err = gpgme_ctx_set_engine_info(*ctx, GPGME_PROTOCOL_OpenPGP, NULL, c_autocrypt_dir);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("error creating GPGME context: %s"), gpgme_strerror(err));
+    log_fault(_("error creating GPGME context: %s"), gpgme_strerror(err));
     return -1;
   }
 
@@ -175,7 +175,7 @@ int mutt_autocrypt_gpgme_create_key(struct Address *addr, struct Buffer *keyid,
 
   /* L10N: Message displayed just before a GPG key is generated for a created
      autocrypt account.  */
-  mutt_message(_("Generating autocrypt key..."));
+  log_message(_("Generating autocrypt key..."));
 
   /* Primary key */
   gpgme_error_t err = gpgme_op_createkey(ctx, buf_string(buf), "ed25519", 0, 0, NULL,
@@ -185,14 +185,14 @@ int mutt_autocrypt_gpgme_create_key(struct Address *addr, struct Buffer *keyid,
   {
     /* L10N: GPGME was unable to generate a key for some reason.
        %s is the error message returned by GPGME.  */
-    mutt_error(_("Error creating autocrypt key: %s"), gpgme_strerror(err));
+    log_fault(_("Error creating autocrypt key: %s"), gpgme_strerror(err));
     goto cleanup;
   }
   keyresult = gpgme_op_genkey_result(ctx);
   if (!keyresult->fpr)
     goto cleanup;
   buf_strcpy(keyid, keyresult->fpr);
-  mutt_debug(LL_DEBUG1, "Generated key with id %s\n", buf_string(keyid));
+  log_debug1("Generated key with id %s", buf_string(keyid));
 
   /* Get gpgme_key_t to create the secondary key and export keydata */
   err = gpgme_get_key(ctx, buf_string(keyid), &primary_key, 0);
@@ -204,14 +204,14 @@ int mutt_autocrypt_gpgme_create_key(struct Address *addr, struct Buffer *keyid,
                               GPGME_CREATE_NOPASSWD | GPGME_CREATE_NOEXPIRE);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("Error creating autocrypt key: %s"), gpgme_strerror(err));
+    log_fault(_("Error creating autocrypt key: %s"), gpgme_strerror(err));
     goto cleanup;
   }
 
   /* get keydata */
   if (export_keydata(ctx, primary_key, keydata))
     goto cleanup;
-  mutt_debug(LL_DEBUG1, "key has keydata *%s*\n", buf_string(keydata));
+  log_debug1("key has keydata *%s*", buf_string(keydata));
 
   rc = 0;
 
@@ -252,7 +252,7 @@ int mutt_autocrypt_gpgme_select_key(struct Buffer *keyid, struct Buffer *keydata
        this is displayed if the key was revoked/expired/disabled/invalid
        or can't be used for both signing and encryption.
        %s is the key fingerprint.  */
-    mutt_error(_("The key %s is not usable for autocrypt"), buf_string(keyid));
+    log_fault(_("The key %s is not usable for autocrypt"), buf_string(keyid));
     goto cleanup;
   }
 

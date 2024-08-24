@@ -146,7 +146,7 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
 
   /* name */
   parse_extract_token(buf, s, TOKEN_NO_FLAGS);
-  mutt_debug(LL_DEBUG5, "First token is '%s'\n", buf->data);
+  log_debug5("First token is '%s'", buf->data);
   if (parse_grouplist(&gl, buf, s, err) == -1)
   {
     return MUTT_CMD_ERROR;
@@ -155,7 +155,7 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
 
   /* address list */
   parse_extract_token(buf, s, TOKEN_QUOTE | TOKEN_SPACE | TOKEN_SEMICOLON);
-  mutt_debug(LL_DEBUG5, "Second token is '%s'\n", buf->data);
+  log_debug5("Second token is '%s'", buf->data);
   AddressList *al = mutt_addrlist_new();
   int parsed = mutt_addrlist_parse2(al, buf->data);
   if (parsed == 0)
@@ -206,7 +206,7 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
   mutt_grouplist_add_addrlist(&gl, tmp->addr);
 
   const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
-  if (c_debug_level > LL_DEBUG4)
+  if (c_debug_level > 4)
   {
     /* A group is terminated with an empty address, so check a->mailbox */
     for (GList *np = tmp->addr->head; np != NULL; np = np->next)
@@ -216,9 +216,9 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
         break;
 
       if (a->group)
-        mutt_debug(LL_DEBUG5, "  Group %s\n", buf_string(a->mailbox));
+        log_debug5("  Group %s", buf_string(a->mailbox));
       else
-        mutt_debug(LL_DEBUG5, "  %s\n", buf_string(a->mailbox));
+        log_debug5("  %s", buf_string(a->mailbox));
     }
   }
   mutt_grouplist_destroy(&gl);
@@ -234,7 +234,7 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
 
   alias_reverse_add(tmp);
 
-  mutt_debug(LL_NOTIFY, "%s: %s\n",
+  log_notify("%s: %s",
              (event == NT_ALIAS_ADD) ? "NT_ALIAS_ADD" : "NT_ALIAS_CHANGE", tmp->name);
   struct EventAlias ev_a = { tmp };
   notify_send(NeoMutt->notify, NT_ALIAS, event, &ev_a);

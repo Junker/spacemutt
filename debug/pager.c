@@ -51,14 +51,14 @@ void dump_text_syntax(struct TextSyntax *ts, int num)
       index = cc->index;
       swatch = color_log_color(cc->fg, cc->bg);
     }
-    mutt_debug(LL_DEBUG1, "\t\t%3d %4d %4d %s\n", index, ts[i].first, ts[i].last, swatch);
+    log_debug1("\t\t%3d %4d %4d %s", index, ts[i].first, ts[i].last, swatch);
   }
 }
 
 void dump_line(int i, struct Line *line)
 {
-  mutt_debug(LL_DEBUG1, "Line: %d (offset: %ld)\n", i, line->offset);
-  // mutt_debug(LL_DEBUG1, "\toffset: %ld\n", line->offset);
+  log_debug1("Line: %d (offset: %ld)", i, line->offset);
+  // log_debug1("\toffset: %ld", line->offset);
   if ((line->cid > 0) && (line->cid != MT_COLOR_NORMAL))
   {
     struct Buffer *buf = buf_pool_get();
@@ -72,28 +72,28 @@ void dump_line(int i, struct Line *line)
       swatch = color_log_color(cc->fg, cc->bg);
     }
 
-    mutt_debug(LL_DEBUG1, "\tcolor: %d %s (%s)\n", line->cid, swatch, buf_string(buf));
+    log_debug1("\tcolor: %d %s (%s)", line->cid, swatch, buf_string(buf));
     buf_pool_release(&buf);
   }
   if (line->cont_line)
   {
-    mutt_debug(LL_DEBUG1, "\tcont_line: %s\n",
+    log_debug1("\tcont_line: %s",
                line->cont_line ? "\033[1;32myes\033[0m" : "\033[31mno\033[0m");
   }
   if (line->cont_header)
   {
-    mutt_debug(LL_DEBUG1, "\tcont_header: %s\n",
+    log_debug1("\tcont_header: %s",
                line->cont_header ? "\033[1;32myes\033[0m" : "\033[31mno\033[0m");
   }
 
   if (line->syntax_arr_size > 0)
   {
-    mutt_debug(LL_DEBUG1, "\tsyntax: %d\n", line->syntax_arr_size);
+    log_debug1("\tsyntax: %d", line->syntax_arr_size);
     dump_text_syntax(line->syntax, line->syntax_arr_size);
   }
   if (line->search_arr_size > 0)
   {
-    mutt_debug(LL_DEBUG1, "\t\033[1;36msearch\033[0m: %d\n", line->search_arr_size);
+    log_debug1("\t\033[1;36msearch\033[0m: %d", line->search_arr_size);
     dump_text_syntax(line->search, line->search_arr_size);
   }
 }
@@ -103,8 +103,8 @@ void dump_pager(struct PagerPrivateData *priv)
   if (!priv)
     return;
 
-  mutt_debug(LL_DEBUG1, "----------------------------------------------\n");
-  mutt_debug(LL_DEBUG1, "Pager: %d lines (fd %d)\n", priv->lines_used, fileno(priv->fp));
+  log_debug1("----------------------------------------------");
+  log_debug1("Pager: %d lines (fd %d)", priv->lines_used, fileno(priv->fp));
   for (int i = 0; i < priv->lines_used; i++)
   {
     dump_line(i, &priv->lines[i]);

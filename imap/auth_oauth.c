@@ -70,7 +70,7 @@ static enum ImapAuthRes imap_auth_oauth_xoauth2(struct ImapAccountData *adata,
     return IMAP_AUTH_UNAVAIL;
 
   // L10N: (%s) is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_message(_("Authenticating (%s)..."), authtype);
+  log_message(_("Authenticating (%s)..."), authtype);
 
   /* We get the access token from the imap_oauth_refresh_command */
   oauthbearer = mutt_account_getoauthbearer(&adata->conn->account, xoauth2);
@@ -101,7 +101,7 @@ static enum ImapAuthRes imap_auth_oauth_xoauth2(struct ImapAccountData *adata,
   }
 
   // L10N: %s is the method name, e.g. Anonymous, CRAM-MD5, GSSAPI, SASL
-  mutt_error(_("%s authentication failed"), authtype);
+  log_fault(_("%s authentication failed"), authtype);
   return IMAP_AUTH_FAILURE;
 }
 

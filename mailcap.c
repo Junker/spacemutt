@@ -215,7 +215,7 @@ static int get_field_text(char *field, char **entry, const char *type,
   }
   else
   {
-    mutt_error(_("Improperly formatted entry for type %s in \"%s\" line %d"),
+    log_fault(_("Improperly formatted entry for type %s in \"%s\" line %d"),
                type, filename, line);
     return 0;
   }
@@ -263,7 +263,7 @@ static bool rfc1524_mailcap_parse(struct Body *b, const char *filename, const ch
       /* ignore comments */
       if (*buf == '#')
         continue;
-      mutt_debug(LL_DEBUG2, "mailcap entry: %s\n", buf);
+      log_debug2("mailcap entry: %s", buf);
 
       /* check type */
       ch = get_field(buf);
@@ -291,7 +291,7 @@ static bool rfc1524_mailcap_parse(struct Body *b, const char *filename, const ch
       {
         field = ch;
         ch = get_field(ch);
-        mutt_debug(LL_DEBUG2, "field: %s\n", field);
+        log_debug2("field: %s", field);
         size_t plen;
 
         if (mutt_istr_equal(field, "needsterminal"))
@@ -365,7 +365,7 @@ static bool rfc1524_mailcap_parse(struct Body *b, const char *filename, const ch
               buf_strcpy(afilename, b->filename);
             if (mailcap_expand_command(b, buf_string(afilename), type, command) == 1)
             {
-              mutt_debug(LL_DEBUG1, "mailcap command needs a pipe: %s\n",
+              log_debug1("mailcap command needs a pipe: %s",
                          buf_string(command));
             }
 
@@ -504,7 +504,7 @@ bool mailcap_lookup(struct Body *b, char *type, size_t typelen,
          -or-
          unset mailcap_path
     */
-    mutt_error(_("Neither mailcap_path nor MAILCAPS specified"));
+    log_fault(_("Neither mailcap_path nor MAILCAPS specified"));
     return false;
   }
 
@@ -518,7 +518,7 @@ bool mailcap_lookup(struct Body *b, char *type, size_t typelen,
     buf_strcpy(path, np->data);
     buf_expand_path(path);
 
-    mutt_debug(LL_DEBUG2, "Checking mailcap file: %s\n", buf_string(path));
+    log_debug2("Checking mailcap file: %s", buf_string(path));
     found = rfc1524_mailcap_parse(b, buf_string(path), type, entry, opt);
     if (found)
       break;
@@ -527,7 +527,7 @@ bool mailcap_lookup(struct Body *b, char *type, size_t typelen,
   buf_pool_release(&path);
 
   if (entry && !found)
-    mutt_error(_("mailcap entry for type %s not found"), type);
+    log_fault(_("mailcap entry for type %s not found"), type);
 
   return found;
 }

@@ -119,12 +119,12 @@ int imap_authenticate(struct ImapAccountData *adata)
   const struct Slist *c_imap_authenticators = cs_subset_slist(NeoMutt->sub, "imap_authenticators");
   if (c_imap_authenticators && (c_imap_authenticators->count > 0))
   {
-    mutt_debug(LL_DEBUG2, "Trying user-defined imap_authenticators\n");
+    log_debug2("Trying user-defined imap_authenticators");
 
     /* Try user-specified list of authentication methods */
     for (GSList *np = c_imap_authenticators->head; np != NULL; np = np->next)
     {
-      mutt_debug(LL_DEBUG2, "Trying method %s\n", (char*)np->data);
+      log_debug2("Trying method %s", (char*)np->data);
 
       for (size_t i = 0; i < mutt_array_size(ImapAuthenticators); i++)
       {
@@ -143,7 +143,7 @@ int imap_authenticate(struct ImapAccountData *adata)
   else
   {
     /* Fall back to default: any authenticator */
-    mutt_debug(LL_DEBUG2, "Trying pre-defined imap_authenticators\n");
+    log_debug2("Trying pre-defined imap_authenticators");
 
     for (size_t i = 0; i < mutt_array_size(ImapAuthenticators); i++)
     {
@@ -153,6 +153,6 @@ int imap_authenticate(struct ImapAccountData *adata)
     }
   }
 
-  mutt_error(_("No authenticators available or wrong credentials"));
+  log_fault(_("No authenticators available or wrong credentials"));
   return rc;
 }

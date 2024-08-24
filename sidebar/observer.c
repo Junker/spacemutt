@@ -190,7 +190,7 @@ static int sb_account_observer(struct NotifyCallback *nc)
   }
 
   win->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "account done, request WA_RECALC\n");
+  log_debug5("account done, request WA_RECALC");
   return 0;
 }
 
@@ -224,7 +224,7 @@ static int sb_color_observer(struct NotifyCallback *nc)
     case MT_COLOR_SIDEBAR_UNREAD:
     case MT_COLOR_MAX: // Sent on `uncolor *`
       win->actions |= WA_REPAINT;
-      mutt_debug(LL_DEBUG5, "color done, request WA_REPAINT\n");
+      log_debug5("color done, request WA_REPAINT");
       break;
 
     default:
@@ -250,7 +250,7 @@ static int sb_command_observer(struct NotifyCallback *nc)
 
   struct MuttWindow *win = nc->global_data;
   win->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "command done, request WA_RECALC\n");
+  log_debug5("command done, request WA_RECALC");
   return 0;
 }
 
@@ -276,7 +276,7 @@ static int sb_config_observer(struct NotifyCallback *nc)
   if (mutt_str_equal(ev_c->name, "sidebar_next_new_wrap"))
     return 0; // Affects the behaviour, but not the display
 
-  mutt_debug(LL_DEBUG5, "config: %s\n", ev_c->name);
+  log_debug5("config: %s", ev_c->name);
 
   struct MuttWindow *win = nc->global_data;
 
@@ -285,7 +285,7 @@ static int sb_config_observer(struct NotifyCallback *nc)
     const bool c_sidebar_visible = cs_subset_bool(NeoMutt->sub, "sidebar_visible");
     window_set_visible(win, c_sidebar_visible);
     window_reflow(win->parent);
-    mutt_debug(LL_DEBUG5, "config done, request WA_REFLOW\n");
+    log_debug5("config done, request WA_REFLOW");
     return 0;
   }
 
@@ -294,14 +294,14 @@ static int sb_config_observer(struct NotifyCallback *nc)
     const short c_sidebar_width = cs_subset_number(NeoMutt->sub, "sidebar_width");
     win->req_cols = c_sidebar_width;
     window_reflow(win->parent);
-    mutt_debug(LL_DEBUG5, "config done, request WA_REFLOW\n");
+    log_debug5("config done, request WA_REFLOW");
     return 0;
   }
 
   if (mutt_str_equal(ev_c->name, "spool_file"))
   {
     win->actions |= WA_REPAINT;
-    mutt_debug(LL_DEBUG5, "config done, request WA_REPAINT\n");
+    log_debug5("config done, request WA_REPAINT");
     return 0;
   }
 
@@ -319,7 +319,7 @@ static int sb_config_observer(struct NotifyCallback *nc)
     }
 
     window_reflow(win->parent);
-    mutt_debug(LL_DEBUG5, "config done, request WA_REFLOW\n");
+    log_debug5("config done, request WA_REFLOW");
     return 0;
   }
 
@@ -329,13 +329,13 @@ static int sb_config_observer(struct NotifyCallback *nc)
     struct SidebarWindowData *wdata = sb_wdata_get(win);
     calc_divider(wdata);
     win->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "config done, request WA_RECALC\n");
+    log_debug5("config done, request WA_RECALC");
     return 0;
   }
 
   // All the remaining config changes...
   win->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "config done, request WA_RECALC\n");
+  log_debug5("config done, request WA_RECALC");
   return 0;
 }
 
@@ -358,7 +358,7 @@ static int sb_index_observer(struct NotifyCallback *nc)
   sb_set_current_mailbox(wdata, shared->mailbox);
 
   win_sidebar->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "index done, request WA_RECALC\n");
+  log_debug5("index done, request WA_RECALC");
 
   return 0;
 }
@@ -388,7 +388,7 @@ static int sb_mailbox_observer(struct NotifyCallback *nc)
   }
 
   win->actions |= WA_RECALC;
-  mutt_debug(LL_DEBUG5, "mailbox done, request WA_RECALC\n");
+  log_debug5("mailbox done, request WA_RECALC");
   return 0;
 }
 
@@ -410,11 +410,11 @@ static int sb_window_observer(struct NotifyCallback *nc)
   if (nc->event_subtype == NT_WINDOW_STATE)
   {
     win->actions |= WA_RECALC;
-    mutt_debug(LL_DEBUG5, "window state done, request WA_RECALC\n");
+    log_debug5("window state done, request WA_RECALC");
   }
   else if (nc->event_subtype == NT_WINDOW_DELETE)
   {
-    mutt_debug(LL_DEBUG5, "window delete done\n");
+    log_debug5("window delete done");
     sb_win_remove_observers(win);
   }
   return 0;
@@ -478,13 +478,13 @@ int sb_insertion_window_observer(struct NotifyCallback *nc)
 
   if (ev_w->flags & WN_VISIBLE)
   {
-    mutt_debug(LL_DEBUG5, "insertion: visible\n");
+    log_debug5("insertion: visible");
     struct MuttWindow *win_sidebar = sb_win_init(ev_w->win);
     sb_init_data(win_sidebar);
   }
   else if (ev_w->flags & WN_HIDDEN)
   {
-    mutt_debug(LL_DEBUG5, "insertion: hidden\n");
+    log_debug5("insertion: hidden");
     sb_win_remove_observers(ev_w->win);
   }
 

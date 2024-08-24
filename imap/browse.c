@@ -210,7 +210,7 @@ int imap_browse(const char *path, struct BrowserState *state)
 
   if (imap_parse_path(path, &cac, buf, sizeof(buf)))
   {
-    mutt_error(_("%s is an invalid IMAP path"), path);
+    log_fault(_("%s is an invalid IMAP path"), path);
     return -1;
   }
 
@@ -248,7 +248,7 @@ int imap_browse(const char *path, struct BrowserState *state)
     list_cmd = "LIST";
   }
 
-  mutt_message(_("Getting folder list..."));
+  log_message(_("Getting folder list..."));
 
   /* skip check for parents when at the root */
   if (buf[0] == '\0')
@@ -265,7 +265,7 @@ int imap_browse(const char *path, struct BrowserState *state)
   if (n > 0)
   {
     int rc_step;
-    mutt_debug(LL_DEBUG3, "mbox: %s\n", mbox);
+    log_debug3("mbox: %s", mbox);
 
     /* if our target exists and has inferiors, enter it if we
      * aren't already going to */
@@ -318,7 +318,7 @@ int imap_browse(const char *path, struct BrowserState *state)
 
       if (showparents)
       {
-        mutt_debug(LL_DEBUG3, "adding parent %s\n", mbox);
+        log_debug3("adding parent %s", mbox);
         add_folder(list.delim, mbox, true, false, state, true);
       }
 
@@ -357,10 +357,10 @@ int imap_browse(const char *path, struct BrowserState *state)
     state->folder = mutt_str_dup(buf);
   }
 
-  mutt_debug(LL_DEBUG3, "Quoting mailbox scan: %s -> ", mbox);
+  log_debug3("Quoting mailbox scan: %s -> ", mbox);
   snprintf(buf, sizeof(buf), "%s%%", mbox);
   imap_munge_mbox_name(adata->unicode, munged_mbox, sizeof(munged_mbox), buf);
-  mutt_debug(LL_DEBUG3, "%s\n", munged_mbox);
+  log_debug3("%s", munged_mbox);
   len = snprintf(buf, sizeof(buf), "%s \"\" %s", list_cmd, munged_mbox);
   if (adata->capabilities & IMAP_CAP_LIST_EXTENDED)
     snprintf(buf + len, sizeof(buf) - len, " RETURN (CHILDREN)");
@@ -370,7 +370,7 @@ int imap_browse(const char *path, struct BrowserState *state)
   if (ARRAY_EMPTY(&state->entry))
   {
     // L10N: (%s) is the name / path of the folder we were trying to browse
-    mutt_error(_("No such folder: %s"), path);
+    log_fault(_("No such folder: %s"), path);
     goto fail;
   }
 
@@ -400,7 +400,7 @@ int imap_mailbox_create(const char *path)
 
   if (imap_adata_find(path, &adata, &mdata) < 0)
   {
-    mutt_debug(LL_DEBUG1, "Couldn't find open connection to %s\n", path);
+    log_debug1("Couldn't find open connection to %s", path);
     goto done;
   }
 
@@ -420,7 +420,7 @@ int imap_mailbox_create(const char *path)
 
   if (buf_is_empty(name))
   {
-    mutt_error(_("Mailbox must have a name"));
+    log_fault(_("Mailbox must have a name"));
     goto done;
   }
 
@@ -428,7 +428,7 @@ int imap_mailbox_create(const char *path)
     goto done;
 
   imap_mdata_free((void *) &mdata);
-  mutt_message(_("Mailbox created"));
+  log_message(_("Mailbox created"));
   mutt_sleep(0);
   rc = 0;
 
@@ -456,13 +456,13 @@ int imap_mailbox_rename(const char *path)
 
   if (imap_adata_find(path, &adata, &mdata) < 0)
   {
-    mutt_debug(LL_DEBUG1, "Couldn't find open connection to %s\n", path);
+    log_debug1("Couldn't find open connection to %s", path);
     goto done;
   }
 
   if (mdata->real_name[0] == '\0')
   {
-    mutt_error(_("Can't rename root folder"));
+    log_fault(_("Can't rename root folder"));
     goto done;
   }
 
@@ -481,7 +481,7 @@ int imap_mailbox_rename(const char *path)
 
   if (buf_is_empty(newname))
   {
-    mutt_error(_("Mailbox must have a name"));
+    log_fault(_("Mailbox must have a name"));
     goto done;
   }
 
@@ -489,11 +489,11 @@ int imap_mailbox_rename(const char *path)
 
   if (imap_rename_mailbox(adata, mdata->name, buf_string(buf)) < 0)
   {
-    mutt_error(_("Rename failed: %s"), imap_get_qualifier(adata->buf));
+    log_fault(_("Rename failed: %s"), imap_get_qualifier(adata->buf));
     goto done;
   }
 
-  mutt_message(_("Mailbox renamed"));
+  log_message(_("Mailbox renamed"));
   mutt_sleep(0);
   rc = 0;
 

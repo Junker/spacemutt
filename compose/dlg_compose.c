@@ -136,7 +136,7 @@ static int compose_config_observer(struct NotifyCallback *nc)
     return 0;
 
   window_status_on_top(dlg, NeoMutt->sub);
-  mutt_debug(LL_DEBUG5, "config done, request WA_REFLOW\n");
+  log_debug5("config done, request WA_REFLOW");
   return 0;
 }
 
@@ -178,7 +178,7 @@ static int compose_window_observer(struct NotifyCallback *nc)
 
   notify_observer_remove(NeoMutt->sub->notify, compose_config_observer, dlg);
   notify_observer_remove(dlg->notify, compose_window_observer, dlg);
-  mutt_debug(LL_DEBUG5, "window delete done\n");
+  log_debug5("window delete done");
 
   return 0;
 }
@@ -343,7 +343,7 @@ int dlg_compose(struct Email *e, struct Buffer *fcc, uint8_t flags, struct Confi
     window_redraw(NULL);
 
     op = km_dokey(MENU_COMPOSE, GETCH_NO_FLAGS);
-    mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(op), op);
+    log_debug1("Got op %s (%d)", opcodes_get_name(op), op);
     if (op < 0)
       continue;
     if (op == OP_NULL)

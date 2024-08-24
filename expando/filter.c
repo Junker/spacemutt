@@ -99,7 +99,7 @@ void filter_text(struct Buffer *buf)
   if (buf->data[len - 1] == '|')
     buf->data[len - 1] = '\0';
 
-  mutt_debug(LL_DEBUG3, "execute: %s\n", buf_string(buf));
+  log_debug3("execute: %s", buf_string(buf));
   FILE *fp_filter = NULL;
   pid_t pid = filter_create(buf_string(buf), NULL, &fp_filter, NULL, EnvList);
   if (pid < 0)
@@ -112,11 +112,11 @@ void filter_text(struct Buffer *buf)
 
   int rc = filter_wait(pid);
   if (rc != 0)
-    mutt_debug(LL_DEBUG1, "filter cmd exited code %d\n", rc);
+    log_debug1("filter cmd exited code %d", rc);
 
   if (n == 0)
   {
-    mutt_debug(LL_DEBUG1, "error reading from filter: %s (errno=%d)\n",
+    log_debug1("error reading from filter: %s (errno=%d)",
                strerror(errno), errno);
     buf_reset(buf);
     return;
@@ -125,7 +125,7 @@ void filter_text(struct Buffer *buf)
   char *nl = (char *) buf_find_char(buf, '\n');
   if (nl)
     *nl = '\0';
-  mutt_debug(LL_DEBUG3, "received: %s\n", buf_string(buf));
+  log_debug3("received: %s", buf_string(buf));
 }
 
 /**

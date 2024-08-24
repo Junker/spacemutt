@@ -202,7 +202,7 @@ static bool mx_open_mailbox_append(struct Mailbox *m, OpenMailboxFlags flags)
       }
       else
       {
-        mutt_error(_("%s is not a mailbox"), mailbox_path(m));
+        log_fault(_("%s is not a mailbox"), mailbox_path(m));
         return false;
       }
     }
@@ -221,7 +221,7 @@ static bool mx_open_mailbox_append(struct Mailbox *m, OpenMailboxFlags flags)
         }
         else
         {
-          mutt_perror("%s", mailbox_path(m));
+          log_perror("%s", mailbox_path(m));
           return false;
         }
       }
@@ -338,9 +338,9 @@ bool mx_mbox_open(struct Mailbox *m, OpenMailboxFlags flags)
   if ((m->type == MUTT_UNKNOWN) || (m->type == MUTT_MAILBOX_ERROR) || !m->mx_ops)
   {
     if (m->type == MUTT_MAILBOX_ERROR)
-      mutt_perror("%s", mailbox_path(m));
+      log_perror("%s", mailbox_path(m));
     else if ((m->type == MUTT_UNKNOWN) || !m->mx_ops)
-      mutt_error(_("%s is not a mailbox"), mailbox_path(m));
+      log_fault(_("%s is not a mailbox"), mailbox_path(m));
     goto error;
   }
 
@@ -353,7 +353,7 @@ bool mx_mbox_open(struct Mailbox *m, OpenMailboxFlags flags)
   OptForceRefresh = true;
 
   if (m->verbose)
-    mutt_message(_("Reading %s..."), mailbox_path(m));
+    log_message(_("Reading %s..."), mailbox_path(m));
 
   // Clear out any existing emails
   for (int i = 0; i < m->email_max; i++)
@@ -385,7 +385,7 @@ bool mx_mbox_open(struct Mailbox *m, OpenMailboxFlags flags)
       mutt_clear_error();
     if (rc == MX_OPEN_ABORT)
     {
-      mutt_error(_("Reading from %s interrupted..."), mailbox_path(m));
+      log_fault(_("Reading from %s interrupted..."), mailbox_path(m));
     }
   }
   else
@@ -461,17 +461,17 @@ static enum MxStatus sync_mailbox(struct Mailbox *m)
   if (m->verbose)
   {
     /* L10N: Displayed before/as a mailbox is being synced */
-    mutt_message(_("Writing %s..."), mailbox_path(m));
+    log_message(_("Writing %s..."), mailbox_path(m));
   }
 
   enum MxStatus rc = m->mx_ops->mbox_sync(m);
   if (rc != MX_STATUS_OK)
   {
-    mutt_debug(LL_DEBUG2, "mbox_sync returned: %d\n", rc);
+    log_debug2("mbox_sync returned: %d", rc);
     if ((rc == MX_STATUS_ERROR) && m->verbose)
     {
       /* L10N: Displayed if a mailbox sync fails */
-      mutt_error(_("Unable to write %s"), mailbox_path(m));
+      log_fault(_("Unable to write %s"), mailbox_path(m));
     }
   }
 
@@ -528,7 +528,7 @@ static int trash_append(struct Mailbox *m)
   {
     /* L10N: Although we know the precise number of messages, we do not show it to the user.
        So feel free to use a "generic plural" as plural translation if your language has one. */
-    mutt_error(ngettext("message not deleted", "messages not deleted", delmsgcount));
+    log_fault(ngettext("message not deleted", "messages not deleted", delmsgcount));
     return -1;
   }
 
@@ -548,7 +548,7 @@ static int trash_append(struct Mailbox *m)
   const bool old_append = m_trash->append;
   if (!mx_mbox_open(m_trash, MUTT_APPEND))
   {
-    mutt_error(_("Can't open trash folder"));
+    log_fault(_("Can't open trash folder"));
     mailbox_free(&m_trash);
     return -1;
   }
@@ -566,7 +566,7 @@ static int trash_append(struct Mailbox *m)
       {
         mx_mbox_close(m_trash);
         // L10N: Displayed if appending to $trash fails when syncing or closing a mailbox
-        mutt_error(_("Unable to append to trash folder"));
+        log_fault(_("Unable to append to trash folder"));
         m_trash->append = old_append;
         mailbox_free(&m_trash);
         return -1;
@@ -708,7 +708,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
   if (move_messages)
   {
     if (m->verbose)
-      mutt_message(_("Moving read messages to %s..."), buf_string(mbox));
+      log_message(_("Moving read messages to %s..."), buf_string(mbox));
 
     /* try to use server-side copy first */
     i = 1;
@@ -793,7 +793,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
   else if (!m->changed && (m->msg_deleted == 0))
   {
     if (m->verbose)
-      mutt_message(_("Mailbox is unchanged"));
+      log_message(_("Mailbox is unchanged"));
     if ((m->type == MUTT_MBOX) || (m->type == MUTT_MMDF))
       mbox_reset_atime(m, NULL);
     mx_fastclose_mailbox(m, false);
@@ -851,12 +851,12 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
   {
     if (move_messages)
     {
-      mutt_message(_("%d kept, %d moved, %d deleted"),
+      log_message(_("%d kept, %d moved, %d deleted"),
                    m->msg_count - m->msg_deleted, read_msgs, m->msg_deleted);
     }
     else
     {
-      mutt_message(_("%d kept, %d deleted"), m->msg_count - m->msg_deleted, m->msg_deleted);
+      log_message(_("%d kept, %d deleted"), m->msg_count - m->msg_deleted, m->msg_deleted);
     }
   }
 
@@ -921,19 +921,19 @@ enum MxStatus mx_mbox_sync(struct Mailbox *m)
     else
       mutt_str_copy(tmp, _("Use 'toggle-write' to re-enable write"), sizeof(tmp));
 
-    mutt_error(_("Mailbox is marked unwritable. %s"), tmp);
+    log_fault(_("Mailbox is marked unwritable. %s"), tmp);
     return MX_STATUS_ERROR;
   }
   else if (m->readonly)
   {
-    mutt_error(_("Mailbox is read-only"));
+    log_fault(_("Mailbox is read-only"));
     return MX_STATUS_ERROR;
   }
 
   if (!m->changed && (m->msg_deleted == 0))
   {
     if (m->verbose)
-      mutt_message(_("Mailbox is unchanged"));
+      log_message(_("Mailbox is unchanged"));
     return MX_STATUS_OK;
   }
 
@@ -990,12 +990,12 @@ enum MxStatus mx_mbox_sync(struct Mailbox *m)
     if ((m->type == MUTT_IMAP) && !purge)
     {
       if (m->verbose)
-        mutt_message(_("Mailbox checkpointed"));
+        log_message(_("Mailbox checkpointed"));
     }
     else
     {
       if (m->verbose)
-        mutt_message(_("%d kept, %d deleted"), msgcount - deleted, deleted);
+        log_message(_("%d kept, %d deleted"), msgcount - deleted, deleted);
     }
 
     mutt_sleep(0);
@@ -1047,7 +1047,7 @@ struct Message *mx_msg_open_new(struct Mailbox *m, const struct Email *e, MsgOpe
 
   if (!m->mx_ops || !m->mx_ops->msg_open_new)
   {
-    mutt_debug(LL_DEBUG1, "function unimplemented for mailbox type %d\n", m->type);
+    log_debug1("function unimplemented for mailbox type %d", m->type);
     return NULL;
   }
 
@@ -1138,7 +1138,7 @@ struct Message *mx_msg_open(struct Mailbox *m, struct Email *e)
 
   if (!m->mx_ops || !m->mx_ops->msg_open)
   {
-    mutt_debug(LL_DEBUG1, "function not implemented for mailbox type %d\n", m->type);
+    log_debug1("function not implemented for mailbox type %d", m->type);
     return NULL;
   }
 
@@ -1163,7 +1163,7 @@ int mx_msg_commit(struct Mailbox *m, struct Message *msg)
 
   if (!(msg->write && m->append))
   {
-    mutt_debug(LL_DEBUG1, "msg->write = %d, m->append = %d\n", msg->write, m->append);
+    log_debug1("msg->write = %d, m->append = %d", msg->write, m->append);
     return -1;
   }
 
@@ -1190,7 +1190,7 @@ int mx_msg_close(struct Mailbox *m, struct Message **ptr)
 
   if (msg->path)
   {
-    mutt_debug(LL_DEBUG1, "unlinking %s\n", msg->path);
+    log_debug1("unlinking %s", msg->path);
     unlink(msg->path);
   }
 
@@ -1218,7 +1218,7 @@ void mx_alloc_memory(struct Mailbox *m, int req_size)
   const size_t s = MAX(sizeof(struct Email *), sizeof(int));
   if ((req_size * s) < (m->email_max * s))
   {
-    mutt_error("%s", strerror(ENOMEM));
+    log_fault("%s", strerror(ENOMEM));
     mutt_exit(1);
   }
 
@@ -1279,7 +1279,7 @@ int mx_tags_edit(struct Mailbox *m, const char *tags, struct Buffer *buf)
   if (m->mx_ops->tags_edit)
     return m->mx_ops->tags_edit(m, tags, buf);
 
-  mutt_message(_("Folder doesn't support tagging, aborting"));
+  log_message(_("Folder doesn't support tagging, aborting"));
   return -1;
 }
 
@@ -1299,7 +1299,7 @@ int mx_tags_commit(struct Mailbox *m, struct Email *e, const char *tags)
   if (m->mx_ops->tags_commit)
     return m->mx_ops->tags_commit(m, e, tags);
 
-  mutt_message(_("Folder doesn't support tagging, aborting"));
+  log_message(_("Folder doesn't support tagging, aborting"));
   return -1;
 }
 
@@ -1338,13 +1338,13 @@ enum MailboxType mx_path_probe(const char *path)
   struct stat st = { 0 };
   if (stat(path, &st) != 0)
   {
-    mutt_debug(LL_DEBUG1, "unable to stat %s: %s (errno %d)\n", path, strerror(errno), errno);
+    log_debug1("unable to stat %s: %s (errno %d)", path, strerror(errno), errno);
     return MUTT_UNKNOWN;
   }
 
   if (S_ISFIFO(st.st_mode))
   {
-    mutt_error(_("Can't open %s: it is a pipe"), path);
+    log_fault(_("Can't open %s: it is a pipe"), path);
     return MUTT_UNKNOWN;
   }
 
@@ -1811,19 +1811,19 @@ int mx_toggle_write(struct Mailbox *m)
 
   if (m->readonly)
   {
-    mutt_error(_("Can't toggle write on a readonly mailbox"));
+    log_fault(_("Can't toggle write on a readonly mailbox"));
     return -1;
   }
 
   if (m->dontwrite)
   {
     m->dontwrite = false;
-    mutt_message(_("Changes to folder will be written on folder exit"));
+    log_message(_("Changes to folder will be written on folder exit"));
   }
   else
   {
     m->dontwrite = true;
-    mutt_message(_("Changes to folder will not be written"));
+    log_message(_("Changes to folder will not be written"));
   }
 
   struct EventMailbox ev_m = { m };

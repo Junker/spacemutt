@@ -103,7 +103,7 @@ static int zstrm_close(struct Connection *conn)
 
   int rc = zctx->next_conn.close(&zctx->next_conn);
 
-  mutt_debug(LL_DEBUG5, "read %lu->%lu (%.1fx) wrote %lu<-%lu (%.1fx)\n",
+  log_debug5("read %lu->%lu (%.1fx) wrote %lu<-%lu (%.1fx)",
              zctx->read.z.total_in, zctx->read.z.total_out,
              (double) zctx->read.z.total_out / (double) zctx->read.z.total_in,
              zctx->write.z.total_in, zctx->write.z.total_out,
@@ -145,7 +145,7 @@ retry:
   if ((zctx->read.pos == 0) && !zctx->read.conn_eof)
   {
     rc = zctx->next_conn.read(&zctx->next_conn, zctx->read.buf, zctx->read.len);
-    mutt_debug(LL_DEBUG5, "consuming data from next stream: %d bytes\n", rc);
+    log_debug5("consuming data from next stream: %d bytes", rc);
     if (rc < 0)
       return rc;
     else if (rc == 0)
@@ -160,7 +160,7 @@ retry:
   zctx->read.z.next_out = (Bytef *) buf;
 
   zrc = inflate(&zctx->read.z, Z_SYNC_FLUSH);
-  mutt_debug(LL_DEBUG5, "rc=%d, consumed %u/%u bytes, produced %zu/%zu bytes\n",
+  log_debug5("rc=%d, consumed %u/%u bytes, produced %zu/%zu bytes",
              zrc, zctx->read.pos - zctx->read.z.avail_in, zctx->read.pos,
              len - zctx->read.z.avail_out, len);
 
@@ -178,13 +178,13 @@ retry:
       if (zrc == 0)
       {
         /* there was progress, so must have been reading input */
-        mutt_debug(LL_DEBUG5, "inflate just consumed\n");
+        log_debug5("inflate just consumed");
         goto retry;
       }
       break;
 
     case Z_STREAM_END: /* everything flushed, nothing remaining */
-      mutt_debug(LL_DEBUG5, "inflate returned Z_STREAM_END\n");
+      log_debug5("inflate returned Z_STREAM_END");
       zrc = len - zctx->read.z.avail_out; /* "returned" bytes */
       zctx->read.stream_eof = true;
       break;
@@ -192,7 +192,7 @@ retry:
     case Z_BUF_ERROR: /* no progress was possible */
       if (!zctx->read.conn_eof)
       {
-        mutt_debug(LL_DEBUG5, "inflate returned Z_BUF_ERROR. retrying\n");
+        log_debug5("inflate returned Z_BUF_ERROR. retrying");
         goto retry;
       }
       zrc = 0;
@@ -200,7 +200,7 @@ retry:
 
     default:
       /* bail on other rcs, such as Z_DATA_ERROR, or Z_MEM_ERROR */
-      mutt_debug(LL_DEBUG5, "inflate returned %d. aborting\n", zrc);
+      log_debug5("inflate returned %d. aborting", zrc);
       zrc = -1;
       break;
   }
@@ -215,7 +215,7 @@ static int zstrm_poll(struct Connection *conn, time_t wait_secs)
 {
   struct ZstrmContext *zctx = conn->sockdata;
 
-  mutt_debug(LL_DEBUG5, "%s\n",
+  log_debug5("%s",
              (zctx->read.z.avail_out == 0) || (zctx->read.pos > 0) ?
                  "last read wrote full buffer" :
                  "falling back on next stream");
@@ -246,12 +246,12 @@ static int zstrm_write(struct Connection *conn, const char *buf, size_t count)
       /* push out produced data to the underlying stream */
       zctx->write.pos = zctx->write.len - zctx->write.z.avail_out;
       char *wbufp = zctx->write.buf;
-      mutt_debug(LL_DEBUG5, "deflate consumed %zu/%zu bytes\n",
+      log_debug5("deflate consumed %zu/%zu bytes",
                  count - zctx->write.z.avail_in, count);
       while (zctx->write.pos > 0)
       {
         rc = zctx->next_conn.write(&zctx->next_conn, wbufp, zctx->write.pos);
-        mutt_debug(LL_DEBUG5, "next stream wrote: %d bytes\n", rc);
+        log_debug5("next stream wrote: %d bytes", rc);
         if (rc < 0)
           return -1; /* we can't recover from write failure */
 

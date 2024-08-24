@@ -23,6 +23,7 @@
 #ifndef MUTT_COLOR_DEBUG_H
 #define MUTT_COLOR_DEBUG_H
 
+#include <glib.h>
 #include "config.h"
 #include "curses2.h"
 
@@ -38,7 +39,9 @@ void ansi_colors_dump  (struct Buffer *buf);
 void curses_colors_dump(struct Buffer *buf);
 void merged_colors_dump(struct Buffer *buf);
 
-#define color_debug(LEVEL, ...) MuttLogger(0, __FILE__, __LINE__, __func__, LEVEL, __VA_ARGS__) ///< @ingroup logging_api
+/* TEMP : DISABLED CUZ CALED FROM log_writer_curses */
+/* #define log_color_debug(...) log_debug5(__VA_ARGS__) ///< @ingroup logging_api */
+#define log_color_debug(...)
 
 #else
 
@@ -50,7 +53,7 @@ static inline void ansi_colors_dump  (struct Buffer *buf) {}
 static inline void curses_colors_dump(struct Buffer *buf) {}
 static inline void merged_colors_dump(struct Buffer *buf) {}
 
-static inline int color_debug(enum LogLevel level, const char *format, ...) { return 0; }
+static inline int color_debug(GLogLevelFlags level, const char *format, ...) { return 0; }
 
 #endif
 

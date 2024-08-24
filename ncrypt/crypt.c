@@ -102,7 +102,7 @@ void crypt_forget_passphrase(void)
        by gpg-agent) we can't know whether we forgot zero, 1, 12, ...
        passwords. So in English we use "Passphrases". Your language might
        have other means to express this. */
-    mutt_message(_("Passphrases forgotten"));
+    log_message(_("Passphrases forgotten"));
   }
 }
 
@@ -187,7 +187,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
       if (query_quadoption(_("Inline PGP can't be used with attachments.  Revert to PGP/MIME?"),
                            NeoMutt->sub, "pgp_mime_auto") != MUTT_YES)
       {
-        mutt_error(_("Mail not sent: inline PGP can't be used with attachments"));
+        log_fault(_("Mail not sent: inline PGP can't be used with attachments"));
         return -1;
       }
     }
@@ -196,7 +196,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
       if ((query_quadoption(_("Inline PGP can't be used with format=flowed.  Revert to PGP/MIME?"),
                             NeoMutt->sub, "pgp_mime_auto")) != MUTT_YES)
       {
-        mutt_error(_("Mail not sent: inline PGP can't be used with format=flowed"));
+        log_fault(_("Mail not sent: inline PGP can't be used with format=flowed"));
         return -1;
       }
     }
@@ -219,7 +219,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
       if (query_quadoption(_("Message can't be sent inline.  Revert to using PGP/MIME?"),
                            NeoMutt->sub, "pgp_mime_auto") != MUTT_YES)
       {
-        mutt_error(_("Mail not sent"));
+        log_fault(_("Mail not sent"));
         return -1;
       }
     }
@@ -651,7 +651,7 @@ SecurityFlags mutt_is_application_smime(struct Body *b)
   {
     if (complain)
     {
-      mutt_message(_("S/MIME messages with no hints on content are unsupported"));
+      log_message(_("S/MIME messages with no hints on content are unsupported"));
     }
     return SEC_NO_FLAGS;
   }
@@ -765,7 +765,7 @@ int crypt_write_signed(struct Body *b, struct State *state, const char *tempfile
   FILE *fp = mutt_file_fopen(tempfile, "w");
   if (!fp)
   {
-    mutt_perror("%s", tempfile);
+    log_perror("%s", tempfile);
     return -1;
   }
 
@@ -866,7 +866,7 @@ void crypt_extract_keys_from_messages(struct Mailbox *m, struct EmailArray *ea)
   FILE *fp_out = mutt_file_fopen(buf_string(tempfname), "w");
   if (!fp_out)
   {
-    mutt_perror("%s", buf_string(tempfname));
+    log_perror("%s", buf_string(tempfname));
     goto cleanup;
   }
 

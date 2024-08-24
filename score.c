@@ -78,7 +78,7 @@ void mutt_check_rescore(struct Mailbox *m)
         OptSortSubthreads = true;
     }
 
-    mutt_debug(LL_NOTIFY, "NT_SCORE: %p\n", (void *) m);
+    log_notify("NT_SCORE: %p", (void *) m);
     notify_send(m->notify, NT_SCORE, 0, NULL);
   }
   OptNeedRescore = false;

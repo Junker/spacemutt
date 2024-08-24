@@ -88,19 +88,19 @@ int parse_color_prefix(const char *s, enum ColorPrefix *prefix)
 
   if ((clen = mutt_istr_startswith(s, "bright")))
   {
-    color_debug(LL_DEBUG5, "bright\n");
+    log_color_debug("bright\n");
     if (prefix)
       *prefix = COLOR_PREFIX_BRIGHT;
   }
   else if ((clen = mutt_istr_startswith(s, "alert")))
   {
-    color_debug(LL_DEBUG5, "alert\n");
+    log_color_debug("alert\n");
     if (prefix)
       *prefix = COLOR_PREFIX_ALERT;
   }
   else if ((clen = mutt_istr_startswith(s, "light")))
   {
-    color_debug(LL_DEBUG5, "light\n");
+    log_color_debug("light\n");
     if (prefix)
       *prefix = COLOR_PREFIX_LIGHT;
   }
@@ -144,7 +144,7 @@ enum CommandResult parse_color_namedcolor(const char *s, struct ColorElement *el
 
   const char *name = mutt_map_get_name(elem->color, ColorNames);
   if (name)
-    color_debug(LL_DEBUG5, "color: %s\n", name);
+    log_color_debug("color: %s\n", name);
 
   return MUTT_CMD_SUCCESS;
 }
@@ -193,7 +193,7 @@ enum CommandResult parse_color_colornnn(const char *s, struct ColorElement *elem
   elem->type = CT_PALETTE;
   elem->prefix = prefix;
 
-  color_debug(LL_DEBUG5, "colorNNN %d\n", elem->color);
+  log_color_debug("colorNNN %d\n", elem->color);
   return MUTT_CMD_SUCCESS;
 }
 
@@ -232,7 +232,7 @@ enum CommandResult parse_color_rrggbb(const char *s, struct ColorElement *elem,
   elem->type = CT_RGB;
   elem->prefix = COLOR_PREFIX_NONE;
 
-  color_debug(LL_DEBUG5, "#RRGGBB: %ld\n", color);
+  log_color_debug("#RRGGBB: %ld\n", color);
   return MUTT_CMD_SUCCESS;
 }
 
@@ -248,7 +248,7 @@ enum CommandResult parse_color_rrggbb(const char *s, struct ColorElement *elem,
 enum CommandResult parse_color_name(const char *s, struct ColorElement *elem,
                                     struct Buffer *err)
 {
-  color_debug(LL_DEBUG5, "Parsing color name: %s\n", s);
+  log_color_debug("Parsing color name: %s\n", s);
 
   /* Try the different colour syntaxes.  A return value of MUTT_CMD_WARNING
    * means, we should try the next syntax. */

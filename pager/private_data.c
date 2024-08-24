@@ -43,7 +43,7 @@ void pager_private_data_free(struct MuttWindow *win, void **ptr)
 
   struct PagerPrivateData *priv = *ptr;
 
-  mutt_debug(LL_NOTIFY, "NT_PAGER_DELETE: %p\n", (void *) priv);
+  log_notify("NT_PAGER_DELETE: %p", (void *) priv);
   notify_send(priv->notify, NT_PAGER, NT_PAGER_DELETE, priv);
   notify_free(&priv->notify);
 

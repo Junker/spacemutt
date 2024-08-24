@@ -560,13 +560,13 @@ static int autoview_handler(struct Body *b_email, struct State *state)
     {
       state_mark_attach(state);
       state_printf(state, _("[-- Autoview using %s --]\n"), buf_string(cmd));
-      mutt_message(_("Invoking autoview command: %s"), buf_string(cmd));
+      log_message(_("Invoking autoview command: %s"), buf_string(cmd));
     }
 
     fp_in = mutt_file_fopen(buf_string(tempfile), "w+");
     if (!fp_in)
     {
-      mutt_perror("fopen");
+      log_perror("fopen");
       mailcap_entry_free(&entry);
       rc = -1;
       goto cleanup;
@@ -590,7 +590,7 @@ static int autoview_handler(struct Body *b_email, struct State *state)
 
     if (pid < 0)
     {
-      mutt_perror(_("Can't create filter"));
+      log_perror(_("Can't create filter"));
       if (state->flags & STATE_DISPLAY)
       {
         state_mark_attach(state);
@@ -1130,7 +1130,7 @@ static int multilingual_handler(struct Body *b_email, struct State *state)
   bool mustfree = false;
   int rc = 0;
 
-  mutt_debug(LL_DEBUG2, "RFC8255 >> entering in handler multilingual handler\n");
+  log_debug2("RFC8255 >> entering in handler multilingual handler");
   if ((b_email->encoding == ENC_BASE64) || (b_email->encoding == ENC_QUOTED_PRINTABLE) ||
       (b_email->encoding == ENC_UUENCODED))
   {
@@ -1173,7 +1173,7 @@ static int multilingual_handler(struct Body *b_email, struct State *state)
   {
     struct Buffer *langs = buf_pool_get();
     cs_subset_str_string_get(NeoMutt->sub, "preferred_languages", langs);
-    mutt_debug(LL_DEBUG2, "RFC8255 >> preferred_languages set in config to '%s'\n",
+    log_debug2("RFC8255 >> preferred_languages set in config to '%s'",
                buf_string(langs));
     buf_pool_release(&langs);
 
@@ -1186,11 +1186,11 @@ static int multilingual_handler(struct Body *b_email, struct State *state)
           if (b->language && mutt_str_equal("zxx", b->language))
             zxx_part = b;
 
-          mutt_debug(LL_DEBUG2, "RFC8255 >> comparing configuration preferred_language='%s' to mail part content-language='%s'\n",
+          log_debug2("RFC8255 >> comparing configuration preferred_language='%s' to mail part content-language='%s'",
                      (char*)np->data, b->language);
           if (b->language && mutt_str_equal(np->data, b->language))
           {
-            mutt_debug(LL_DEBUG2, "RFC8255 >> preferred_language='%s' matches content-language='%s' >> part selected to be displayed\n",
+            log_debug2("RFC8255 >> preferred_language='%s' matches content-language='%s' >> part selected to be displayed",
                        (char*)np->data, b->language);
             choice = b;
             break;
@@ -1288,8 +1288,8 @@ static int multipart_handler(struct Body *b_email, struct State *state)
 
     if (rc != 0)
     {
-      mutt_error(_("One or more parts of this message could not be displayed"));
-      mutt_debug(LL_DEBUG1, "Failed on attachment #%d, type %s/%s\n", count,
+      log_fault(_("One or more parts of this message could not be displayed"));
+      log_debug1("Failed on attachment #%d, type %s/%s", count,
                  TYPE(p), NONULL(p->subtype));
     }
 
@@ -1361,8 +1361,8 @@ static int run_decode_and_handler(struct Body *b, struct State *state,
       state->fp_out = open_memstream(&temp, &tempsize);
       if (!state->fp_out)
       {
-        mutt_error(_("Unable to open 'memory stream'"));
-        mutt_debug(LL_DEBUG1, "Can't open 'memory stream'\n");
+        log_fault(_("Unable to open 'memory stream'"));
+        log_debug1("Can't open 'memory stream'");
         return -1;
       }
 #else
@@ -1371,8 +1371,8 @@ static int run_decode_and_handler(struct Body *b, struct State *state,
       state->fp_out = mutt_file_fopen(buf_string(tempfile), "w");
       if (!state->fp_out)
       {
-        mutt_error(_("Unable to open temporary file"));
-        mutt_debug(LL_DEBUG1, "Can't open %s\n", buf_string(tempfile));
+        log_fault(_("Unable to open temporary file"));
+        log_debug1("Can't open %s", buf_string(tempfile));
         buf_pool_release(&tempfile);
         return -1;
       }
@@ -1418,7 +1418,7 @@ static int run_decode_and_handler(struct Body *b, struct State *state,
       }
       if (!state->fp_in)
       {
-        mutt_perror(_("failed to re-open 'memory stream'"));
+        log_perror(_("failed to re-open 'memory stream'"));
         FREE(&temp);
         return -1;
       }
@@ -1440,7 +1440,7 @@ static int run_decode_and_handler(struct Body *b, struct State *state,
     rc = handler(b, state);
     if (rc != 0)
     {
-      mutt_debug(LL_DEBUG1, "Failed on attachment of type %s/%s\n", TYPE(b),
+      log_debug1("Failed on attachment of type %s/%s", TYPE(b),
                  NONULL(b->subtype));
     }
 
@@ -1553,7 +1553,7 @@ void mutt_decode_base64(struct State *state, size_t len, bool istext, iconv_t cd
     {
       /* "i" may be zero if there is trailing whitespace, which is not an error */
       if (i != 0)
-        mutt_debug(LL_DEBUG2, "didn't get a multiple of 4 chars\n");
+        log_debug2("didn't get a multiple of 4 chars");
       break;
     }
 
@@ -1641,7 +1641,7 @@ int mutt_body_handler(struct Body *b, struct State *state)
 
   if (recurse_level >= MUTT_MIME_MAX_DEPTH)
   {
-    mutt_debug(LL_DEBUG1, "recurse level too deep. giving up\n");
+    log_debug1("recurse level too deep. giving up");
     return 1;
   }
   recurse_level++;
@@ -1709,7 +1709,7 @@ int mutt_body_handler(struct Body *b, struct State *state)
     else if ((WithCrypto != 0) && mutt_istr_equal("signed", b->subtype))
     {
       if (!mutt_param_get(&b->parameter, "protocol"))
-        mutt_error(_("Error: multipart/signed has no protocol"));
+        log_fault(_("Error: multipart/signed has no protocol"));
       else if (state->flags & STATE_VERIFY)
         handler = mutt_signed_handler;
     }
@@ -1729,7 +1729,7 @@ int mutt_body_handler(struct Body *b, struct State *state)
 
     if ((b->encoding != ENC_7BIT) && (b->encoding != ENC_8BIT) && (b->encoding != ENC_BINARY))
     {
-      mutt_debug(LL_DEBUG1, "Bad encoding type %d for multipart entity, assuming 7 bit\n",
+      log_debug1("Bad encoding type %d for multipart entity, assuming 7 bit",
                  b->encoding);
       b->encoding = ENC_7BIT;
     }
@@ -1831,7 +1831,7 @@ cleanup:
   state->flags = oflags | (state->flags & STATE_FIRSTDONE);
   if (rc != 0)
   {
-    mutt_debug(LL_DEBUG1, "Bailing on attachment of type %s/%s\n", TYPE(b),
+    log_debug1("Bailing on attachment of type %s/%s", TYPE(b),
                NONULL(b->subtype));
   }
 

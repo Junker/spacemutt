@@ -372,7 +372,7 @@ gpgme_ctx_t create_gpgme_context(bool for_smime)
 
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("error creating GPGME context: %s"), gpgme_strerror(err));
+    log_fault(_("error creating GPGME context: %s"), gpgme_strerror(err));
     mutt_exit(1);
   }
 
@@ -381,7 +381,7 @@ gpgme_ctx_t create_gpgme_context(bool for_smime)
     err = gpgme_set_protocol(ctx, GPGME_PROTOCOL_CMS);
     if (err != GPG_ERR_NO_ERROR)
     {
-      mutt_error(_("error enabling CMS protocol: %s"), gpgme_strerror(err));
+      log_fault(_("error enabling CMS protocol: %s"), gpgme_strerror(err));
       mutt_exit(1);
     }
   }
@@ -404,7 +404,7 @@ static gpgme_data_t create_gpgme_data(void)
   gpgme_error_t err = gpgme_data_new(&data);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("error creating GPGME data object: %s"), gpgme_strerror(err));
+    log_fault(_("error creating GPGME data object: %s"), gpgme_strerror(err));
     mutt_exit(1);
   }
   return data;
@@ -426,7 +426,7 @@ static gpgme_data_t body_to_data_object(struct Body *b, bool convert)
   FILE *fp_tmp = mutt_file_fopen(buf_string(tempfile), "w+");
   if (!fp_tmp)
   {
-    mutt_perror("%s", buf_string(tempfile));
+    log_perror("%s", buf_string(tempfile));
     goto cleanup;
   }
 
@@ -470,7 +470,7 @@ static gpgme_data_t body_to_data_object(struct Body *b, bool convert)
     err = gpgme_data_new_from_file(&data, buf_string(tempfile), 1);
     if (err != GPG_ERR_NO_ERROR)
     {
-      mutt_error(_("error allocating data object: %s"), gpgme_strerror(err));
+      log_fault(_("error allocating data object: %s"), gpgme_strerror(err));
       gpgme_data_release(data);
       data = NULL;
       /* fall through to unlink the tempfile */
@@ -497,7 +497,7 @@ static gpgme_data_t file_to_data_object(FILE *fp, long offset, size_t length)
   gpgme_error_t err = gpgme_data_new_from_filepart(&data, NULL, fp, offset, length);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("error allocating data object: %s"), gpgme_strerror(err));
+    log_fault(_("error allocating data object: %s"), gpgme_strerror(err));
     return NULL;
   }
 
@@ -521,7 +521,7 @@ static int data_object_to_stream(gpgme_data_t data, FILE *fp)
                            GPG_ERR_NO_ERROR);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("error rewinding data object: %s"), gpgme_strerror(err));
+    log_fault(_("error rewinding data object: %s"), gpgme_strerror(err));
     return -1;
   }
 
@@ -537,13 +537,13 @@ static int data_object_to_stream(gpgme_data_t data, FILE *fp)
 
     if (ferror(fp))
     {
-      mutt_perror(_("[tempfile]"));
+      log_perror(_("[tempfile]"));
       return -1;
     }
   }
   if (nread == -1)
   {
-    mutt_error(_("error reading data object: %s"), strerror(errno));
+    log_fault(_("error reading data object: %s"), strerror(errno));
     return -1;
   }
   return 0;
@@ -571,7 +571,7 @@ static char *data_object_to_tempfile(gpgme_data_t data, FILE **fp_ret)
   FILE *fp = mutt_file_fopen(buf_string(tempf), "w+");
   if (!fp)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     goto cleanup;
   }
 
@@ -586,7 +586,7 @@ static char *data_object_to_tempfile(gpgme_data_t data, FILE **fp_ret)
     {
       if (fwrite(buf, nread, 1, fp) != 1)
       {
-        mutt_perror("%s", buf_string(tempf));
+        log_perror("%s", buf_string(tempf));
         mutt_file_fclose(&fp);
         unlink(buf_string(tempf));
         goto cleanup;
@@ -599,7 +599,7 @@ static char *data_object_to_tempfile(gpgme_data_t data, FILE **fp_ret)
     mutt_file_fclose(&fp);
   if (nread == -1)
   {
-    mutt_error(_("error reading data object: %s"), gpgme_strerror(err));
+    log_fault(_("error reading data object: %s"), gpgme_strerror(err));
     unlink(buf_string(tempf));
     mutt_file_fclose(&fp);
     goto cleanup;
@@ -667,7 +667,7 @@ static bool set_signer_from_address(gpgme_ctx_t ctx, const char *address, bool f
   if (err != GPG_ERR_NO_ERROR)
   {
     gpgme_release(listctx);
-    mutt_error(_("secret key '%s' not found: %s"), address, gpgme_strerror(err));
+    log_fault(_("secret key '%s' not found: %s"), address, gpgme_strerror(err));
     return false;
   }
 
@@ -684,7 +684,7 @@ static bool set_signer_from_address(gpgme_ctx_t ctx, const char *address, bool f
       gpgme_key_unref(key);
       gpgme_key_unref(key2);
       gpgme_release(listctx);
-      mutt_error(_("ambiguous specification of secret key '%s'"), address);
+      log_fault(_("ambiguous specification of secret key '%s'"), address);
       return false;
     }
     else
@@ -700,7 +700,7 @@ static bool set_signer_from_address(gpgme_ctx_t ctx, const char *address, bool f
   gpgme_key_unref(key);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("error setting secret key '%s': %s"), address, gpgme_strerror(err));
+    log_fault(_("error setting secret key '%s': %s"), address, gpgme_strerror(err));
     return false;
   }
   return true;
@@ -763,7 +763,7 @@ static gpgme_error_t set_pka_sig_notation(gpgme_ctx_t ctx)
   gpgme_error_t err = gpgme_sig_notation_add(ctx, PKA_NOTATION_NAME, CurrentSender, 0);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("error setting PKA signature notation: %s"), gpgme_strerror(err));
+    log_fault(_("error setting PKA signature notation: %s"), gpgme_strerror(err));
   }
 
   return err;
@@ -825,7 +825,7 @@ static char *encrypt_gpgme_object(gpgme_data_t plaintext, char *keylist, bool us
   redraw_if_needed(ctx);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("error encrypting data: %s"), gpgme_strerror(err));
+    log_fault(_("error encrypting data: %s"), gpgme_strerror(err));
     goto cleanup;
   }
 
@@ -952,7 +952,7 @@ static struct Body *sign_message(struct Body *b, const AddressList *from, bool u
   {
     gpgme_data_release(signature);
     gpgme_release(ctx);
-    mutt_error(_("error signing data: %s"), gpgme_strerror(err));
+    log_fault(_("error signing data: %s"), gpgme_strerror(err));
     return NULL;
   }
   /* Check for zero signatures generated.  This can occur when $pgp_sign_as is
@@ -962,7 +962,7 @@ static struct Body *sign_message(struct Body *b, const AddressList *from, bool u
   {
     gpgme_data_release(signature);
     gpgme_release(ctx);
-    mutt_error(_("$pgp_sign_as unset and no default key specified in ~/.gnupg/gpg.conf"));
+    log_fault(_("$pgp_sign_as unset and no default key specified in ~/.gnupg/gpg.conf"));
     return NULL;
   }
 
@@ -1598,7 +1598,7 @@ static int verify_one(struct Body *b, struct State *state, const char *tempfile,
   if (err != GPG_ERR_NO_ERROR)
   {
     gpgme_data_release(signature);
-    mutt_error(_("error allocating data object: %s"), gpgme_strerror(err));
+    log_fault(_("error allocating data object: %s"), gpgme_strerror(err));
     return -1;
   }
   ctx = create_gpgme_context(is_smime);
@@ -1695,7 +1695,7 @@ static int verify_one(struct Body *b, struct State *state, const char *tempfile,
   gpgme_release(ctx);
 
   state_attach_puts(state, _("[-- End signature information --]\n\n"));
-  mutt_debug(LL_DEBUG1, "returning %d\n", badsig);
+  log_debug1("returning %d", badsig);
 
   return badsig ? 1 : anywarn ? 2 : 0;
 }
@@ -1934,7 +1934,7 @@ int pgp_gpgme_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct Bo
     fp_decoded = mutt_file_mkstemp();
     if (!fp_decoded)
     {
-      mutt_perror(_("Can't create temporary file"));
+      log_perror(_("Can't create temporary file"));
       return -1;
     }
 
@@ -1958,7 +1958,7 @@ int pgp_gpgme_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct Bo
   *fp_out = mutt_file_mkstemp();
   if (!*fp_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     rc = -1;
     goto bail;
   }
@@ -2017,7 +2017,7 @@ int smime_gpgme_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct 
   FILE *fp_tmp = mutt_file_mkstemp();
   if (!fp_tmp)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     return -1;
   }
 
@@ -2034,7 +2034,7 @@ int smime_gpgme_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct 
   *fp_out = mutt_file_mkstemp();
   if (!*fp_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     return -1;
   }
 
@@ -2067,7 +2067,7 @@ int smime_gpgme_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct 
     FILE *fp_tmp2 = mutt_file_mkstemp();
     if (!fp_tmp2)
     {
-      mutt_perror(_("Can't create temporary file"));
+      log_perror(_("Can't create temporary file"));
       return -1;
     }
 
@@ -2085,7 +2085,7 @@ int smime_gpgme_decrypt_mime(FILE *fp_in, FILE **fp_out, struct Body *b, struct 
     *fp_out = mutt_file_mkstemp();
     if (!*fp_out)
     {
-      mutt_perror(_("Can't create temporary file"));
+      log_perror(_("Can't create temporary file"));
       return -1;
     }
 
@@ -2125,7 +2125,7 @@ static int pgp_gpgme_extract_keys(gpgme_data_t keydata, FILE **fp)
   *fp = mutt_file_mkstemp();
   if (!*fp)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     return -1;
   }
 
@@ -2166,7 +2166,7 @@ static int pgp_gpgme_extract_keys(gpgme_data_t keydata, FILE **fp)
   }
   if (gpg_err_code(err) != GPG_ERR_EOF)
   {
-    mutt_debug(LL_DEBUG1, "Error listing keys\n");
+    log_debug1("Error listing keys");
     goto err_fp;
   }
 
@@ -2313,7 +2313,7 @@ void pgp_gpgme_invoke_import(const char *fname)
   FILE *fp_in = mutt_file_fopen(fname, "r");
   if (!fp_in)
   {
-    mutt_perror("%s", fname);
+    log_perror("%s", fname);
     goto leave;
   }
   /* Note that the stream, "fp_in", needs to be kept open while the keydata
@@ -2321,14 +2321,14 @@ void pgp_gpgme_invoke_import(const char *fname)
   gpgme_error_t err = gpgme_data_new_from_stream(&keydata, fp_in);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("error allocating data object: %s"), gpgme_strerror(err));
+    log_fault(_("error allocating data object: %s"), gpgme_strerror(err));
     goto leave;
   }
 
   err = gpgme_op_import(ctx, keydata);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("Error importing key: %s"), gpgme_strerror(err));
+    log_fault(_("Error importing key: %s"), gpgme_strerror(err));
     goto leave;
   }
 
@@ -2488,7 +2488,7 @@ int pgp_gpgme_application_handler(struct Body *b, struct State *state)
   char body_charset[256] = { 0 }; /* Only used for clearsigned messages. */
   char *gpgcharset = NULL;
 
-  mutt_debug(LL_DEBUG2, "Entering handler\n");
+  log_debug2("Entering handler");
 
   /* For clearsigned messages we won't be able to get a character set
    * but we know that this may only be text thus we assume Latin-1 here. */
@@ -2512,7 +2512,7 @@ int pgp_gpgme_application_handler(struct Body *b, struct State *state)
     LOFF_T offset = ftello(state->fp_in);
     if (offset < 0)
     {
-      mutt_debug(LL_DEBUG1, "ftello() failed on fd %d\n", fileno(state->fp_in));
+      log_debug1("ftello() failed on fd %d", fileno(state->fp_in));
       offset = 0;
     }
     bytes -= (offset - last_pos); /* don't rely on mutt_str_len(buf) */
@@ -2552,7 +2552,7 @@ int pgp_gpgme_application_handler(struct Body *b, struct State *state)
         offset = ftello(state->fp_in);
         if (offset < 0)
         {
-          mutt_debug(LL_DEBUG1, "ftello() failed on fd %d\n", fileno(state->fp_in));
+          log_debug1("ftello() failed on fd %d", fileno(state->fp_in));
           offset = 0;
         }
         bytes -= (offset - last_pos); /* don't rely on mutt_strlen(buf) */
@@ -2584,7 +2584,7 @@ int pgp_gpgme_application_handler(struct Body *b, struct State *state)
       block_end = ftello(state->fp_in);
       if (block_end < 0)
       {
-        mutt_debug(LL_DEBUG1, "ftello() failed on fd %d\n", fileno(state->fp_in));
+        log_debug1("ftello() failed on fd %d", fileno(state->fp_in));
         block_end = 0;
       }
 
@@ -2640,7 +2640,7 @@ int pgp_gpgme_application_handler(struct Body *b, struct State *state)
         {
           /* Decryption/Verification succeeded */
 
-          mutt_message(_("PGP message successfully decrypted"));
+          log_message(_("PGP message successfully decrypted"));
 
           bool sig_stat = false;
           char *tmpfname = NULL;
@@ -2752,7 +2752,7 @@ int pgp_gpgme_application_handler(struct Body *b, struct State *state)
     state_attach_puts(state, _("[-- Error: could not find beginning of PGP message --]\n\n"));
     return 1;
   }
-  mutt_debug(LL_DEBUG2, "Leaving handler\n");
+  log_debug2("Leaving handler");
 
   return err;
 }
@@ -2768,12 +2768,12 @@ int pgp_gpgme_encrypted_handler(struct Body *b, struct State *state)
   int is_signed;
   int rc = 0;
 
-  mutt_debug(LL_DEBUG2, "Entering handler\n");
+  log_debug2("Entering handler");
 
   FILE *fp_out = mutt_file_mkstemp();
   if (!fp_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     if (state->flags & STATE_DISPLAY)
     {
       state_attach_puts(state, _("[-- Error: could not create temporary file --]\n"));
@@ -2831,7 +2831,7 @@ int pgp_gpgme_encrypted_handler(struct Body *b, struct State *state)
     }
 
     mutt_body_free(&tattach);
-    mutt_message(_("PGP message successfully decrypted"));
+    log_message(_("PGP message successfully decrypted"));
   }
   else
   {
@@ -2839,13 +2839,13 @@ int pgp_gpgme_encrypted_handler(struct Body *b, struct State *state)
     if (!OptAutocryptGpgme)
 #endif
     {
-      mutt_error(_("Could not decrypt PGP message"));
+      log_fault(_("Could not decrypt PGP message"));
     }
     rc = -1;
   }
 
   mutt_file_fclose(&fp_out);
-  mutt_debug(LL_DEBUG2, "Leaving handler\n");
+  log_debug2("Leaving handler");
 
   return rc;
 }
@@ -2858,7 +2858,7 @@ int smime_gpgme_application_handler(struct Body *b, struct State *state)
   int is_signed = 0;
   int rc = 0;
 
-  mutt_debug(LL_DEBUG2, "Entering handler\n");
+  log_debug2("Entering handler");
 
   /* clear out any mime headers before the handler, so they can't be spoofed. */
   mutt_env_free(&b->mime_headers);
@@ -2866,7 +2866,7 @@ int smime_gpgme_application_handler(struct Body *b, struct State *state)
   FILE *fp_out = mutt_file_mkstemp();
   if (!fp_out)
   {
-    mutt_perror(_("Can't create temporary file"));
+    log_perror(_("Can't create temporary file"));
     if (state->flags & STATE_DISPLAY)
     {
       state_attach_puts(state, _("[-- Error: could not create temporary file --]\n"));
@@ -2934,7 +2934,7 @@ int smime_gpgme_application_handler(struct Body *b, struct State *state)
   }
 
   mutt_file_fclose(&fp_out);
-  mutt_debug(LL_DEBUG2, "Leaving handler\n");
+  log_debug2("Leaving handler");
 
   return rc;
 }
@@ -3112,7 +3112,7 @@ static struct CryptKeyInfo *get_candidates(GSList *hints, SecurityFlags app, int
     FREE(&patarr);
     if (err != GPG_ERR_NO_ERROR)
     {
-      mutt_error(_("gpgme_op_keylist_start failed: %s"), gpgme_strerror(err));
+      log_fault(_("gpgme_op_keylist_start failed: %s"), gpgme_strerror(err));
       gpgme_release(ctx);
       FREE(&pattern);
       return NULL;
@@ -3151,7 +3151,7 @@ static struct CryptKeyInfo *get_candidates(GSList *hints, SecurityFlags app, int
       gpgme_key_unref(key);
     }
     if (gpg_err_code(err) != GPG_ERR_EOF)
-      mutt_error(_("gpgme_op_keylist_next failed: %s"), gpgme_strerror(err));
+      log_fault(_("gpgme_op_keylist_next failed: %s"), gpgme_strerror(err));
     gpgme_op_keylist_end(ctx);
   no_pgphints:;
   }
@@ -3163,7 +3163,7 @@ static struct CryptKeyInfo *get_candidates(GSList *hints, SecurityFlags app, int
     err = gpgme_op_keylist_start(ctx, pattern, 0);
     if (err != GPG_ERR_NO_ERROR)
     {
-      mutt_error(_("gpgme_op_keylist_start failed: %s"), gpgme_strerror(err));
+      log_fault(_("gpgme_op_keylist_start failed: %s"), gpgme_strerror(err));
       gpgme_release(ctx);
       FREE(&pattern);
       return NULL;
@@ -3202,7 +3202,7 @@ static struct CryptKeyInfo *get_candidates(GSList *hints, SecurityFlags app, int
       gpgme_key_unref(key);
     }
     if (gpg_err_code(err) != GPG_ERR_EOF)
-      mutt_error(_("gpgme_op_keylist_next failed: %s"), gpgme_strerror(err));
+      log_fault(_("gpgme_op_keylist_next failed: %s"), gpgme_strerror(err));
     gpgme_op_keylist_end(ctx);
   }
 
@@ -3266,7 +3266,7 @@ static struct CryptKeyInfo *crypt_getkeybyaddr(struct Address *a,
     crypt_add_string_to_hints(buf_string(a->personal), &hints);
 
   if (!oppenc_mode)
-    mutt_message(_("Looking for keys matching \"%s\"..."), a ? buf_string(a->mailbox) : "");
+    log_message(_("Looking for keys matching \"%s\"..."), a ? buf_string(a->mailbox) : "");
   keys = get_candidates(hints, app, (abilities & KEYFLAG_CANSIGN));
 
   g_slist_free_full(g_steal_pointer(&hints), g_free);
@@ -3274,16 +3274,16 @@ static struct CryptKeyInfo *crypt_getkeybyaddr(struct Address *a,
   if (!keys)
     return NULL;
 
-  mutt_debug(LL_DEBUG5, "looking for %s <%s>\n",
+  log_debug5("looking for %s <%s>",
              a ? buf_string(a->personal) : "", a ? buf_string(a->mailbox) : "");
 
   for (k = keys; k; k = k->next)
   {
-    mutt_debug(LL_DEBUG5, "  looking at key: %s '%.15s'\n", crypt_keyid(k), k->uid);
+    log_debug5("  looking at key: %s '%.15s'", crypt_keyid(k), k->uid);
 
     if (abilities && !(k->flags & abilities))
     {
-      mutt_debug(LL_DEBUG2, "  insufficient abilities: Has %x, want %x\n", k->flags, abilities);
+      log_debug2("  insufficient abilities: Has %x, want %x", k->flags, abilities);
       continue;
     }
 
@@ -3386,7 +3386,7 @@ static struct CryptKeyInfo *crypt_getkeybystr(const char *p, KeyFlags abilities,
   struct CryptKeyInfo *k = NULL;
   const char *ps = NULL, *pl = NULL, *phint = NULL;
 
-  mutt_message(_("Looking for keys matching \"%s\"..."), p);
+  log_message(_("Looking for keys matching \"%s\"..."), p);
 
   const char *pfcopy = crypt_get_fingerprint_or_id(p, &phint, &pl, &ps);
   crypt_add_string_to_hints(phint, &hints);
@@ -3404,14 +3404,14 @@ static struct CryptKeyInfo *crypt_getkeybystr(const char *p, KeyFlags abilities,
     if (abilities && !(k->flags & abilities))
       continue;
 
-    mutt_debug(LL_DEBUG5, "matching \"%s\" against key %s, \"%s\": ", p,
+    log_debug5("matching \"%s\" against key %s, \"%s\": ", p,
                crypt_long_keyid(k), k->uid);
 
     if ((*p == '\0') || (pfcopy && mutt_istr_equal(pfcopy, crypt_fpr(k))) ||
         (pl && mutt_istr_equal(pl, crypt_long_keyid(k))) ||
         (ps && mutt_istr_equal(ps, crypt_short_keyid(k))) || mutt_istr_find(k->uid, p))
     {
-      mutt_debug(LL_DEBUG5, "match\n");
+      log_debug5("match");
 
       struct CryptKeyInfo *tmp = crypt_copy_key(k);
       *matches_endp = tmp;
@@ -3419,7 +3419,7 @@ static struct CryptKeyInfo *crypt_getkeybystr(const char *p, KeyFlags abilities,
     }
     else
     {
-      mutt_debug(LL_DEBUG5, "no match\n");
+      log_debug5("no match");
     }
   }
 
@@ -3510,7 +3510,7 @@ static struct CryptKeyInfo *crypt_ask_for_key(const char *tag, const char *whatf
     if (key)
       goto done;
 
-    mutt_error(_("No matching keys found for \"%s\""), buf_string(resp));
+    log_fault(_("No matching keys found for \"%s\""), buf_string(resp));
   }
 
 done:
@@ -3732,14 +3732,14 @@ int mutt_gpgme_select_secret_key(struct Buffer *keyid)
     gpgme_key_unref(key);
   }
   if (gpg_err_code(err) != GPG_ERR_EOF)
-    mutt_error(_("gpgme_op_keylist_next failed: %s"), gpgme_strerror(err));
+    log_fault(_("gpgme_op_keylist_next failed: %s"), gpgme_strerror(err));
   gpgme_op_keylist_end(ctx);
 
   if (!results)
   {
     /* L10N: mutt_gpgme_select_secret_key() tries to list all secret keys to choose
        from.  This error is displayed if no results were found.  */
-    mutt_error(_("No secret keys found"));
+    log_fault(_("No secret keys found"));
     goto cleanup;
   }
 
@@ -3784,7 +3784,7 @@ struct Body *pgp_gpgme_make_key_attachment(void)
   gpgme_error_t err = gpgme_op_export_keys(ctx, export_keys, 0, keydata);
   if (err != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("Error exporting key: %s"), gpgme_strerror(err));
+    log_fault(_("Error exporting key: %s"), gpgme_strerror(err));
     goto bail;
   }
 
@@ -3842,7 +3842,7 @@ static void init_pgp(void)
 {
   if (gpgme_engine_check_version(GPGME_PROTOCOL_OpenPGP) != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("GPGME: OpenPGP protocol not available"));
+    log_fault(_("GPGME: OpenPGP protocol not available"));
   }
 }
 
@@ -3853,7 +3853,7 @@ static void init_smime(void)
 {
   if (gpgme_engine_check_version(GPGME_PROTOCOL_CMS) != GPG_ERR_NO_ERROR)
   {
-    mutt_error(_("GPGME: CMS protocol not available"));
+    log_fault(_("GPGME: CMS protocol not available"));
   }
 }
 
@@ -4149,7 +4149,7 @@ int smime_gpgme_verify_sender(struct Email *e, struct Message *msg)
  */
 void pgp_gpgme_set_sender(const char *sender)
 {
-  mutt_debug(LL_DEBUG2, "setting to: %s\n", sender);
+  log_debug2("setting to: %s", sender);
   FREE(&CurrentSender);
   CurrentSender = mutt_str_dup(sender);
 }

@@ -175,7 +175,7 @@ bool self_insert(struct EnterWindowData *wdata, int ch)
 static int enter_recalc(struct MuttWindow *win)
 {
   win->actions |= WA_REPAINT;
-  mutt_debug(LL_DEBUG5, "recalc done, request WA_REPAINT\n");
+  log_debug5("recalc done, request WA_REPAINT");
 
   return 0;
 }
@@ -236,7 +236,7 @@ static int enter_repaint(struct MuttWindow *win)
   }
 
   mutt_window_get_coords(win, &wdata->col, &wdata->row);
-  mutt_debug(LL_DEBUG5, "repaint done\n");
+  log_debug5("repaint done");
 
   return 0;
 }
@@ -344,9 +344,9 @@ int mw_get_field(const char *prompt, struct Buffer *buf, CompletionFlags complet
       if (event.op == OP_NULL)
       {
         if (complete & MUTT_COMP_PASS)
-          mutt_debug(LL_DEBUG5, "Got char *\n");
+          log_debug5("Got char *");
         else
-          mutt_debug(LL_DEBUG5, "Got char %c (0x%02x)\n", event.ch, event.ch);
+          log_debug5("Got char %c (0x%02x)", event.ch, event.ch);
 
         if (self_insert(&wdata, event.ch))
         {
@@ -358,7 +358,7 @@ int mw_get_field(const char *prompt, struct Buffer *buf, CompletionFlags complet
       }
       else
       {
-        mutt_debug(LL_DEBUG1, "Got op %s (%d)\n", opcodes_get_name(event.op),
+        log_debug1("Got op %s (%d)", opcodes_get_name(event.op),
                    event.op);
       }
 

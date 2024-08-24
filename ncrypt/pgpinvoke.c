@@ -123,7 +123,7 @@ static void mutt_pgp_command(struct Buffer *buf, struct PgpCommandContext *cctx,
                              const struct Expando *exp)
 {
   expando_render(exp, PgpCommandRenderData, cctx, MUTT_FORMAT_NO_FLAGS, buf->dsize, buf);
-  mutt_debug(LL_DEBUG2, "%s\n", buf_string(buf));
+  log_debug2("%s", buf_string(buf));
 }
 
 /**
@@ -371,7 +371,7 @@ void pgp_class_invoke_import(const char *fname)
   const struct Expando *c_pgp_import_command = cs_subset_expando(NeoMutt->sub, "pgp_import_command");
   mutt_pgp_command(cmd, &cctx, c_pgp_import_command);
   if (mutt_system(buf_string(cmd)) != 0)
-    mutt_debug(LL_DEBUG1, "Error running \"%s\"\n", buf_string(cmd));
+    log_debug1("Error running \"%s\"", buf_string(cmd));
 
   buf_pool_release(&buf_fname);
   buf_pool_release(&cmd);
@@ -409,10 +409,10 @@ void pgp_class_invoke_getkeys(struct Address *addr)
   int fd_null = open("/dev/null", O_RDWR);
 
   if (!isendwin())
-    mutt_message(_("Fetching PGP key..."));
+    log_message(_("Fetching PGP key..."));
 
   if (mutt_system(buf_string(cmd)) != 0)
-    mutt_debug(LL_DEBUG1, "Error running \"%s\"\n", buf_string(cmd));
+    log_debug1("Error running \"%s\"", buf_string(cmd));
 
   if (!isendwin())
     mutt_clear_error();

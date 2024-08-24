@@ -204,12 +204,12 @@ int mutt_copy_hdr(FILE *fp_in, FILE *fp_out, LOFF_T off_start, LOFF_T off_end,
   {
     for (GSList *np = HeaderOrderList; np != NULL; np = np->next)
     {
-      mutt_debug(LL_DEBUG3, "Reorder list: %s\n", (char*)np->data);
+      log_debug3("Reorder list: %s", (char*)np->data);
       hdr_count++;
     }
   }
 
-  mutt_debug(LL_DEBUG1, "WEED is %sset\n", (chflags & CH_WEED) ? "" : "not ");
+  log_debug1("WEED is %sset", (chflags & CH_WEED) ? "" : "not ");
 
   ARRAY_RESERVE(&headers, hdr_count);
 
@@ -326,7 +326,7 @@ int mutt_copy_hdr(FILE *fp_in, FILE *fp_out, LOFF_T off_start, LOFF_T off_end,
               match = x;
               match_len = hdr_order_len;
             }
-            mutt_debug(LL_DEBUG2, "Reorder: %s matches %s", (char*)np->data, buf);
+            log_debug2("Reorder: %s matches %s", (char*)np->data, buf);
           }
           x++;
         }
@@ -339,7 +339,7 @@ int mutt_copy_hdr(FILE *fp_in, FILE *fp_out, LOFF_T off_start, LOFF_T off_end,
 
     if (!ignore)
     {
-      mutt_debug(LL_DEBUG2, "Reorder: x = %d; hdr_count = %d\n", x, hdr_count);
+      log_debug2("Reorder: x = %d; hdr_count = %d", x, hdr_count);
       if (this_one)
       {
         size_t blen = mutt_str_len(buf);
@@ -728,7 +728,7 @@ int mutt_copy_message_fp(FILE *fp_out, FILE *fp_in, struct Email *e,
       LOFF_T fail = ((ftello(fp_out) - new_offset) - new_length);
       if (fail)
       {
-        mutt_error(ngettext("The length calculation was wrong by %ld byte",
+        log_fault(ngettext("The length calculation was wrong by %ld byte",
                             "The length calculation was wrong by %ld bytes", fail),
                    (long) fail);
         new_length += fail;
@@ -821,7 +821,7 @@ int mutt_copy_message_fp(FILE *fp_out, FILE *fp_in, struct Email *e,
 
     if (!cur)
     {
-      mutt_error(_("No decryption engine available for message"));
+      log_fault(_("No decryption engine available for message"));
       rc = 1;
       goto done;
     }
@@ -910,14 +910,14 @@ int mutt_copy_message(FILE *fp_out, struct Email *e, struct Message *msg,
   }
   if (fp_out == msg->fp)
   {
-    mutt_debug(LL_DEBUG1, "trying to read/write from/to the same FILE*!\n");
+    log_debug1("trying to read/write from/to the same FILE*!");
     return -1;
   }
 
   int rc = mutt_copy_message_fp(fp_out, msg->fp, e, cmflags, chflags, wraplen);
   if ((rc == 0) && (ferror(fp_out) || feof(fp_out)))
   {
-    mutt_debug(LL_DEBUG1, "failed to detect EOF!\n");
+    log_debug1("failed to detect EOF!");
     rc = -1;
   }
   return rc;

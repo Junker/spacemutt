@@ -112,7 +112,7 @@ int mutt_account_getlogin(struct ConnAccount *cac)
 
   if (!login)
   {
-    mutt_debug(LL_DEBUG1, "Couldn't get user info\n");
+    log_debug1("Couldn't get user info");
     return -1;
   }
 
@@ -208,7 +208,7 @@ char *mutt_account_getoauthbearer(struct ConnAccount *cac, bool xoauth2)
        one of your $*_authenticators and (2) you do not have the corresponding
        $*_oauth_refresh_command defined. So the message does not mean "None of
        your $*_oauth_refresh_command's are defined." */
-    mutt_error(_("No OAUTH refresh command defined"));
+    log_fault(_("No OAUTH refresh command defined"));
     return NULL;
   }
 
@@ -216,7 +216,7 @@ char *mutt_account_getoauthbearer(struct ConnAccount *cac, bool xoauth2)
   pid_t pid = filter_create(cmd, NULL, &fp, NULL, EnvList);
   if (pid < 0)
   {
-    mutt_perror(_("Unable to run refresh command"));
+    log_perror(_("Unable to run refresh command"));
     return NULL;
   }
 
@@ -231,14 +231,14 @@ char *mutt_account_getoauthbearer(struct ConnAccount *cac, bool xoauth2)
 
   if (!token || (*token == '\0'))
   {
-    mutt_error(_("Command returned empty string"));
+    log_fault(_("Command returned empty string"));
     FREE(&token);
     return NULL;
   }
 
   if ((!xoauth2 && (token_size > 512)) || (xoauth2 && (token_size > 4096)))
   {
-    mutt_error(_("OAUTH token is too big: %ld"), (long) token_size);
+    log_fault(_("OAUTH token is too big: %ld"), (long) token_size);
     FREE(&token);
     return NULL;
   }

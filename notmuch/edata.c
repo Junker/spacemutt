@@ -46,7 +46,7 @@ void nm_edata_free(void **ptr)
 
   struct NmEmailData *edata = *ptr;
 
-  mutt_debug(LL_DEBUG2, "nm: freeing email %p\n", (void *) edata);
+  log_debug2("nm: freeing email %p", (void *) edata);
   FREE(&edata->folder);
   FREE(&edata->oldpath);
   FREE(&edata->virtual_id);

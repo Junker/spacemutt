@@ -59,7 +59,7 @@ static int mutt_randbuf(void *buf, size_t buflen)
 {
   if (buflen > 1048576)
   {
-    mutt_error(_("mutt_randbuf buflen=%zu"), buflen);
+    log_fault(_("mutt_randbuf buflen=%zu"), buflen);
     return -1;
   }
 
@@ -84,14 +84,14 @@ static int mutt_randbuf(void *buf, size_t buflen)
     FpRandom = mutt_file_fopen("/dev/urandom", "rb");
     if (!FpRandom)
     {
-      mutt_error(_("open /dev/urandom: %s"), strerror(errno));
+      log_fault(_("open /dev/urandom: %s"), strerror(errno));
       return -1;
     }
     setbuf(FpRandom, NULL);
   }
   if (fread(buf, 1, buflen, FpRandom) != buflen)
   {
-    mutt_error(_("read /dev/urandom: %s"), strerror(errno));
+    log_fault(_("read /dev/urandom: %s"), strerror(errno));
     return -1;
   }
 

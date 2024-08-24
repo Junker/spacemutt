@@ -55,7 +55,7 @@ void mview_free(struct MailboxView **ptr)
   struct MailboxView *mv = *ptr;
 
   struct EventMview ev_m = { mv };
-  mutt_debug(LL_NOTIFY, "NT_MVIEW_DELETE: %p\n", (void *) mv);
+  log_notify("NT_MVIEW_DELETE: %p", (void *) mv);
   notify_send(mv->notify, NT_MVIEW, NT_MVIEW_DELETE, &ev_m);
 
   if (mv->mailbox)
@@ -98,7 +98,7 @@ struct MailboxView *mview_new(struct Mailbox *m, struct Notify *parent)
   mv->notify = notify_new();
   notify_set_parent(mv->notify, parent);
   struct EventMview ev_m = { mv };
-  mutt_debug(LL_NOTIFY, "NT_MVIEW_ADD: %p\n", (void *) mv);
+  log_notify("NT_MVIEW_ADD: %p", (void *) mv);
   notify_send(mv->notify, NT_MVIEW, NT_MVIEW_ADD, &ev_m);
   // If the Mailbox is closed, mv->mailbox must be set to NULL
   notify_observer_add(m->notify, NT_MAILBOX, mview_mailbox_observer, mv);
@@ -350,7 +350,7 @@ int mview_mailbox_observer(struct NotifyCallback *nc)
       return 0;
   }
 
-  mutt_debug(LL_DEBUG5, "mailbox done\n");
+  log_debug5("mailbox done");
   return 0;
 }
 

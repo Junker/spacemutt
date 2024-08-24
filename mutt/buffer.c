@@ -101,7 +101,7 @@ size_t buf_addstr_n(struct Buffer *buf, const char *s, size_t len)
   if (len > (SIZE_MAX - BufferStepSize))
   {
     // LCOV_EXCL_START
-    mutt_error("%s", strerror(ENOMEM));
+    log_fault("%s", strerror(ENOMEM));
     mutt_exit(1);
     // LCOV_EXCL_STOP
   }
@@ -350,7 +350,7 @@ void buf_alloc(struct Buffer *buf, size_t new_size)
   if (new_size > (SIZE_MAX - BufferStepSize))
   {
     // LCOV_EXCL_START
-    mutt_error(_("Out of memory"));
+    log_fault(_("Out of memory"));
     mutt_exit(1);
     // LCOV_EXCL_STOP
   }

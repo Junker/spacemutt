@@ -156,7 +156,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
   if (k)
     memcpy(&tmp, k, sizeof(tmp));
 
-  mutt_debug(LL_DEBUG2, "buf = '%s'\n", buf);
+  log_debug2("buf = '%s'", buf);
 
   const bool c_pgp_ignore_subkeys = cs_subset_bool(NeoMutt->sub, "pgp_ignore_subkeys");
   for (p = buf; p; p = pend)
@@ -175,7 +175,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
     {
       case 1: /* record type */
       {
-        mutt_debug(LL_DEBUG2, "record type: %s\n", p);
+        log_debug2("record type: %s", p);
 
         if (mutt_str_equal(p, "pub"))
           is_pub = true;
@@ -199,7 +199,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
       }
       case 2: /* trust info */
       {
-        mutt_debug(LL_DEBUG2, "trust info: %s\n", p);
+        log_debug2("trust info: %s", p);
 
         switch (*p)
         { /* look only at the first letter */
@@ -233,7 +233,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
       }
       case 3: /* key length  */
       {
-        mutt_debug(LL_DEBUG2, "key len: %s\n", p);
+        log_debug2("key len: %s", p);
 
         if (!(*is_subkey && c_pgp_ignore_subkeys) && !mutt_str_atos_full(p, &tmp.keylen))
         {
@@ -243,7 +243,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
       }
       case 4: /* pubkey algo */
       {
-        mutt_debug(LL_DEBUG2, "pubkey algorithm: %s\n", p);
+        log_debug2("pubkey algorithm: %s", p);
 
         if (!(*is_subkey && c_pgp_ignore_subkeys))
         {
@@ -257,7 +257,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
       }
       case 5: /* 16 hex digits with the long keyid. */
       {
-        mutt_debug(LL_DEBUG2, "key id: %s\n", p);
+        log_debug2("key id: %s", p);
 
         if (!(*is_subkey && c_pgp_ignore_subkeys))
           mutt_str_replace(&tmp.keyid, p);
@@ -265,7 +265,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
       }
       case 6: /* timestamp (1998-02-28) */
       {
-        mutt_debug(LL_DEBUG2, "time stamp: %s\n", p);
+        log_debug2("time stamp: %s", p);
 
         if (strchr(p, '-')) /* gpg pre-2.0.10 used format (yyyy-mm-dd) */
         {
@@ -334,7 +334,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
         if (!is_uid && (*is_subkey && c_pgp_ignore_subkeys))
           break;
 
-        mutt_debug(LL_DEBUG2, "user ID: %s\n", NONULL(p));
+        log_debug2("user ID: %s", NONULL(p));
 
         uid = mutt_mem_calloc(1, sizeof(struct PgpUid));
         fix_uid(p);
@@ -354,7 +354,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
       case 11: /* signature class  */
         break;
       case 12: /* key capabilities */
-        mutt_debug(LL_DEBUG2, "capabilities info: %s\n", p);
+        log_debug2("capabilities info: %s", p);
 
         while (*p)
         {
@@ -405,7 +405,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
   return k;
 
 bail:
-  mutt_debug(LL_DEBUG1, "invalid number: '%s'\n", p);
+  log_debug1("invalid number: '%s'", p);
   return NULL;
 }
 
@@ -472,7 +472,7 @@ struct PgpKeyInfo *pgp_get_candidates(enum PgpRing keyring, GSList *hints)
   }
 
   if (ferror(fp))
-    mutt_perror("fgets");
+    log_perror("fgets");
 
   mutt_file_fclose(&fp);
   filter_wait(pid);

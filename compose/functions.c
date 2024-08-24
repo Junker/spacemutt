@@ -217,7 +217,7 @@ static bool check_count(struct AttachCtx *actx)
 {
   if (actx->idxlen == 0)
   {
-    mutt_error(_("There are no attachments"));
+    log_fault(_("There are no attachments"));
     return false;
   }
 
@@ -286,7 +286,7 @@ static int check_attachments(struct AttachCtx *actx, struct ConfigSubset *sub)
          doesn't stat.  %d is the attachment number and %s is the attachment
          filename.  The filename is located last to avoid a long path hiding
          the error message.  */
-      mutt_error(_("Attachment #%d no longer exists: %s"), i + 1, buf_string(pretty));
+      log_fault(_("Attachment #%d no longer exists: %s"), i + 1, buf_string(pretty));
       goto cleanup;
     }
 
@@ -343,7 +343,7 @@ static int delete_attachment(struct AttachCtx *actx, int aidx)
     struct Body *b = actx->idx[0]->body;
     if (!b->next) // There's only one attachment left
     {
-      mutt_error(_("You may not delete the only attachment"));
+      log_fault(_("You may not delete the only attachment"));
       return -1;
     }
 
@@ -370,7 +370,7 @@ static int delete_attachment(struct AttachCtx *actx, int aidx)
     {
       if (attach_body_count(b_parent->parts, false) < 3)
       {
-        mutt_error(_("Can't leave group with only one attachment"));
+        log_fault(_("Can't leave group with only one attachment"));
         return -1;
       }
     }
@@ -530,7 +530,7 @@ static int group_attachments(struct ComposeSharedData *shared, char *subtype)
       {
         if (group_level != actx->idx[i]->level)
         {
-          mutt_error(_("Attachments to be grouped must have the same parent"));
+          log_fault(_("Attachments to be grouped must have the same parent"));
           return FR_ERROR;
         }
       }
@@ -541,17 +541,17 @@ static int group_attachments(struct ComposeSharedData *shared, char *subtype)
         {
           struct Body *bptr_test = NULL;
           if (!attach_body_parent(actx->idx[0]->body, NULL, actx->idx[i]->body, &bptr_test))
-            mutt_debug(LL_DEBUG5, "can't find parent\n");
+            log_debug5("can't find parent");
           if (bptr_test != bptr_parent)
           {
-            mutt_error(_("Attachments to be grouped must have the same parent"));
+            log_fault(_("Attachments to be grouped must have the same parent"));
             return FR_ERROR;
           }
         }
         else
         {
           if (!attach_body_parent(actx->idx[0]->body, NULL, actx->idx[i]->body, &bptr_parent))
-            mutt_debug(LL_DEBUG5, "can't find parent\n");
+            log_debug5("can't find parent");
         }
       }
     }
@@ -562,7 +562,7 @@ static int group_attachments(struct ComposeSharedData *shared, char *subtype)
   {
     if (shared->adata->menu->num_tagged == attach_body_count(bptr_parent->parts, false))
     {
-      mutt_error(_("Can't leave group with only one attachment"));
+      log_fault(_("Can't leave group with only one attachment"));
       return FR_ERROR;
     }
   }
@@ -598,11 +598,11 @@ static int group_attachments(struct ComposeSharedData *shared, char *subtype)
         {
           if (!attach_body_previous(shared->email->body, bptr, &group_previous))
           {
-            mutt_debug(LL_DEBUG5, "couldn't find previous\n");
+            log_debug5("couldn't find previous");
           }
           if (!attach_body_parent(shared->email->body, NULL, bptr, &group_parent))
           {
-            mutt_debug(LL_DEBUG5, "couldn't find parent\n");
+            log_debug5("couldn't find parent");
           }
         }
       }
@@ -751,7 +751,7 @@ static int op_attachment_attach_file(struct ComposeSharedData *shared, int op)
   bool added_attachment = false;
   if (numfiles > 1)
   {
-    mutt_message(ngettext("Attaching selected file...",
+    log_message(ngettext("Attaching selected file...",
                           "Attaching selected files...", numfiles));
   }
   for (int i = 0; i < numfiles; i++)
@@ -771,7 +771,7 @@ static int op_attachment_attach_file(struct ComposeSharedData *shared, int op)
     else
     {
       error = true;
-      mutt_error(_("Unable to attach %s"), att);
+      log_fault(_("Unable to attach %s"), att);
       mutt_aptr_free(&ap);
     }
     FREE(&files[i]);
@@ -871,7 +871,7 @@ static int op_attachment_attach_message(struct ComposeSharedData *shared, int op
           /* check to make sure the file exists and is readable */
           if (access(buf_string(fname), R_OK) == -1)
           {
-            mutt_perror("%s", buf_string(fname));
+            log_perror("%s", buf_string(fname));
             buf_pool_release(&fname);
             return FR_ERROR;
           }
@@ -886,7 +886,7 @@ static int op_attachment_attach_message(struct ComposeSharedData *shared, int op
   const bool old_readonly = m_attach->readonly;
   if (!mx_mbox_open(m_attach, MUTT_READONLY))
   {
-    mutt_error(_("Unable to open mailbox %s"), buf_string(fname));
+    log_fault(_("Unable to open mailbox %s"), buf_string(fname));
     mx_fastclose_mailbox(m_attach, false);
     m_attach = NULL;
     buf_pool_release(&fname);
@@ -897,7 +897,7 @@ static int op_attachment_attach_message(struct ComposeSharedData *shared, int op
   if (m_attach->msg_count == 0)
   {
     mx_mbox_close(m_attach);
-    mutt_error(_("No messages in that folder"));
+    log_fault(_("No messages in that folder"));
     return FR_NO_ACTION;
   }
 
@@ -906,7 +906,7 @@ static int op_attachment_attach_message(struct ComposeSharedData *shared, int op
   const enum SortType old_sort_aux = cs_subset_sort(shared->sub, "sort_aux");
   const unsigned char old_use_threads = cs_subset_enum(shared->sub, "use_threads");
 
-  mutt_message(_("Tag the messages you want to attach"));
+  log_message(_("Tag the messages you want to attach"));
   struct MuttWindow *dlg = index_pager_init();
   struct IndexSharedData *index_shared = dlg->wdata;
   index_shared->attach_msg = true;
@@ -944,7 +944,7 @@ static int op_attachment_attach_message(struct ComposeSharedData *shared, int op
     }
     else
     {
-      mutt_error(_("Unable to attach"));
+      log_fault(_("Unable to attach"));
       mutt_aptr_free(&ap);
     }
   }
@@ -1041,7 +1041,7 @@ static int op_attachment_edit_content_id(struct ComposeSharedData *shared, int o
       }
       else
       {
-        mutt_error(_("Content-ID can only contain the characters: -.0-9@A-Z_a-z"));
+        log_fault(_("Content-ID can only contain the characters: -.0-9@A-Z_a-z"));
         rc = FR_ERROR;
       }
     }
@@ -1120,7 +1120,7 @@ static int op_attachment_edit_encoding(struct ComposeSharedData *shared, int op)
     }
     else
     {
-      mutt_error(_("Invalid encoding"));
+      log_fault(_("Invalid encoding"));
       rc = FR_ERROR;
     }
   }
@@ -1157,7 +1157,7 @@ static int op_attachment_edit_language(struct ComposeSharedData *shared, int op)
   }
   else
   {
-    mutt_warning(_("Empty 'Content-Language'"));
+    log_warning(_("Empty 'Content-Language'"));
     rc = FR_ERROR;
   }
 
@@ -1220,7 +1220,7 @@ static int op_attachment_filter(struct ComposeSharedData *shared, int op)
   struct AttachPtr *cur_att = current_attachment(actx, menu);
   if (cur_att->body->type == TYPE_MULTIPART)
   {
-    mutt_error(_("Can't filter multipart attachments"));
+    log_fault(_("Can't filter multipart attachments"));
     return FR_ERROR;
   }
   mutt_pipe_attachment_list(actx, NULL, menu->tag_prefix, cur_att->body,
@@ -1255,7 +1255,7 @@ static int op_attachment_get_attachment(struct ComposeSharedData *shared, int op
   {
     if ((*bp)->type == TYPE_MULTIPART)
     {
-      mutt_warning(_("Can't get multipart attachments"));
+      log_warning(_("Can't get multipart attachments"));
       continue;
     }
     mutt_get_tmp_attachment(*bp);
@@ -1277,7 +1277,7 @@ static int op_attachment_group_alts(struct ComposeSharedData *shared, int op)
 {
   if (shared->adata->menu->num_tagged < 2)
   {
-    mutt_error(_("Grouping 'alternatives' requires at least 2 tagged messages"));
+    log_fault(_("Grouping 'alternatives' requires at least 2 tagged messages"));
     return FR_ERROR;
   }
 
@@ -1291,7 +1291,7 @@ static int op_attachment_group_lingual(struct ComposeSharedData *shared, int op)
 {
   if (shared->adata->menu->num_tagged < 2)
   {
-    mutt_error(_("Grouping 'multilingual' requires at least 2 tagged messages"));
+    log_fault(_("Grouping 'multilingual' requires at least 2 tagged messages"));
     return FR_ERROR;
   }
 
@@ -1306,7 +1306,7 @@ static int op_attachment_group_lingual(struct ComposeSharedData *shared, int op)
     if (query_yesorno(_("Not all parts have 'Content-Language' set, continue?"),
                       MUTT_YES) != MUTT_YES)
     {
-      mutt_message(_("Not sending this message"));
+      log_message(_("Not sending this message"));
       return FR_ERROR;
     }
   }
@@ -1321,7 +1321,7 @@ static int op_attachment_group_related(struct ComposeSharedData *shared, int op)
 {
   if (shared->adata->menu->num_tagged < 2)
   {
-    mutt_error(_("Grouping 'related' requires at least 2 tagged messages"));
+    log_fault(_("Grouping 'related' requires at least 2 tagged messages"));
     return FR_ERROR;
   }
 
@@ -1359,13 +1359,13 @@ static int op_attachment_move_down(struct ComposeSharedData *shared, int op)
 
   if (index == (actx->idxlen - 1))
   {
-    mutt_error(_("Attachment is already at bottom"));
+    log_fault(_("Attachment is already at bottom"));
     return FR_NO_ACTION;
   }
   if ((actx->idx[index]->parent_type == TYPE_MULTIPART) &&
       !actx->idx[index]->body->next)
   {
-    mutt_error(_("Attachment can't be moved out of group"));
+    log_fault(_("Attachment can't be moved out of group"));
     return FR_ERROR;
   }
 
@@ -1378,7 +1378,7 @@ static int op_attachment_move_down(struct ComposeSharedData *shared, int op)
   }
   if (nextidx == actx->idxlen)
   {
-    mutt_error(_("Attachment is already at bottom"));
+    log_fault(_("Attachment is already at bottom"));
     return FR_NO_ACTION;
   }
 
@@ -1413,12 +1413,12 @@ static int op_attachment_move_up(struct ComposeSharedData *shared, int op)
 
   if (index == 0)
   {
-    mutt_error(_("Attachment is already at top"));
+    log_fault(_("Attachment is already at top"));
     return FR_NO_ACTION;
   }
   if (actx->idx[index - 1]->level < actx->idx[index]->level)
   {
-    mutt_error(_("Attachment can't be moved out of group"));
+    log_fault(_("Attachment can't be moved out of group"));
     return FR_ERROR;
   }
 
@@ -1465,14 +1465,14 @@ static int op_attachment_new_mime(struct ComposeSharedData *shared, int op)
   char *p = strchr(buf_string(type), '/');
   if (!p)
   {
-    mutt_error(_("Content-Type is of the form base/sub"));
+    log_fault(_("Content-Type is of the form base/sub"));
     goto done;
   }
   *p++ = 0;
   enum ContentType itype = mutt_check_mime_type(buf_string(type));
   if (itype == TYPE_OTHER)
   {
-    mutt_error(_("Unknown Content-Type %s"), buf_string(type));
+    log_fault(_("Unknown Content-Type %s"), buf_string(type));
     goto done;
   }
 
@@ -1481,7 +1481,7 @@ static int op_attachment_new_mime(struct ComposeSharedData *shared, int op)
   FILE *fp = mutt_file_fopen(buf_string(fname), "w");
   if (!fp)
   {
-    mutt_error(_("Can't create file %s"), buf_string(fname));
+    log_fault(_("Can't create file %s"), buf_string(fname));
     goto done;
   }
   mutt_file_fclose(&fp);
@@ -1489,7 +1489,7 @@ static int op_attachment_new_mime(struct ComposeSharedData *shared, int op)
   ap->body = mutt_make_file_attach(buf_string(fname), shared->sub);
   if (!ap->body)
   {
-    mutt_error(_("Error attaching file"));
+    log_fault(_("Error attaching file"));
     goto done;
   }
   update_idx(shared->adata->menu, shared->adata->actx, ap);
@@ -1531,7 +1531,7 @@ static int op_attachment_print(struct ComposeSharedData *shared, int op)
   struct AttachPtr *cur_att = current_attachment(actx, menu);
   if (cur_att->body->type == TYPE_MULTIPART)
   {
-    mutt_error(_("Can't print multipart attachments"));
+    log_fault(_("Can't print multipart attachments"));
     return FR_ERROR;
   }
 
@@ -1582,7 +1582,7 @@ static int op_attachment_save(struct ComposeSharedData *shared, int op)
   struct AttachPtr *cur_att = current_attachment(actx, menu);
   if (cur_att->body->type == TYPE_MULTIPART)
   {
-    mutt_error(_("Can't save multipart attachments"));
+    log_fault(_("Can't save multipart attachments"));
     return FR_ERROR;
   }
 
@@ -1617,14 +1617,14 @@ static int op_attachment_toggle_recode(struct ComposeSharedData *shared, int op)
                                                  shared->adata->menu);
   if (!mutt_is_text_part(cur_att->body))
   {
-    mutt_error(_("Recoding only affects text attachments"));
+    log_fault(_("Recoding only affects text attachments"));
     return FR_ERROR;
   }
   cur_att->body->noconv = !cur_att->body->noconv;
   if (cur_att->body->noconv)
-    mutt_message(_("The current attachment won't be converted"));
+    log_message(_("The current attachment won't be converted"));
   else
-    mutt_message(_("The current attachment will be converted"));
+    log_message(_("The current attachment will be converted"));
   menu_queue_redraw(shared->adata->menu, MENU_REDRAW_CURRENT);
   mutt_message_hook(NULL, shared->email, MUTT_SEND2_HOOK);
   return FR_SUCCESS;
@@ -1653,7 +1653,7 @@ static int op_attachment_ungroup(struct ComposeSharedData *shared, int op)
 {
   if (shared->adata->actx->idx[shared->adata->menu->current]->body->type != TYPE_MULTIPART)
   {
-    mutt_error(_("Attachment is not 'multipart'"));
+    log_fault(_("Attachment is not 'multipart'"));
     return FR_ERROR;
   }
 
@@ -1769,7 +1769,7 @@ static int op_envelope_edit_headers(struct ComposeSharedData *shared, int op)
 
   if (mutt_env_to_intl(shared->email->env, &tag, &err))
   {
-    mutt_error(_("Bad IDN in '%s': '%s'"), tag, err);
+    log_fault(_("Bad IDN in '%s': '%s'"), tag, err);
     FREE(&err);
   }
   notify_send(shared->email->notify, NT_EMAIL, NT_EMAIL_CHANGE_ENVELOPE, NULL);
@@ -1802,7 +1802,7 @@ static int op_compose_edit_file(struct ComposeSharedData *shared, int op)
                                                  shared->adata->menu);
   if (cur_att->body->type == TYPE_MULTIPART)
   {
-    mutt_error(_("Can't edit multipart attachments"));
+    log_fault(_("Can't edit multipart attachments"));
     return FR_ERROR;
   }
   const char *const c_editor = cs_subset_string(shared->sub, "editor");
@@ -1848,7 +1848,7 @@ static int op_compose_ispell(struct ComposeSharedData *shared, int op)
   snprintf(buf, sizeof(buf), "%s -x %s", NONULL(c_ispell), shared->email->body->filename);
   if (mutt_system(buf) == -1)
   {
-    mutt_error(_("Error running \"%s\""), buf);
+    log_fault(_("Error running \"%s\""), buf);
     return FR_ERROR;
   }
 
@@ -1883,7 +1883,7 @@ static int op_compose_rename_file(struct ComposeSharedData *shared, int op)
                                                  shared->adata->menu);
   if (cur_att->body->type == TYPE_MULTIPART)
   {
-    mutt_error(_("Can't rename multipart attachments"));
+    log_fault(_("Can't rename multipart attachments"));
     return FR_ERROR;
   }
   struct Buffer *fname = buf_pool_get();
@@ -1898,7 +1898,7 @@ static int op_compose_rename_file(struct ComposeSharedData *shared, int op)
     if (stat(cur_att->body->filename, &st) == -1)
     {
       /* L10N: "stat" is a system call. Do "man 2 stat" for more information. */
-      mutt_error(_("Can't stat %s: %s"), buf_string(fname), strerror(errno));
+      log_fault(_("Can't stat %s: %s"), buf_string(fname), strerror(errno));
       buf_pool_release(&fname);
       return FR_ERROR;
     }
@@ -1966,7 +1966,7 @@ static int op_compose_write_message(struct ComposeSharedData *shared, int op)
                       false, NULL, NULL, MUTT_SEL_NO_FLAGS) != -1) &&
       !buf_is_empty(fname))
   {
-    mutt_message(_("Writing message to %s ..."), buf_string(fname));
+    log_message(_("Writing message to %s ..."), buf_string(fname));
     buf_expand_path(fname);
 
     if (shared->email->body->next)
@@ -1974,7 +1974,7 @@ static int op_compose_write_message(struct ComposeSharedData *shared, int op)
 
     if (mutt_write_fcc(buf_string(fname), shared->email, NULL, false, NULL,
                        NULL, shared->sub) == 0)
-      mutt_message(_("Message written"));
+      log_message(_("Message written"));
 
     shared->email->body = mutt_remove_multipart(shared->email->body);
     rc = FR_SUCCESS;
@@ -2163,7 +2163,7 @@ int compose_function_dispatcher(struct MuttWindow *win, int op)
     return rc;
 
   const char *result = dispatcher_get_retval_name(rc);
-  mutt_debug(LL_DEBUG1, "Handled %s (%d) -> %s\n", opcodes_get_name(op), op, NONULL(result));
+  log_debug1("Handled %s (%d) -> %s", opcodes_get_name(op), op, NONULL(result));
 
   return rc;
 }
