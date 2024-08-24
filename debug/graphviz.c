@@ -1200,7 +1200,7 @@ void dot_gqueue(FILE *fp, const char *name, GQueue *list)
   buf_pool_release(&buf);
 }
 
-void dot_addr_list(FILE *fp, const char *name, const AddressList *al,
+void dot_addr_list(FILE *fp, const char *name, AddressList *al,
                    GSList **links)
 {
   if (!al)
