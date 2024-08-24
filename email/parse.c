@@ -1770,12 +1770,12 @@ bool mutt_parse_mailto(struct Envelope *env, char **body, const char *src)
 
   mutt_addrlist_parse(env->to, url->path);
 
-  struct UrlQuery *np;
-  STAILQ_FOREACH(np, &url->query_strings, entries)
+  for (GSList *np = url->query_strings; np != NULL; np = np->next)
   {
-    mutt_filter_commandline_header_tag(np->name);
-    const char *tag = np->name;
-    char *value = np->value;
+    struct UrlQuery *uq = np->data;
+    mutt_filter_commandline_header_tag(uq->name);
+    const char *tag = uq->name;
+    char *value = uq->value;
     /* Determine if this header field is on the allowed list.  Since NeoMutt
      * interprets some header fields specially (such as
      * "Attach: ~/.gnupg/secring.gpg"), care must be taken to ensure that

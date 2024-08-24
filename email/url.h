@@ -25,6 +25,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <glib.h>
 #include "mutt/lib.h"
 
 /**
@@ -58,9 +59,8 @@ struct UrlQuery
 {
   char *name;                     ///< Query name
   char *value;                    ///< Query value
-  STAILQ_ENTRY(UrlQuery) entries; ///< Linked list
 };
-STAILQ_HEAD(UrlQueryList, UrlQuery);
+typedef GSList UrlQueryList;
 
 /**
  * struct Url - A parsed URL `proto://user:password@host:port/path?a=1&b=2`
@@ -73,7 +73,7 @@ struct Url
   char *host;                        ///< Host
   unsigned short port;               ///< Port
   char *path;                        ///< Path
-  struct UrlQueryList query_strings; ///< List of query strings
+  UrlQueryList *query_strings;       ///< List of query strings
   char *src;                         ///< Raw URL string
 };
 

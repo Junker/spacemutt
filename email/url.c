@@ -53,7 +53,7 @@ static const struct Mapping UrlMap[] = {
  * @retval true  Success
  * @retval false Error
  */
-static bool parse_query_string(struct UrlQueryList *list, char *src)
+static bool parse_query_string(UrlQueryList **list, char *src)
 {
   if (!src || (*src == '\0'))
     return false;
@@ -80,7 +80,7 @@ static bool parse_query_string(struct UrlQueryList *list, char *src)
     struct UrlQuery *qs = mutt_mem_calloc(1, sizeof(struct UrlQuery));
     qs->name = key;
     qs->value = val;
-    STAILQ_INSERT_TAIL(list, qs, entries);
+    *list = g_slist_append(*list, qs);
 
     src += mutt_regmatch_end(mval) + again;
   }
@@ -113,7 +113,7 @@ static enum UrlScheme get_scheme(const char *src, const regmatch_t *match)
 static struct Url *url_new(void)
 {
   struct Url *url = mutt_mem_calloc(1, sizeof(struct Url));
-  STAILQ_INIT(&url->query_strings);
+  url->query_strings = NULL;
   return url;
 }
 
@@ -128,14 +128,8 @@ void url_free(struct Url **ptr)
 
   struct Url *url = *ptr;
 
-  struct UrlQueryList *l = &url->query_strings;
-  while (!STAILQ_EMPTY(l))
-  {
-    struct UrlQuery *np = STAILQ_FIRST(l);
-    STAILQ_REMOVE_HEAD(l, entries);
-    // Don't free 'name', 'value': they are pointers into the 'src' string
-    FREE(&np);
-  }
+  // Don't free 'name', 'value': they are pointers into the 'src' string
+  g_slist_free_full(url->query_strings, g_free);
 
   FREE(&url->src);
   FREE(ptr);
@@ -390,20 +384,20 @@ int url_tobuffer(const struct Url *url, struct Buffer *buf, uint8_t flags)
   if (url->path)
     buf_addstr(buf, url->path);
 
-  if (STAILQ_FIRST(&url->query_strings))
+  if (url->query_strings)
   {
     buf_addstr(buf, "?");
 
     char str[256] = { 0 };
-    struct UrlQuery *np = NULL;
-    STAILQ_FOREACH(np, &url->query_strings, entries)
+    for (GSList *np = url->query_strings; np != NULL; np = np->next)
     {
-      url_pct_encode(str, sizeof(str), np->name);
+      struct UrlQuery *item = NULL;
+      url_pct_encode(str, sizeof(str), item->name);
       buf_addstr(buf, str);
       buf_addstr(buf, "=");
-      url_pct_encode(str, sizeof(str), np->value);
+      url_pct_encode(str, sizeof(str), item->value);
       buf_addstr(buf, str);
-      if (STAILQ_NEXT(np, entries))
+      if (np->next)
         buf_addstr(buf, "&");
     }
   }

@@ -208,30 +208,33 @@ static struct UrlTest test[] = {
 };
 // clang-format on
 
-void check_query_string(const char *exp, const struct UrlQueryList *act)
+void check_query_string(const char *exp, const UrlQueryList *act)
 {
   char *next = NULL;
   char tmp[64] = { 0 };
-  const struct UrlQuery *np = STAILQ_FIRST(act);
+  GSList *np = act;
+  const struct UrlQuery *uq = np ? np->data : NULL;
+  
   while (exp && *exp)
   {
     next = strchr(exp, '|');
     mutt_str_copy(tmp, exp, next - exp + 1);
     exp = next + 1;
-    TEST_CHECK_STR_EQ(tmp, np->name);
+    TEST_CHECK_STR_EQ(tmp, uq->name);
 
     next = strchr(exp, '|');
     mutt_str_copy(tmp, exp, next - exp + 1);
     exp = next + 1;
-    TEST_CHECK_STR_EQ(tmp, np->value);
+    TEST_CHECK_STR_EQ(tmp, uq->value);
 
-    np = STAILQ_NEXT(np, entries);
+    np = np->next;
+    uq = np ? np->data : NULL;
   }
 
-  if (!TEST_CHECK(np == NULL))
+  if (!TEST_CHECK(uq == NULL))
   {
     TEST_MSG("Expected: NULL");
-    TEST_MSG("Actual  : (%s, %s)", np->name, np->value);
+    TEST_MSG("Actual  : (%s, %s)", uq->name, uq->value);
   }
 }
 
@@ -271,7 +274,7 @@ void test_url_parse(void)
         TEST_MSG("Actual  : %hu", url->port);
       }
       TEST_CHECK_STR_EQ(url->path, test[i].url.path);
-      check_query_string(test[i].qs_elem, &url->query_strings);
+      check_query_string(test[i].qs_elem, url->query_strings);
 
       url_free(&url);
     }

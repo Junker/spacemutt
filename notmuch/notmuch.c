@@ -356,9 +356,9 @@ static char *get_query_string(struct NmMboxData *mdata, bool window)
   const char *const c_nm_query_type = cs_subset_string(NeoMutt->sub, "nm_query_type");
   mdata->query_type = nm_string_to_query_type(c_nm_query_type); /* user's default */
 
-  struct UrlQuery *item = NULL;
-  STAILQ_FOREACH(item, &mdata->db_url->query_strings, entries)
+  for (GSList *np = mdata->db_url->query_strings; np != NULL; np = np->next)
   {
+    struct UrlQuery *item = np->data;
     if (!item->value || !item->name)
       continue;
 
@@ -1788,7 +1788,6 @@ int nm_update_filename(struct Mailbox *m, const char *old_file,
  */
 static enum MxStatus nm_mbox_check_stats(struct Mailbox *m, uint8_t flags)
 {
-  struct UrlQuery *item = NULL;
   struct Url *url = NULL;
   const char *db_filename = NULL;
   char *db_query = NULL;
@@ -1805,8 +1804,9 @@ static enum MxStatus nm_mbox_check_stats(struct Mailbox *m, uint8_t flags)
     goto done;
   }
 
-  STAILQ_FOREACH(item, &url->query_strings, entries)
+  for (GSList *np = url->query_strings; np != NULL; np = np->next)
   {
+    struct UrlQuery *item = np->data;
     if (item->value && (mutt_str_equal(item->name, "query")))
     {
       db_query = item->value;
