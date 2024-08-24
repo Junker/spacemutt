@@ -32,16 +32,18 @@ void test_rfc2231_encode_string(void)
   // size_t rfc2231_encode_string(struct ParameterList *head, const char *attribute, char *value);
 
   {
-    struct ParameterList apple = TAILQ_HEAD_INITIALIZER(apple);
-    size_t count = rfc2231_encode_string(&apple, NULL, "apple");
+    ParameterList *apple = g_queue_new();
+    size_t count = rfc2231_encode_string(apple, NULL, "apple");
     TEST_CHECK(count == 0);
-    TEST_CHECK(TAILQ_EMPTY(&apple));
+    TEST_CHECK(g_queue_is_empty(apple));
+    g_queue_free(apple);
   }
 
   {
-    struct ParameterList banana = TAILQ_HEAD_INITIALIZER(banana);
-    size_t count = rfc2231_encode_string(&banana, "banana", NULL);
+    ParameterList *banana = g_queue_new();
+    size_t count = rfc2231_encode_string(banana, "banana", NULL);
     TEST_CHECK(count == 0);
-    TEST_CHECK(TAILQ_EMPTY(&banana));
+    TEST_CHECK(g_queue_is_empty(banana));
+    g_queue_free(banana);
   }
 }

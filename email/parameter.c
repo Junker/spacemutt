@@ -43,10 +43,10 @@ struct Parameter *mutt_param_new(void)
 }
 
 /**
- * mutt_param_free_one - Free a Parameter
+ * mutt_param_free - Free a Parameter
  * @param[out] p Parameter to free
  */
-void mutt_param_free_one(struct Parameter **p)
+void mutt_param_free(struct Parameter **p)
 {
   if (!p || !*p)
     return;
@@ -56,23 +56,32 @@ void mutt_param_free_one(struct Parameter **p)
 }
 
 /**
- * mutt_param_free - Free a ParameterList
+ * mutt_paramlist_clear - Clear a ParameterList
  * @param pl ParameterList to free
  */
-void mutt_param_free(struct ParameterList *pl)
+void mutt_paramlist_clear(ParameterList *pl)
 {
   if (!pl)
     return;
 
-  struct Parameter *np = TAILQ_FIRST(pl);
-  struct Parameter *next = NULL;
-  while (np)
+  struct Parameter *p = NULL;
+  while ((p = g_queue_pop_tail(pl)) != NULL)
   {
-    next = TAILQ_NEXT(np, entries);
-    mutt_param_free_one(&np);
-    np = next;
+    mutt_param_free(&p);
   }
-  TAILQ_INIT(pl);
+}
+
+/**
+ * mutt_paramlist_free_full - Clear and Free a ParameterList
+ * @param pl ParameterList to free
+ */
+void mutt_paramlist_free_full(ParameterList *pl)
+{
+  if (!pl)
+    return;
+
+  mutt_paramlist_clear(pl);
+  g_queue_free(pl);
 }
 
 /**
@@ -82,16 +91,17 @@ void mutt_param_free(struct ParameterList *pl)
  * @retval ptr Matching Parameter
  * @retval NULL No match
  */
-char *mutt_param_get(const struct ParameterList *pl, const char *s)
+char *mutt_param_get(const ParameterList *pl, const char *s)
 {
   if (!pl)
     return NULL;
 
-  struct Parameter *np = NULL;
-  TAILQ_FOREACH(np, pl, entries)
+
+  for (GList *np = pl->head; np != NULL; np = np->next)
   {
-    if (mutt_istr_equal(s, np->attribute))
-      return np->value;
+    struct Parameter *p = np->data;
+    if (mutt_istr_equal(s, p->attribute))
+      return p->value;
   }
 
   return NULL;
@@ -108,7 +118,7 @@ char *mutt_param_get(const struct ParameterList *pl, const char *s)
  * @note If a matching Parameter isn't found a new one will be allocated.
  *       The new Parameter will be inserted at the front of the list.
  */
-void mutt_param_set(struct ParameterList *pl, const char *attribute, const char *value)
+void mutt_param_set(ParameterList *pl, const char *attribute, const char *value)
 {
   if (!pl)
     return;
@@ -119,20 +129,20 @@ void mutt_param_set(struct ParameterList *pl, const char *attribute, const char 
     return;
   }
 
-  struct Parameter *np = NULL;
-  TAILQ_FOREACH(np, pl, entries)
+  for (GList *np = pl->head; np != NULL; np = np->next)
   {
-    if (mutt_istr_equal(attribute, np->attribute))
+    struct Parameter *p = np->data;
+    if (mutt_istr_equal(attribute, p->attribute))
     {
-      mutt_str_replace(&np->value, value);
+      mutt_str_replace(&p->value, value);
       return;
     }
   }
 
-  np = mutt_param_new();
-  np->attribute = mutt_str_dup(attribute);
-  np->value = mutt_str_dup(value);
-  TAILQ_INSERT_HEAD(pl, np, entries);
+  struct Parameter *p = mutt_param_new();
+  p->attribute = mutt_str_dup(attribute);
+  p->value = mutt_str_dup(value);
+  g_queue_push_head(pl, p);
 }
 
 /**
@@ -140,30 +150,30 @@ void mutt_param_set(struct ParameterList *pl, const char *attribute, const char 
  * @param[in] pl        ParameterList
  * @param[in] attribute Attribute to match
  */
-void mutt_param_delete(struct ParameterList *pl, const char *attribute)
+void mutt_param_delete(ParameterList *pl, const char *attribute)
 {
   if (!pl)
     return;
 
-  struct Parameter *np = NULL;
-  TAILQ_FOREACH(np, pl, entries)
+  for (GList *np = pl->head; np != NULL; np = np->next)
   {
-    if (mutt_istr_equal(attribute, np->attribute))
+    struct Parameter *p = np->data;
+    if (mutt_istr_equal(attribute, p->attribute))
     {
-      TAILQ_REMOVE(pl, np, entries);
-      mutt_param_free_one(&np);
+      g_queue_remove(pl, p);
+      mutt_param_free(&p);
       return;
     }
   }
 }
 
 /**
- * mutt_param_cmp_strict - Strictly compare two ParameterLists
+ * mutt_paramlist_cmp_strict - Strictly compare two ParameterLists
  * @param pl1 First parameter
  * @param pl2 Second parameter
  * @retval true Parameters are strictly identical
  */
-bool mutt_param_cmp_strict(const struct ParameterList *pl1, const struct ParameterList *pl2)
+bool mutt_paramlist_cmp_strict(const ParameterList *pl1, const ParameterList *pl2)
 {
   if (!pl1 && !pl2)
     return false;
@@ -171,23 +181,26 @@ bool mutt_param_cmp_strict(const struct ParameterList *pl1, const struct Paramet
   if ((pl1 == NULL) ^ (pl2 == NULL))
     return true;
 
-  struct Parameter *np1 = TAILQ_FIRST(pl1);
-  struct Parameter *np2 = TAILQ_FIRST(pl2);
-
-  while (np1 && np2)
+  if (pl1->length != pl2->length)
   {
-    if (!mutt_str_equal(np1->attribute, np2->attribute) ||
-        !mutt_str_equal(np1->value, np2->value))
+    return false;
+  }
+
+  GList *iter1 = pl1->head;
+  GList *iter2 = pl2->head;
+
+  while (iter1 != NULL && iter2 != NULL)
+  {
+    struct Parameter *p1 = iter1->data;
+    struct Parameter *p2 = iter2->data;
+    if (!mutt_str_equal(p1->attribute, p2->attribute) ||
+        !mutt_str_equal(p1->value, p2->value))
     {
       return false;
     }
-
-    np1 = TAILQ_NEXT(np1, entries);
-    np2 = TAILQ_NEXT(np2, entries);
+    iter1 = iter1->next;
+    iter2 = iter2->next;
   }
-
-  if (np1 || np2)
-    return false;
 
   return true;
 }

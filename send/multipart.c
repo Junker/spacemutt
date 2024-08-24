@@ -71,7 +71,7 @@ static bool check_boundary(const char *boundary, struct Body *b)
   if (b->next && check_boundary(boundary, b->next))
     return true;
 
-  p = mutt_param_get(&b->parameter, "boundary");
+  p = mutt_param_get(b->parameter, "boundary");
   if (p && mutt_str_equal(p, boundary))
   {
     return true;
@@ -83,7 +83,7 @@ static bool check_boundary(const char *boundary, struct Body *b)
  * mutt_generate_boundary - Create a unique boundary id for a MIME part
  * @param pl MIME part
  */
-void mutt_generate_boundary(struct ParameterList *pl)
+void mutt_generate_boundary(ParameterList *pl)
 {
   char rs[MUTT_RANDTAG_LEN + 1];
 
@@ -105,10 +105,10 @@ struct Body *mutt_make_multipart(struct Body *b)
   b_new->encoding = get_toplevel_encoding(b);
   do
   {
-    mutt_generate_boundary(&b_new->parameter);
-    if (check_boundary(mutt_param_get(&b_new->parameter, "boundary"), b))
-      mutt_param_delete(&b_new->parameter, "boundary");
-  } while (!mutt_param_get(&b_new->parameter, "boundary"));
+    mutt_generate_boundary(b_new->parameter);
+    if (check_boundary(mutt_param_get(b_new->parameter, "boundary"), b))
+      mutt_param_delete(b_new->parameter, "boundary");
+  } while (!mutt_param_get(b_new->parameter, "boundary"));
   b_new->use_disp = false;
   b_new->disposition = DISP_INLINE;
   b_new->parts = b;

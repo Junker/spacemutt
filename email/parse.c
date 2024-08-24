@@ -151,7 +151,7 @@ void mutt_auto_subscribe(const char *mailto)
  * The allow_value_spaces parameter allows parsing those values which
  * are split by spaces when unfolded.
  */
-static void parse_parameters(struct ParameterList *pl, const char *s, bool allow_value_spaces)
+static void parse_parameters(ParameterList *pl, const char *s, bool allow_value_spaces)
 {
   struct Parameter *pnew = NULL;
   const char *p = NULL;
@@ -257,7 +257,7 @@ static void parse_parameters(struct ParameterList *pl, const char *s, bool allow
                    pnew->attribute ? pnew->attribute : "", pnew->value ? pnew->value : "");
 
         /* Add this parameter to the list */
-        TAILQ_INSERT_HEAD(pl, pnew, entries);
+        g_queue_push_head(pl, pnew);
       }
     }
     else
@@ -292,7 +292,7 @@ bail:
  */
 static void parse_content_disposition(const char *s, struct Body *b)
 {
-  struct ParameterList pl = TAILQ_HEAD_INITIALIZER(pl);
+  ParameterList *pl = g_queue_new();
 
   if (mutt_istr_startswith(s, "inline"))
     b->disposition = DISP_INLINE;
@@ -306,15 +306,15 @@ static void parse_content_disposition(const char *s, struct Body *b)
   if (s)
   {
     s = mutt_str_skip_email_wsp(s + 1);
-    parse_parameters(&pl, s, false);
-    s = mutt_param_get(&pl, "filename");
+    parse_parameters(pl, s, false);
+    s = mutt_param_get(pl, "filename");
     if (s)
       mutt_str_replace(&b->filename, s);
-    s = mutt_param_get(&pl, "name");
+    s = mutt_param_get(pl, "name");
     if (s)
       mutt_str_replace(&b->form_name, s);
-    mutt_param_free(&pl);
   }
+  mutt_paramlist_free_full(pl);
 }
 
 /**
@@ -468,7 +468,7 @@ void mutt_parse_content_type(const char *s, struct Body *b)
     return;
 
   FREE(&b->subtype);
-  mutt_param_free(&b->parameter);
+  mutt_paramlist_clear(b->parameter);
 
   /* First extract any existing parameters */
   char *pc = strchr(s, ';');
@@ -477,17 +477,17 @@ void mutt_parse_content_type(const char *s, struct Body *b)
     *pc++ = 0;
     while (*pc && isspace(*pc))
       pc++;
-    parse_parameters(&b->parameter, pc, false);
+    parse_parameters(b->parameter, pc, false);
 
     /* Some pre-RFC1521 gateways still use the "name=filename" convention,
      * but if a filename has already been set in the content-disposition,
      * let that take precedence, and don't set it here */
-    pc = mutt_param_get(&b->parameter, "name");
+    pc = mutt_param_get(b->parameter, "name");
     if (pc && !b->filename)
       b->filename = mutt_str_dup(pc);
 
     /* this is deep and utter perversion */
-    pc = mutt_param_get(&b->parameter, "conversions");
+    pc = mutt_param_get(b->parameter, "conversions");
     if (pc)
       b->encoding = mutt_check_encoding(pc);
   }
@@ -548,17 +548,17 @@ void mutt_parse_content_type(const char *s, struct Body *b)
   /* Default character set for text types. */
   if (b->type == TYPE_TEXT)
   {
-    pc = mutt_param_get(&b->parameter, "charset");
+    pc = mutt_param_get(b->parameter, "charset");
     if (pc)
     {
       /* Microsoft Outlook seems to think it is necessary to repeat
        * charset=, strip it off not to confuse ourselves */
       if (mutt_istrn_equal(pc, "charset=", sizeof("charset=") - 1))
-        mutt_param_set(&b->parameter, "charset", pc + (sizeof("charset=") - 1));
+        mutt_param_set(b->parameter, "charset", pc + (sizeof("charset=") - 1));
     }
     else
     {
-      mutt_param_set(&b->parameter, "charset",
+      mutt_param_set(b->parameter, "charset",
                      mutt_ch_get_default_charset(cc_assumed_charset()));
     }
   }
@@ -576,17 +576,17 @@ static struct AutocryptHeader *parse_autocrypt(struct AutocryptHeader *head, con
   struct AutocryptHeader *autocrypt = mutt_autocrypthdr_new();
   autocrypt->next = head;
 
-  struct ParameterList pl = TAILQ_HEAD_INITIALIZER(pl);
-  parse_parameters(&pl, s, true);
-  if (TAILQ_EMPTY(&pl))
+  ParameterList *pl = g_queue_new();
+  parse_parameters(pl, s, true);
+  if (g_queue_is_empty(pl))
   {
     autocrypt->invalid = true;
     goto cleanup;
   }
 
-  struct Parameter *p = NULL;
-  TAILQ_FOREACH(p, &pl, entries)
+  for (GList *np = pl->head; np != NULL; np = np->next)
   {
+    struct Parameter *p = np->data;
     if (mutt_istr_equal(p->attribute, "addr"))
     {
       if (autocrypt->addr)
@@ -625,7 +625,7 @@ static struct AutocryptHeader *parse_autocrypt(struct AutocryptHeader *head, con
     autocrypt->invalid = true;
 
 cleanup:
-  mutt_param_free(&pl);
+  mutt_paramlist_free_full(pl);
   return autocrypt;
 }
 #endif
@@ -1453,7 +1453,7 @@ struct Body *mutt_read_mime_header(FILE *fp, bool digest)
       }
       else if (mutt_istr_equal("content-lines", line + plen))
       {
-        mutt_param_set(&b->parameter, "content-lines", c);
+        mutt_param_set(b->parameter, "content-lines", c);
       }
       else if (mutt_istr_equal("data-description", line + plen))
       {
@@ -1534,7 +1534,7 @@ static void parse_part(FILE *fp, struct Body *b, int *counter)
       if (mutt_istr_equal(b->subtype, "x-sun-attachment"))
         bound = "--------";
       else
-        bound = mutt_param_get(&b->parameter, "boundary");
+        bound = mutt_param_get(b->parameter, "boundary");
 
       if (!mutt_file_seek(fp, b->offset, SEEK_SET))
       {
@@ -1638,10 +1638,10 @@ static struct Body *parse_multipart(FILE *fp, const char *boundary,
         if (!new_body)
           break;
 
-        if (mutt_param_get(&new_body->parameter, "content-lines"))
+        if (mutt_param_get(new_body->parameter, "content-lines"))
         {
           int lines = 0;
-          mutt_str_atoi(mutt_param_get(&new_body->parameter, "content-lines"), &lines);
+          mutt_str_atoi(mutt_param_get(new_body->parameter, "content-lines"), &lines);
           for (; lines > 0; lines--)
             if ((ftello(fp) >= end_off) || !fgets(buf, sizeof(buf), fp))
               break;

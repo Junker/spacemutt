@@ -108,7 +108,7 @@ int mailcap_expand_command(struct Body *b, const char *filename,
         if (mutt_istr_equal(buf_string(param), "charset") && b->charset && !b->noconv)
           pvalue2 = b->charset;
         else
-          pvalue2 = mutt_param_get(&b->parameter, buf_string(param));
+          pvalue2 = mutt_param_get(b->parameter, buf_string(param));
 
         /* Now copy the parameter value into param buffer */
         if (c_mailcap_sanitize)

@@ -24,6 +24,7 @@
 #define MUTT_EMAIL_PARAMETER_H
 
 #include <stdbool.h>
+#include <glib.h>
 #include "mutt/lib.h"
 
 /**
@@ -33,16 +34,16 @@ struct Parameter
 {
   char *attribute;                ///< Parameter name
   char *value;                    ///< Parameter value
-  TAILQ_ENTRY(Parameter) entries; ///< Linked list
 };
-TAILQ_HEAD(ParameterList, Parameter);
+typedef GQueue ParameterList;
 
-bool              mutt_param_cmp_strict(const struct ParameterList *pl1, const struct ParameterList *pl2);
-void              mutt_param_delete    (struct ParameterList *pl, const char *attribute);
-void              mutt_param_free      (struct ParameterList *pl);
-void              mutt_param_free_one  (struct Parameter **pl);
-char *            mutt_param_get       (const struct ParameterList *pl, const char *s);
+bool              mutt_paramlist_cmp_strict(const ParameterList *pl1, const ParameterList *pl2);
+void              mutt_paramlist_clear     (ParameterList *pl);
+void              mutt_paramlist_free_full (ParameterList *pl);
+void              mutt_param_delete    (ParameterList *pl, const char *attribute);
+char *            mutt_param_get       (const ParameterList *pl, const char *s);
+void              mutt_param_free      (struct Parameter **pl);
 struct Parameter *mutt_param_new       (void);
-void              mutt_param_set       (struct ParameterList *pl, const char *attribute, const char *value);
+void              mutt_param_set       (ParameterList *pl, const char *attribute, const char *value);
 
 #endif /* MUTT_EMAIL_PARAMETER_H */

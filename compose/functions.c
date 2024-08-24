@@ -700,7 +700,7 @@ static int group_attachments(struct ComposeSharedData *shared, char *subtype)
   else if (group_parent)
     group_parent->parts = group;
 
-  mutt_generate_boundary(&group->parameter);
+  mutt_generate_boundary(group->parameter);
 
   struct AttachPtr *group_ap = mutt_aptr_new();
   group_ap->body = group;

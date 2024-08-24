@@ -405,7 +405,7 @@ void serial_restore_buffer(struct Buffer *buf, const unsigned char *d, int *off,
  * @param[in]     convert If true, the strings will be converted to utf-8
  * @retval ptr End of the newly packed binary
  */
-unsigned char *serial_dump_parameter(const struct ParameterList *pl,
+unsigned char *serial_dump_parameter(const ParameterList *pl,
                                      unsigned char *d, int *off, bool convert)
 {
   unsigned int counter = 0;
@@ -413,11 +413,11 @@ unsigned char *serial_dump_parameter(const struct ParameterList *pl,
 
   d = serial_dump_int(0xdeadbeef, d, off);
 
-  struct Parameter *np = NULL;
-  TAILQ_FOREACH(np, pl, entries)
+  for (GList *np = pl->head; np != NULL; np = np->next)
   {
-    d = serial_dump_char(np->attribute, d, off, false);
-    d = serial_dump_char(np->value, d, off, convert);
+    struct Parameter *p = np->data;
+    d = serial_dump_char(p->attribute, d, off, false);
+    d = serial_dump_char(p->value, d, off, convert);
     counter++;
   }
 
@@ -433,7 +433,7 @@ unsigned char *serial_dump_parameter(const struct ParameterList *pl,
  * @param[in,out] off     Offset into the blob
  * @param[in]     convert If true, the strings will be converted from utf-8
  */
-void serial_restore_parameter(struct ParameterList *pl, const unsigned char *d,
+void serial_restore_parameter(ParameterList *pl, const unsigned char *d,
                               int *off, bool convert)
 {
   unsigned int counter = 0;
@@ -446,7 +446,7 @@ void serial_restore_parameter(struct ParameterList *pl, const unsigned char *d,
     np = mutt_param_new();
     serial_restore_char(&np->attribute, d, off, false);
     serial_restore_char(&np->value, d, off, convert);
-    TAILQ_INSERT_TAIL(pl, np, entries);
+    g_queue_push_tail(pl, np);
     counter--;
   }
 }
@@ -532,7 +532,7 @@ unsigned char *serial_dump_body(const struct Body *b, unsigned char *d, int *off
   d = serial_dump_char(b->xtype, d, off, false);
   d = serial_dump_char(b->subtype, d, off, false);
 
-  d = serial_dump_parameter(&b->parameter, d, off, convert);
+  d = serial_dump_parameter(b->parameter, d, off, convert);
 
   d = serial_dump_char(b->description, d, off, convert);
   d = serial_dump_char(b->form_name, d, off, convert);
@@ -566,8 +566,8 @@ void serial_restore_body(struct Body *b, const unsigned char *d, int *off, bool 
   serial_restore_char(&b->xtype, d, off, false);
   serial_restore_char(&b->subtype, d, off, false);
 
-  TAILQ_INIT(&b->parameter);
-  serial_restore_parameter(&b->parameter, d, off, convert);
+  b->parameter = g_queue_new();
+  serial_restore_parameter(b->parameter, d, off, convert);
 
   serial_restore_char(&b->description, d, off, convert);
   serial_restore_char(&b->form_name, d, off, convert);

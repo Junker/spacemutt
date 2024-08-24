@@ -1433,8 +1433,8 @@ struct Body *smime_class_build_smime_entity(struct Body *b, char *certlist)
   b_enc = mutt_body_new();
   b_enc->type = TYPE_APPLICATION;
   b_enc->subtype = mutt_str_dup("pkcs7-mime");
-  mutt_param_set(&b_enc->parameter, "name", "smime.p7m");
-  mutt_param_set(&b_enc->parameter, "smime-type", "enveloped-data");
+  mutt_param_set(b_enc->parameter, "name", "smime.p7m");
+  mutt_param_set(b_enc->parameter, "smime-type", "enveloped-data");
   b_enc->encoding = ENC_BASE64; /* The output of OpenSSL SHOULD be binary */
   b_enc->use_disp = true;
   b_enc->disposition = DISP_ATTACH;
@@ -1606,14 +1606,14 @@ struct Body *smime_class_sign_message(struct Body *b, const AddressList *from)
   b_sign->use_disp = false;
   b_sign->disposition = DISP_INLINE;
 
-  mutt_generate_boundary(&b_sign->parameter);
+  mutt_generate_boundary(b_sign->parameter);
 
   const char *const c_smime_sign_digest_alg = cs_subset_string(NeoMutt->sub, "smime_sign_digest_alg");
   char *micalg = openssl_md_to_smime_micalg(c_smime_sign_digest_alg);
-  mutt_param_set(&b_sign->parameter, "micalg", micalg);
+  mutt_param_set(b_sign->parameter, "micalg", micalg);
   FREE(&micalg);
 
-  mutt_param_set(&b_sign->parameter, "protocol", "application/pkcs7-signature");
+  mutt_param_set(b_sign->parameter, "protocol", "application/pkcs7-signature");
 
   b_sign->parts = b;
   rc = b_sign;

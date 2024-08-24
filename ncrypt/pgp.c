@@ -848,13 +848,13 @@ static bool pgp_check_traditional_one_body(FILE *fp, struct Body *b)
 
   /* fix the content type */
 
-  mutt_param_set(&b->parameter, "format", "fixed");
+  mutt_param_set(b->parameter, "format", "fixed");
   if (enc)
-    mutt_param_set(&b->parameter, "x-action", "pgp-encrypted");
+    mutt_param_set(b->parameter, "x-action", "pgp-encrypted");
   else if (sgn)
-    mutt_param_set(&b->parameter, "x-action", "pgp-signed");
+    mutt_param_set(b->parameter, "x-action", "pgp-signed");
   else if (key)
-    mutt_param_set(&b->parameter, "x-action", "pgp-keys");
+    mutt_param_set(b->parameter, "x-action", "pgp-keys");
 
   rc = true;
 
@@ -1434,9 +1434,9 @@ struct Body *pgp_class_sign_message(struct Body *b, const AddressList *from)
   b_enc->disposition = DISP_INLINE;
   rv = b_enc;
 
-  mutt_generate_boundary(&b_enc->parameter);
-  mutt_param_set(&b_enc->parameter, "protocol", "application/pgp-signature");
-  mutt_param_set(&b_enc->parameter, "micalg", pgp_micalg(buf_string(sigfile)));
+  mutt_generate_boundary(b_enc->parameter);
+  mutt_param_set(b_enc->parameter, "protocol", "application/pgp-signature");
+  mutt_param_set(b_enc->parameter, "micalg", pgp_micalg(buf_string(sigfile)));
 
   b_enc->parts = b;
 
@@ -1449,7 +1449,7 @@ struct Body *pgp_class_sign_message(struct Body *b, const AddressList *from)
   b_enc->disposition = DISP_NONE;
   b_enc->encoding = ENC_7BIT;
   b_enc->unlink = true; /* ok to remove this file after sending. */
-  mutt_param_set(&b_enc->parameter, "name", "signature.asc");
+  mutt_param_set(b_enc->parameter, "name", "signature.asc");
 
 cleanup:
   buf_pool_release(&sigfile);
@@ -1691,8 +1691,8 @@ struct Body *pgp_class_encrypt_message(struct Body *b, char *keylist, bool sign,
   b_enc->use_disp = false;
   b_enc->disposition = DISP_INLINE;
 
-  mutt_generate_boundary(&b_enc->parameter);
-  mutt_param_set(&b_enc->parameter, "protocol", "application/pgp-encrypted");
+  mutt_generate_boundary(b_enc->parameter);
+  mutt_param_set(b_enc->parameter, "protocol", "application/pgp-encrypted");
 
   b_enc->parts = mutt_body_new();
   b_enc->parts->type = TYPE_APPLICATION;
@@ -1866,9 +1866,9 @@ struct Body *pgp_class_traditional_encryptsign(struct Body *b, SecurityFlags fla
   b_enc->type = TYPE_TEXT;
   b_enc->subtype = mutt_str_dup("plain");
 
-  mutt_param_set(&b_enc->parameter, "x-action",
+  mutt_param_set(b_enc->parameter, "x-action",
                  (flags & SEC_ENCRYPT) ? "pgp-encrypted" : "pgp-signed");
-  mutt_param_set(&b_enc->parameter, "charset", send_charset);
+  mutt_param_set(b_enc->parameter, "charset", send_charset);
 
   b_enc->filename = buf_strdup(pgpoutfile);
 

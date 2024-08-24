@@ -305,7 +305,7 @@ int mutt_write_mime_body(struct Body *b, FILE *fp, struct ConfigSubset *sub)
   if (b->type == TYPE_MULTIPART)
   {
     /* First, find the boundary to use */
-    const char *p = mutt_param_get(&b->parameter, "boundary");
+    const char *p = mutt_param_get(b->parameter, "boundary");
     if (!p)
     {
       log_debug1("no boundary parameter found");

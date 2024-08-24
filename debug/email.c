@@ -234,7 +234,7 @@ void dump_email(const struct Email *e)
   // void *edata
 }
 
-void dump_param_list(const struct ParameterList *pl)
+void dump_param_list(const ParameterList *pl)
 {
   log_debug1("\tparameters");
 
@@ -244,16 +244,16 @@ void dump_param_list(const struct ParameterList *pl)
     return;
   }
 
-  if (TAILQ_EMPTY(pl))
+  if (g_queue_is_empty(pl))
   {
     log_debug1("\tempty");
     return;
   }
 
-  struct Parameter *np = NULL;
-  TAILQ_FOREACH(np, pl, entries)
+  for (GList *np = pl->head; np != NULL; np = np->next)
   {
-    log_debug1("\t\t%s = %s", NONULL(np->attribute), NONULL(np->value));
+    struct Parameter *p = np->data;
+    log_debug1("\t\t%s = %s", NONULL(p->attribute), NONULL(p->value));
   }
 }
 
@@ -316,7 +316,7 @@ void dump_body(const struct Body *body)
     log_debug1("\tstamp: %s", arr);
   }
 
-  dump_param_list(&body->parameter);
+  dump_param_list(body->parameter);
 
   // struct Content *content;        ///< Detailed info about the content of the attachment.
   // struct Body *next;              ///< next attachment in the list

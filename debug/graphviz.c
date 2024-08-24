@@ -974,19 +974,19 @@ void dump_graphviz(const char *title, struct MailboxView *mv)
 }
 
 #ifndef GV_HIDE_BODY_CONTENT
-void dot_parameter_list(FILE *fp, const char *name, const struct ParameterList *pl)
+void dot_parameter_list(FILE *fp, const char *name, const ParameterList *pl)
 {
   if (!pl)
     return;
-  if (TAILQ_EMPTY(pl))
+  if (g_queue_is_empty(pl))
     return;
 
   dot_object_header(fp, pl, "ParameterList", "#00ff00");
 
-  struct Parameter *np = NULL;
-  TAILQ_FOREACH(np, pl, entries)
+  for (GList *np = pl->head; np != NULL; np = np->next)
   {
-    dot_type_string(fp, np->attribute, np->value, false);
+    struct Parameter *p = np->data;
+    dot_type_string(fp, p->attribute, p->value, false);
   }
 
   dot_object_footer(fp);
@@ -1096,9 +1096,9 @@ void dot_body(FILE *fp, struct Body *b, GSList **links, bool link_next)
   dot_ptr(fp, "aptr", b->aptr, "#3bcbc4");
 
 #ifdef GV_HIDE_BODY_CONTENT
-  if (!TAILQ_EMPTY(&b->parameter))
+  if (!g_queue_is_empty(b->parameter))
   {
-    struct Parameter *param = TAILQ_FIRST(&b->parameter);
+    struct Parameter *param = g_queue_peek_head(b->parameter);
     if (mutt_str_equal(param->attribute, "boundary"))
     {
       dot_type_string(fp, "boundary", param->value, false);
@@ -1109,10 +1109,10 @@ void dot_body(FILE *fp, struct Body *b, GSList **links, bool link_next)
   dot_object_footer(fp);
 
 #ifndef GV_HIDE_BODY_CONTENT
-  if (!TAILQ_EMPTY(&b->parameter))
+  if (!g_queue_is_empty(b->parameter))
   {
-    dot_parameter_list(fp, "parameter", &b->parameter);
-    dot_add_link(links, b, &b->parameter, "Body->mime_headers", NULL, false, NULL);
+    dot_parameter_list(fp, "parameter", b->parameter);
+    dot_add_link(links, b, b->parameter, "Body->mime_headers", NULL, false, NULL);
   }
 #endif
 

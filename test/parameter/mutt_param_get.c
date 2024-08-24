@@ -28,14 +28,15 @@
 
 void test_mutt_param_get(void)
 {
-  // char *mutt_param_get(const struct ParameterList *p, const char *s);
+  // char *mutt_param_get(const ParameterList *p, const char *s);
 
   {
     TEST_CHECK(!mutt_param_get(NULL, "apple"));
   }
 
   {
-    struct ParameterList parameterlist = { 0 };
-    TEST_CHECK(!mutt_param_get(&parameterlist, NULL));
+    ParameterList *parameterlist = g_queue_new();
+    TEST_CHECK(!mutt_param_get(parameterlist, NULL));
+    g_queue_free(parameterlist);
   }
 }

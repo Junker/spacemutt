@@ -470,10 +470,10 @@ NOTMUCH_OBJS	= test/notmuch/query_type.o \
 		  test/notmuch/window_query.o
 @endif
 
-PARAMETER_OBJS	= test/parameter/mutt_param_cmp_strict.o \
+PARAMETER_OBJS	= test/parameter/mutt_paramlist_cmp_strict.o \
 		  test/parameter/mutt_param_delete.o \
 		  test/parameter/mutt_param_free.o \
-		  test/parameter/mutt_param_free_one.o \
+		  test/parameter/mutt_paramlist_free_full.o \
 		  test/parameter/mutt_param_get.o \
 		  test/parameter/mutt_param_new.o \
 		  test/parameter/mutt_param_set.o

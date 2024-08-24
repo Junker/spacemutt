@@ -429,7 +429,7 @@ void mutt_update_encoding(struct Body *b, struct ConfigSubset *sub)
     b->noconv = false;
 
   if (!b->force_charset && !b->noconv)
-    mutt_param_delete(&b->parameter, "charset");
+    mutt_param_delete(b->parameter, "charset");
 
   info = mutt_get_content_info(b->filename, b, sub);
   if (!info)
@@ -981,9 +981,9 @@ static void set_noconv_flags(struct Body *b, bool flag)
     else if ((b->type == TYPE_TEXT) && b->noconv)
     {
       if (flag)
-        mutt_param_set(&b->parameter, "x-mutt-noconv", "yes");
+        mutt_param_set(b->parameter, "x-mutt-noconv", "yes");
       else
-        mutt_param_delete(&b->parameter, "x-mutt-noconv");
+        mutt_param_delete(b->parameter, "x-mutt-noconv");
     }
   }
 }

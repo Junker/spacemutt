@@ -95,7 +95,7 @@ static void print_part_line(struct State *state, struct Body *b_email, int n)
   char length[5] = { 0 };
   mutt_str_pretty_size(length, sizeof(length), b_email->length);
   state_mark_attach(state);
-  char *charset = mutt_param_get(&b_email->parameter, "charset");
+  char *charset = mutt_param_get(b_email->parameter, "charset");
   if (n == 0)
   {
     state_printf(state, _("[-- Type: %s/%s%s%s, Encoding: %s, Size: %s --]\n"),
@@ -770,7 +770,7 @@ static int external_body_handler(struct Body *b_email, struct State *state)
   const char *str = NULL;
   char strbuf[1024] = { 0 };
 
-  const char *access_type = mutt_param_get(&b_email->parameter, "access-type");
+  const char *access_type = mutt_param_get(b_email->parameter, "access-type");
   if (!access_type)
   {
     if (state->flags & STATE_DISPLAY)
@@ -785,7 +785,7 @@ static int external_body_handler(struct Body *b_email, struct State *state)
     }
   }
 
-  const char *expiration = mutt_param_get(&b_email->parameter, "expiration");
+  const char *expiration = mutt_param_get(b_email->parameter, "expiration");
   time_t expire;
   if (expiration)
     expire = mutt_date_parse_date(expiration, NULL);
@@ -798,7 +798,7 @@ static int external_body_handler(struct Body *b_email, struct State *state)
     if (state->flags & (STATE_DISPLAY | STATE_PRINTING))
     {
       char pretty_size[10] = { 0 };
-      char *length = mutt_param_get(&b_email->parameter, "length");
+      char *length = mutt_param_get(b_email->parameter, "length");
       if (length)
       {
         long size = strtol(length, NULL, 10);
@@ -952,7 +952,7 @@ static int alternative_handler(struct Body *b_email, struct State *state)
     b = mutt_body_new();
     b->length = mutt_file_get_size_fp(state->fp_in);
     b->parts = mutt_parse_multipart(state->fp_in,
-                                    mutt_param_get(&b_email->parameter, "boundary"),
+                                    mutt_param_get(b_email->parameter, "boundary"),
                                     b->length,
                                     mutt_istr_equal("digest", b_email->subtype));
   }
@@ -1138,7 +1138,7 @@ static int multilingual_handler(struct Body *b_email, struct State *state)
     b = mutt_body_new();
     b->length = mutt_file_get_size_fp(state->fp_in);
     b->parts = mutt_parse_multipart(state->fp_in,
-                                    mutt_param_get(&b_email->parameter, "boundary"),
+                                    mutt_param_get(b_email->parameter, "boundary"),
                                     b->length,
                                     mutt_istr_equal("digest", b_email->subtype));
   }
@@ -1243,7 +1243,7 @@ static int multipart_handler(struct Body *b_email, struct State *state)
     b = mutt_body_new();
     b->length = mutt_file_get_size_fp(state->fp_in);
     b->parts = mutt_parse_multipart(state->fp_in,
-                                    mutt_param_get(&b_email->parameter, "boundary"),
+                                    mutt_param_get(b_email->parameter, "boundary"),
                                     b->length,
                                     mutt_istr_equal("digest", b_email->subtype));
   }
@@ -1666,7 +1666,7 @@ int mutt_body_handler(struct Body *b, struct State *state)
         handler = encrypted_handler;
       }
       else if (c_reflow_text &&
-               mutt_istr_equal("flowed", mutt_param_get(&b->parameter, "format")))
+               mutt_istr_equal("flowed", mutt_param_get(b->parameter, "format")))
       {
         handler = rfc3676_handler;
       }
@@ -1708,7 +1708,7 @@ int mutt_body_handler(struct Body *b, struct State *state)
     }
     else if ((WithCrypto != 0) && mutt_istr_equal("signed", b->subtype))
     {
-      if (!mutt_param_get(&b->parameter, "protocol"))
+      if (!mutt_param_get(b->parameter, "protocol"))
         log_fault(_("Error: multipart/signed has no protocol"));
       else if (state->flags & STATE_VERIFY)
         handler = mutt_signed_handler;
@@ -1914,7 +1914,7 @@ void mutt_decode_attachment(const struct Body *b, struct State *state)
     const char *charset = b->charset;
     if (!charset)
     {
-      charset = mutt_param_get(&b->parameter, "charset");
+      charset = mutt_param_get(b->parameter, "charset");
       if (!charset && !slist_is_empty(cc_assumed_charset()))
         charset = mutt_ch_get_default_charset(cc_assumed_charset());
     }

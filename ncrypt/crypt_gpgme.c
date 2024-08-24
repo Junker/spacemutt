@@ -981,15 +981,15 @@ static struct Body *sign_message(struct Body *b, const AddressList *from, bool u
   b_sign->use_disp = false;
   b_sign->disposition = DISP_INLINE;
 
-  mutt_generate_boundary(&b_sign->parameter);
-  mutt_param_set(&b_sign->parameter, "protocol",
+  mutt_generate_boundary(b_sign->parameter);
+  mutt_param_set(b_sign->parameter, "protocol",
                  use_smime ? "application/pkcs7-signature" : "application/pgp-signature");
   /* Get the micalg from GPGME.  Old gpgme versions don't support this
    * for S/MIME so we assume sha-1 in this case. */
   if (get_micalg(ctx, use_smime, buf, sizeof(buf)) == 0)
-    mutt_param_set(&b_sign->parameter, "micalg", buf);
+    mutt_param_set(b_sign->parameter, "micalg", buf);
   else if (use_smime)
-    mutt_param_set(&b_sign->parameter, "micalg", "sha1");
+    mutt_param_set(b_sign->parameter, "micalg", "sha1");
   gpgme_release(ctx);
 
   b_sign->parts = b;
@@ -1001,7 +1001,7 @@ static struct Body *sign_message(struct Body *b, const AddressList *from, bool u
   if (use_smime)
   {
     b_sign->subtype = mutt_str_dup("pkcs7-signature");
-    mutt_param_set(&b_sign->parameter, "name", "smime.p7s");
+    mutt_param_set(b_sign->parameter, "name", "smime.p7s");
     b_sign->encoding = ENC_BASE64;
     b_sign->use_disp = true;
     b_sign->disposition = DISP_ATTACH;
@@ -1010,7 +1010,7 @@ static struct Body *sign_message(struct Body *b, const AddressList *from, bool u
   else
   {
     b_sign->subtype = mutt_str_dup("pgp-signature");
-    mutt_param_set(&b_sign->parameter, "name", "signature.asc");
+    mutt_param_set(b_sign->parameter, "name", "signature.asc");
     b_sign->use_disp = false;
     b_sign->disposition = DISP_NONE;
     b_sign->encoding = ENC_7BIT;
@@ -1061,8 +1061,8 @@ struct Body *pgp_gpgme_encrypt_message(struct Body *b, char *keylist, bool sign,
   b_enc->use_disp = false;
   b_enc->disposition = DISP_INLINE;
 
-  mutt_generate_boundary(&b_enc->parameter);
-  mutt_param_set(&b_enc->parameter, "protocol", "application/pgp-encrypted");
+  mutt_generate_boundary(b_enc->parameter);
+  mutt_param_set(b_enc->parameter, "protocol", "application/pgp-encrypted");
 
   b_enc->parts = mutt_body_new();
   b_enc->parts->type = TYPE_APPLICATION;
@@ -1103,8 +1103,8 @@ struct Body *smime_gpgme_build_smime_entity(struct Body *b, char *keylist)
   struct Body *b_enc = mutt_body_new();
   b_enc->type = TYPE_APPLICATION;
   b_enc->subtype = mutt_str_dup("pkcs7-mime");
-  mutt_param_set(&b_enc->parameter, "name", "smime.p7m");
-  mutt_param_set(&b_enc->parameter, "smime-type", "enveloped-data");
+  mutt_param_set(b_enc->parameter, "name", "smime.p7m");
+  mutt_param_set(b_enc->parameter, "smime-type", "enveloped-data");
   b_enc->encoding = ENC_BASE64; /* The output of OpenSSL SHOULD be binary */
   b_enc->use_disp = true;
   b_enc->disposition = DISP_ATTACH;
@@ -2262,8 +2262,8 @@ static int pgp_check_traditional_one_body(FILE *fp, struct Body *b)
 
   /* fix the content type */
 
-  mutt_param_set(&b->parameter, "format", "fixed");
-  mutt_param_set(&b->parameter, "x-action", enc ? "pgp-encrypted" : "pgp-signed");
+  mutt_param_set(b->parameter, "format", "fixed");
+  mutt_param_set(b->parameter, "x-action", enc ? "pgp-encrypted" : "pgp-signed");
 
   rc = true;
 

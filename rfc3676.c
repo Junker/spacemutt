@@ -329,7 +329,7 @@ int rfc3676_handler(struct Body *b_email, struct State *state)
   struct FlowedState fst = { 0 };
 
   /* respect DelSp of RFC3676 only with f=f parts */
-  char *t = mutt_param_get(&b_email->parameter, "delsp");
+  char *t = mutt_param_get(b_email->parameter, "delsp");
   if (t)
   {
     delsp = mutt_istr_equal(t, "yes");
@@ -395,7 +395,7 @@ bool mutt_rfc3676_is_format_flowed(struct Body *b)
 {
   if (b && (b->type == TYPE_TEXT) && mutt_istr_equal("plain", b->subtype))
   {
-    const char *format = mutt_param_get(&b->parameter, "format");
+    const char *format = mutt_param_get(b->parameter, "format");
     if (mutt_istr_equal("flowed", format))
       return true;
   }

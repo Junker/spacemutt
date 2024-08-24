@@ -71,7 +71,7 @@ void        dump_body_next         (struct Buffer *buf, const struct Body *b);
 void        dump_body_one_line     (const struct Body *b);
 void        dump_email             (const struct Email *e);
 void        dump_envelope          (const struct Envelope *env);
-void        dump_param_list        (const struct ParameterList *pl);
+void        dump_param_list        (const ParameterList *pl);
 
 // Expando
 const char *name_expando_domain           (enum ExpandoDomain did);

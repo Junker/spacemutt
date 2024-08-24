@@ -1776,7 +1776,7 @@ static int save_fcc(struct Mailbox *m, struct Email *e, struct Buffer *fcc,
       e->body = clear_content;
       e->security &= ~(SEC_ENCRYPT | SEC_SIGN | SEC_AUTOCRYPT);
       mutt_env_free(&e->body->mime_headers);
-      mutt_param_delete(&e->body->parameter, "protected-headers");
+      mutt_param_delete(e->body->parameter, "protected-headers");
     }
 
     const enum QuadOption c_fcc_attach = cs_subset_quad(sub, "fcc_attach");
@@ -2012,7 +2012,7 @@ static int postpone_message(struct Email *e_post, struct Email *e_cur,
       e_post->body = clear_content;
     }
     mutt_env_free(&e_post->body->mime_headers); /* protected headers */
-    mutt_param_delete(&e_post->body->parameter, "protected-headers");
+    mutt_param_delete(e_post->body->parameter, "protected-headers");
     if (mutt_istr_equal(e_post->body->subtype, "mixed"))
       e_post->body = mutt_remove_multipart(e_post->body);
     decode_descriptions(e_post->body);
@@ -2423,7 +2423,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
     const bool c_text_flowed = cs_subset_bool(sub, "text_flowed");
     if (c_text_flowed && is_text_plain(e_templ->body))
     {
-      mutt_param_set(&e_templ->body->parameter, "format", "flowed");
+      mutt_param_set(e_templ->body->parameter, "format", "flowed");
     }
   }
 
@@ -2865,7 +2865,7 @@ int mutt_send_message(SendFlags flags, struct Email *e_templ, const char *tempfi
 
       FREE(&pgpkeylist);
       mutt_env_free(&e_templ->body->mime_headers); /* protected headers */
-      mutt_param_delete(&e_templ->body->parameter, "protected-headers");
+      mutt_param_delete(e_templ->body->parameter, "protected-headers");
       if (mutt_istr_equal(e_templ->body->subtype, "mixed"))
         e_templ->body = mutt_remove_multipart(e_templ->body);
       decode_descriptions(e_templ->body);

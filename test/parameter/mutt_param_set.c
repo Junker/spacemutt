@@ -29,7 +29,7 @@
 
 void test_mutt_param_set(void)
 {
-  // void mutt_param_set(struct ParameterList *p, const char *attribute, const char *value);
+  // void mutt_param_set(ParameterList *p, const char *attribute, const char *value);
 
   {
     mutt_param_set(NULL, "apple", "banana");
@@ -37,16 +37,16 @@ void test_mutt_param_set(void)
   }
 
   {
-    struct ParameterList parameterlist = TAILQ_HEAD_INITIALIZER(parameterlist);
-    mutt_param_set(&parameterlist, NULL, "banana");
-    TEST_CHECK_(1, "mutt_param_set(&parameterlist, NULL, \"banana\")");
-    mutt_param_free(&parameterlist);
+    ParameterList *parameterlist = g_queue_new();
+    mutt_param_set(parameterlist, NULL, "banana");
+    TEST_CHECK_(1, "mutt_param_set(parameterlist, NULL, \"banana\")");
+    mutt_paramlist_free_full(parameterlist);
   }
 
   {
-    struct ParameterList parameterlist = TAILQ_HEAD_INITIALIZER(parameterlist);
-    mutt_param_set(&parameterlist, "apple", NULL);
-    TEST_CHECK_(1, "mutt_param_set(&parameterlist, \"apple\", NULL)");
-    mutt_param_free(&parameterlist);
+    ParameterList *parameterlist = g_queue_new();
+    mutt_param_set(parameterlist, "apple", NULL);
+    TEST_CHECK_(1, "mutt_param_set(parameterlist, \"apple\", NULL)");
+    mutt_paramlist_free_full(parameterlist);
   }
 }

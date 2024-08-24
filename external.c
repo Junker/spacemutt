@@ -1079,18 +1079,18 @@ bool mutt_edit_content_type(struct Email *e, struct Body *b, FILE *fp)
   bool type_changed = false;
   bool structure_changed = false;
 
-  char *cp = mutt_param_get(&b->parameter, "charset");
+  char *cp = mutt_param_get(b->parameter, "charset");
   buf_strcpy(charset, cp);
 
   buf_printf(buf, "%s/%s", TYPE(b), b->subtype);
   buf_copy(obuf, buf);
-  if (!TAILQ_EMPTY(&b->parameter))
+  if (!g_queue_is_empty(b->parameter))
   {
-    struct Parameter *np = NULL;
-    TAILQ_FOREACH(np, &b->parameter, entries)
+    for (GList *np = b->parameter->head; np != NULL; np = np->next)
     {
-      mutt_addr_cat(tmp->data, tmp->dsize, np->value, MimeSpecials);
-      buf_add_printf(buf, "; %s=%s", np->attribute, buf_string(tmp));
+      struct Parameter *p = np->data;
+      mutt_addr_cat(tmp->data, tmp->dsize, p->value, MimeSpecials);
+      buf_add_printf(buf, "; %s=%s", p->attribute, buf_string(tmp));
     }
   }
 
@@ -1101,7 +1101,7 @@ bool mutt_edit_content_type(struct Email *e, struct Body *b, FILE *fp)
   }
 
   /* clean up previous junk */
-  mutt_param_free(&b->parameter);
+  mutt_paramlist_clear(b->parameter);
   FREE(&b->subtype);
 
   mutt_parse_content_type(buf_string(buf), b);
@@ -1109,14 +1109,14 @@ bool mutt_edit_content_type(struct Email *e, struct Body *b, FILE *fp)
   buf_printf(tmp, "%s/%s", TYPE(b), NONULL(b->subtype));
   type_changed = !mutt_istr_equal(buf_string(tmp), buf_string(obuf));
   charset_changed = !mutt_istr_equal(buf_string(charset),
-                                     mutt_param_get(&b->parameter, "charset"));
+                                     mutt_param_get(b->parameter, "charset"));
 
   /* if in send mode, check for conversion - current setting is default. */
 
   if (!e && (b->type == TYPE_TEXT) && charset_changed)
   {
     buf_printf(tmp, _("Convert to %s upon sending?"),
-               mutt_param_get(&b->parameter, "charset"));
+               mutt_param_get(b->parameter, "charset"));
     enum QuadOption ans = query_yesorno(buf_string(tmp), b->noconv ? MUTT_NO : MUTT_YES);
     if (ans != MUTT_ABORT)
       b->noconv = (ans == MUTT_NO);
@@ -1133,7 +1133,7 @@ bool mutt_edit_content_type(struct Email *e, struct Body *b, FILE *fp)
       mutt_sleep(1);
     log_message(b->noconv ? _("Character set changed to %s; not converting") :
                              _("Character set changed to %s; converting"),
-                 mutt_param_get(&b->parameter, "charset"));
+                 mutt_param_get(b->parameter, "charset"));
   }
 
   b->force_charset |= charset_changed;

@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for mutt_param_cmp_strict()
+ * Test code for mutt_paramlist_free_full()
  *
  * @authors
  * Copyright (C) 2019 Richard Russon <rich@flatcap.org>
@@ -26,17 +26,12 @@
 #include <stddef.h>
 #include "email/lib.h"
 
-void test_mutt_param_cmp_strict(void)
+void test_mutt_paramlist_free_full(void)
 {
-  // bool mutt_param_cmp_strict(const struct ParameterList *p1, const struct ParameterList *p2);
+  // void mutt_param_free(ParameterList *p);
 
   {
-    struct ParameterList parameterlist = { 0 };
-    TEST_CHECK(mutt_param_cmp_strict(NULL, &parameterlist));
-  }
-
-  {
-    struct ParameterList parameterlist = { 0 };
-    TEST_CHECK(mutt_param_cmp_strict(&parameterlist, NULL));
+    mutt_paramlist_free_full(NULL);
+    TEST_CHECK_(1, "mutt_paramlist_free_full(NULL)");
   }
 }

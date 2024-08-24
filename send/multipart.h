@@ -24,9 +24,8 @@
 #define MUTT_SEND_MULTIPART_H
 
 struct Body;
-struct ParameterList;
 
-void         mutt_generate_boundary(struct ParameterList *pl);
+void         mutt_generate_boundary(ParameterList *pl);
 struct Body *mutt_make_multipart(struct Body *b);
 struct Body *mutt_remove_multipart(struct Body *b);
 

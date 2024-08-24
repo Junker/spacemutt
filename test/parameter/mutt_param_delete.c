@@ -28,7 +28,7 @@
 
 void test_mutt_param_delete(void)
 {
-  // void mutt_param_delete(struct ParameterList *p, const char *attribute);
+  // void mutt_param_delete(ParameterList *p, const char *attribute);
 
   {
     mutt_param_delete(NULL, "apple");
@@ -36,8 +36,9 @@ void test_mutt_param_delete(void)
   }
 
   {
-    struct ParameterList parameterlist = { 0 };
-    mutt_param_delete(&parameterlist, NULL);
-    TEST_CHECK_(1, "mutt_param_delete(&parameterlist, NULL)");
+    ParameterList *parameterlist = g_queue_new();
+    mutt_param_delete(parameterlist, NULL);
+    TEST_CHECK_(1, "mutt_param_delete(parameterlist, NULL)");
+    g_queue_free(parameterlist);
   }
 }

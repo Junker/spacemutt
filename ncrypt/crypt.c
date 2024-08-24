@@ -191,7 +191,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
         return -1;
       }
     }
-    else if (mutt_istr_equal("flowed", mutt_param_get(&e->body->parameter, "format")))
+    else if (mutt_istr_equal("flowed", mutt_param_get(e->body->parameter, "format")))
     {
       if ((query_quadoption(_("Inline PGP can't be used with format=flowed.  Revert to PGP/MIME?"),
                             NeoMutt->sub, "pgp_mime_auto")) != MUTT_YES)
@@ -292,7 +292,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
 
     mutt_env_free(&e->body->mime_headers);
     e->body->mime_headers = protected_headers;
-    mutt_param_set(&e->body->parameter, "protected-headers", "v1");
+    mutt_param_set(e->body->parameter, "protected-headers", "v1");
   }
 
 #ifdef USE_AUTOCRYPT
@@ -396,7 +396,7 @@ int mutt_protect(struct Email *e, char *keylist, bool postpone)
 
 bail:
   mutt_env_free(&e->body->mime_headers);
-  mutt_param_delete(&e->body->parameter, "protected-headers");
+  mutt_param_delete(e->body->parameter, "protected-headers");
   return -1;
 }
 
@@ -413,7 +413,7 @@ SecurityFlags mutt_is_multipart_signed(struct Body *b)
     return SEC_NO_FLAGS;
   }
 
-  char *p = mutt_param_get(&b->parameter, "protocol");
+  char *p = mutt_param_get(b->parameter, "protocol");
   if (!p)
     return SEC_NO_FLAGS;
 
@@ -450,7 +450,7 @@ SecurityFlags mutt_is_multipart_encrypted(struct Body *b)
 
   if (!b || (b->type != TYPE_MULTIPART) || !b->subtype ||
       !mutt_istr_equal(b->subtype, "encrypted") ||
-      !(p = mutt_param_get(&b->parameter, "protocol")) ||
+      !(p = mutt_param_get(b->parameter, "protocol")) ||
       !mutt_istr_equal(p, "application/pgp-encrypted"))
   {
     return SEC_NO_FLAGS;
@@ -555,13 +555,13 @@ SecurityFlags mutt_is_application_pgp(const struct Body *b)
   {
     if (mutt_istr_equal(b->subtype, "pgp") || mutt_istr_equal(b->subtype, "x-pgp-message"))
     {
-      p = mutt_param_get(&b->parameter, "x-action");
+      p = mutt_param_get(b->parameter, "x-action");
       if (p && (mutt_istr_equal(p, "sign") || mutt_istr_equal(p, "signclear")))
       {
         t |= PGP_SIGN;
       }
 
-      p = mutt_param_get(&b->parameter, "format");
+      p = mutt_param_get(b->parameter, "format");
       if (p && mutt_istr_equal(p, "keys-only"))
       {
         t |= PGP_KEY;
@@ -579,9 +579,9 @@ SecurityFlags mutt_is_application_pgp(const struct Body *b)
   }
   else if ((b->type == TYPE_TEXT) && mutt_istr_equal("plain", b->subtype))
   {
-    if (((p = mutt_param_get(&b->parameter, "x-mutt-action")) ||
-         (p = mutt_param_get(&b->parameter, "x-action")) ||
-         (p = mutt_param_get(&b->parameter, "action"))) &&
+    if (((p = mutt_param_get(b->parameter, "x-mutt-action")) ||
+         (p = mutt_param_get(b->parameter, "x-action")) ||
+         (p = mutt_param_get(b->parameter, "action"))) &&
         mutt_istr_startswith(p, "pgp-sign"))
     {
       t |= PGP_SIGN;
@@ -620,7 +620,7 @@ SecurityFlags mutt_is_application_smime(struct Body *b)
   /* S/MIME MIME types don't need x- anymore, see RFC2311 */
   if (mutt_istr_equal(b->subtype, "x-pkcs7-mime") || mutt_istr_equal(b->subtype, "pkcs7-mime"))
   {
-    t = mutt_param_get(&b->parameter, "smime-type");
+    t = mutt_param_get(b->parameter, "smime-type");
     if (t)
     {
       if (mutt_istr_equal(t, "enveloped-data"))
@@ -641,7 +641,7 @@ SecurityFlags mutt_is_application_smime(struct Body *b)
     return SEC_NO_FLAGS;
   }
 
-  t = mutt_param_get(&b->parameter, "name");
+  t = mutt_param_get(b->parameter, "name");
 
   if (!t)
     t = b->d_filename;
@@ -1254,7 +1254,7 @@ int mutt_signed_handler(struct Body *b_email, struct State *state)
   {
     /* A null protocol value is already checked for in mutt_body_handler() */
     state_printf(state, _("[-- Error: Unknown multipart/signed protocol %s --]\n\n"),
-                 mutt_param_get(&top->parameter, "protocol"));
+                 mutt_param_get(top->parameter, "protocol"));
     return mutt_body_handler(b_email, state);
   }
 

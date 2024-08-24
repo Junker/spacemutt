@@ -76,7 +76,7 @@ int mutt_body_copy(FILE *fp, struct Body **b_dst, struct Body *b_src)
   b = *b_dst;
 
   memcpy(b, b_src, sizeof(struct Body));
-  TAILQ_INIT(&b->parameter);
+  b->parameter = g_queue_new();
   b->parts = NULL;
   b->next = NULL;
 
@@ -109,13 +109,13 @@ int mutt_body_copy(FILE *fp, struct Body **b_dst, struct Body *b_src)
   b->email = NULL;
 
   /* copy parameters */
-  struct Parameter *np = NULL, *new_param = NULL;
-  TAILQ_FOREACH(np, &b_src->parameter, entries)
+  for (GList *np = b_src->parameter->head; np != NULL; np = np->next)
   {
-    new_param = mutt_param_new();
-    new_param->attribute = mutt_str_dup(np->attribute);
-    new_param->value = mutt_str_dup(np->value);
-    TAILQ_INSERT_HEAD(&b->parameter, new_param, entries);
+    struct Parameter *p = np->data;
+    struct Parameter *new_param = mutt_param_new();
+    new_param->attribute = mutt_str_dup(p->attribute);
+    new_param->value = mutt_str_dup(p->value);
+    g_queue_push_head(b->parameter, new_param);
   }
 
   mutt_stamp_attachment(b);

@@ -177,11 +177,11 @@ int mutt_compose_attachment(struct Body *b)
           struct Body *b_mime = mutt_read_mime_header(fp, 0);
           if (b_mime)
           {
-            if (!TAILQ_EMPTY(&b_mime->parameter))
+            if (!g_queue_is_empty(b_mime->parameter))
             {
-              mutt_param_free(&b->parameter);
+              mutt_paramlist_free_full(b->parameter);
               b->parameter = b_mime->parameter;
-              TAILQ_INIT(&b_mime->parameter);
+              b_mime->parameter = g_queue_new();
             }
             if (b_mime->description)
             {

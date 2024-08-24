@@ -30,6 +30,7 @@
 #include "config.h"
 #include <stdbool.h>
 #include <unistd.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "body.h"
 #include "email.h"
@@ -47,7 +48,7 @@ struct Body *mutt_body_new(void)
 
   p->disposition = DISP_ATTACH;
   p->use_disp = true;
-  TAILQ_INIT(&p->parameter);
+  p->parameter = g_queue_new();
   return p;
 }
 
@@ -67,7 +68,7 @@ void mutt_body_free(struct Body **ptr)
     b = a;
     a = a->next;
 
-    mutt_param_free(&b->parameter);
+    mutt_paramlist_free_full(b->parameter);
     if (b->filename)
     {
       if (b->unlink)
@@ -115,7 +116,7 @@ bool mutt_body_cmp_strict(const struct Body *b1, const struct Body *b2)
   if ((b1->type != b2->type) || (b1->encoding != b2->encoding) ||
       !mutt_str_equal(b1->subtype, b2->subtype) ||
       !mutt_str_equal(b1->description, b2->description) ||
-      !mutt_param_cmp_strict(&b1->parameter, &b2->parameter) || (b1->length != b2->length))
+      !mutt_paramlist_cmp_strict(b1->parameter, b2->parameter) || (b1->length != b2->length))
   {
     return false;
   }
@@ -138,7 +139,7 @@ char *mutt_body_get_charset(struct Body *b, char *buf, size_t buflen)
     return NULL;
 
   if (b)
-    p = mutt_param_get(&b->parameter, "charset");
+    p = mutt_param_get(b->parameter, "charset");
 
   if (p)
     mutt_ch_canonical_charset(buf, buflen, p);

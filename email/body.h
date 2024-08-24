@@ -60,7 +60,7 @@ struct Body
   char *form_name;                ///< Content-Disposition form-data name param
   char *subtype;                  ///< content-type subtype
   char *xtype;                    ///< content-type if x-unknown
-  struct ParameterList parameter; ///< Parameters of the content-type
+  ParameterList *parameter;       ///< Parameters of the content-type
 
   // ---------------------------------------------------------------------------
   // Management data - Runtime info and glue to hold the objects together

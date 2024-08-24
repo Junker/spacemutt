@@ -394,7 +394,7 @@ static int create_tmp_files_for_attachments(FILE *fp_body, struct Buffer *file,
 
       if (b->type == TYPE_TEXT)
       {
-        if (mutt_istr_equal("yes", mutt_param_get(&b->parameter, "x-mutt-noconv")))
+        if (mutt_istr_equal("yes", mutt_param_get(b->parameter, "x-mutt-noconv")))
         {
           b->noconv = true;
         }
@@ -404,7 +404,7 @@ static int create_tmp_files_for_attachments(FILE *fp_body, struct Buffer *file,
           b->noconv = false;
         }
 
-        mutt_param_delete(&b->parameter, "x-mutt-noconv");
+        mutt_param_delete(b->parameter, "x-mutt-noconv");
       }
 
       mutt_adv_mktemp(file);
@@ -445,7 +445,7 @@ static int create_tmp_files_for_attachments(FILE *fp_body, struct Buffer *file,
         b->type = TYPE_TEXT;
         mutt_str_replace(&b->subtype, "plain");
         if (sec_type & APPLICATION_PGP)
-          mutt_param_delete(&b->parameter, "x-action");
+          mutt_param_delete(b->parameter, "x-action");
       }
       else
       {
@@ -563,7 +563,7 @@ int mutt_prepare_template(FILE *fp, struct Mailbox *m, struct Email *e_new,
   {
     e_new->security |= SEC_SIGN;
     if (((WithCrypto & APPLICATION_PGP) != 0) &&
-        mutt_istr_equal(mutt_param_get(&e_new->body->parameter, "protocol"), "application/pgp-signature"))
+        mutt_istr_equal(mutt_param_get(e_new->body->parameter, "protocol"), "application/pgp-signature"))
     {
       e_new->security |= APPLICATION_PGP;
     }

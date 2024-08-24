@@ -744,21 +744,22 @@ int mutt_write_mime_header(struct Body *b, FILE *fp, struct ConfigSubset *sub)
 
   fprintf(fp, "Content-Type: %s/%s", TYPE(b), b->subtype);
 
-  if (!TAILQ_EMPTY(&b->parameter))
+  if (!g_queue_is_empty(b->parameter))
   {
     len = 25 + mutt_str_len(b->subtype); /* approximate len. of content-type */
 
-    struct Parameter *np = NULL;
-    TAILQ_FOREACH(np, &b->parameter, entries)
+    for (GList *np = b->parameter->head; np != NULL; np = np->next)
     {
-      if (!np->attribute || !np->value)
+      struct Parameter *p = np->data;
+      if (!p->attribute || !p->value)
         continue;
 
-      struct ParameterList pl_conts = TAILQ_HEAD_INITIALIZER(pl_conts);
-      rfc2231_encode_string(&pl_conts, np->attribute, np->value);
-      struct Parameter *cont = NULL;
-      TAILQ_FOREACH(cont, &pl_conts, entries)
+      ParameterList *pl_conts = g_queue_new();
+      rfc2231_encode_string(pl_conts, p->attribute, p->value);
+
+      for (GList *np2 = pl_conts->head; np2 != NULL; np2 = np2->next)
       {
+        struct Parameter *cont = np2->data;
         fputc(';', fp);
 
         buf[0] = 0;
@@ -785,7 +786,7 @@ int mutt_write_mime_header(struct Body *b, FILE *fp, struct ConfigSubset *sub)
         fprintf(fp, "%s=%s", cont->attribute, buf);
       }
 
-      mutt_param_free(&pl_conts);
+      mutt_paramlist_free_full(pl_conts);
     }
   }
 
@@ -824,11 +825,11 @@ int mutt_write_mime_header(struct Body *b, FILE *fp, struct ConfigSubset *sub)
           else
             t = fn;
 
-          struct ParameterList pl_conts = TAILQ_HEAD_INITIALIZER(pl_conts);
-          rfc2231_encode_string(&pl_conts, "filename", t);
-          struct Parameter *cont = NULL;
-          TAILQ_FOREACH(cont, &pl_conts, entries)
+          ParameterList *pl_conts = g_queue_new();
+          rfc2231_encode_string(pl_conts, "filename", t);
+          for (GList *np = pl_conts->head; np != NULL; np = np->next)
           {
+            struct Parameter *cont = np->data;
             fputc(';', fp);
             buf[0] = 0;
             mutt_addr_cat(buf, sizeof(buf), cont->value, MimeSpecials);
@@ -848,7 +849,7 @@ int mutt_write_mime_header(struct Body *b, FILE *fp, struct ConfigSubset *sub)
             fprintf(fp, "%s=%s", cont->attribute, buf);
           }
 
-          mutt_param_free(&pl_conts);
+          mutt_paramlist_free_full(pl_conts);
         }
       }
 

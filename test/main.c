@@ -517,10 +517,10 @@ void test_fini(void);
   NEOMUTT_TEST_ITEM(test_notify_set_parent)                                    \
                                                                                \
   /* parameter */                                                              \
-  NEOMUTT_TEST_ITEM(test_mutt_param_cmp_strict)                                \
+  NEOMUTT_TEST_ITEM(test_mutt_paramlist_cmp_strict)                            \
+  NEOMUTT_TEST_ITEM(test_mutt_paramlist_free_full)                             \
   NEOMUTT_TEST_ITEM(test_mutt_param_delete)                                    \
   NEOMUTT_TEST_ITEM(test_mutt_param_free)                                      \
-  NEOMUTT_TEST_ITEM(test_mutt_param_free_one)                                  \
   NEOMUTT_TEST_ITEM(test_mutt_param_get)                                       \
   NEOMUTT_TEST_ITEM(test_mutt_param_new)                                       \
   NEOMUTT_TEST_ITEM(test_mutt_param_set)                                       \

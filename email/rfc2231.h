@@ -25,10 +25,11 @@
 #define MUTT_EMAIL_RFC2231_H
 
 #include <stddef.h>
+#include "email/parameter.h"
 
-struct ParameterList;
 
-void   rfc2231_decode_parameters(struct ParameterList *pl);
-size_t rfc2231_encode_string    (struct ParameterList *head, const char *attribute, char *value);
+
+void   rfc2231_decode_parameters(ParameterList *pl);
+size_t rfc2231_encode_string    (ParameterList *head, const char *attribute, char *value);
 
 #endif /* MUTT_EMAIL_RFC2231_H */
