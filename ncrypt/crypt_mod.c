@@ -40,12 +40,11 @@
 struct CryptModule
 {
   const struct CryptModuleSpecs *specs; ///< Crypto module definition
-  STAILQ_ENTRY(CryptModule) entries;    ///< Linked list
 };
-STAILQ_HEAD(CryptModuleList, CryptModule);
+typedef GSList CryptModuleList;
 
 /// Linked list of crypto modules, e.g. #CryptModSmimeClassic, #CryptModPgpGpgme
-static struct CryptModuleList CryptModules = STAILQ_HEAD_INITIALIZER(CryptModules);
+static CryptModuleList *CryptModules = NULL;
 
 /**
  * crypto_module_register - Register a new crypto module
@@ -55,7 +54,7 @@ void crypto_module_register(const struct CryptModuleSpecs *specs)
 {
   struct CryptModule *module = mutt_mem_calloc(1, sizeof(struct CryptModule));
   module->specs = specs;
-  STAILQ_INSERT_HEAD(&CryptModules, module, entries);
+  CryptModules = g_slist_prepend(CryptModules, module);
 }
 
 /**
@@ -67,9 +66,9 @@ void crypto_module_register(const struct CryptModuleSpecs *specs)
  */
 const struct CryptModuleSpecs *crypto_module_lookup(int identifier)
 {
-  const struct CryptModule *module = NULL;
-  STAILQ_FOREACH(module, &CryptModules, entries)
+  for (GSList *np = CryptModules; np != NULL; np = np->next)
   {
+    const struct CryptModule *module = np->data;
     if (module->specs->identifier == identifier)
     {
       return module->specs;
@@ -83,10 +82,10 @@ const struct CryptModuleSpecs *crypto_module_lookup(int identifier)
  */
 void crypto_module_cleanup(void)
 {
-  struct CryptModule *np = NULL, *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, &CryptModules, entries, tmp)
+  for (GSList *np = CryptModules; np != NULL; np = np->next)
   {
-    STAILQ_REMOVE(&CryptModules, np, CryptModule, entries);
-    FREE(&np);
+    struct CryptModule *cm = np->data;
+    FREE(&cm);
   }
+  g_slist_free(g_steal_pointer(&CryptModules));
 }
