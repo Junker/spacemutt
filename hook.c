@@ -72,12 +72,11 @@ struct Hook
   char *source_file;           ///< Used for relative-directory source
   struct PatternList *pattern; ///< Used for fcc,save,send-hook
   struct Expando *expando;     ///< Used for format hooks
-  TAILQ_ENTRY(Hook) entries;   ///< Linked list
 };
-TAILQ_HEAD(HookList, Hook);
+typedef GSList HookList;
 
 /// All simple hooks, e.g. MUTT_FOLDER_HOOK
-static struct HookList Hooks = TAILQ_HEAD_INITIALIZER(Hooks);
+static HookList *Hooks = NULL;
 
 /// All Index Format hooks
 static struct HashTable *IdxFmtHooks = NULL;
@@ -167,7 +166,6 @@ done:
 enum CommandResult mutt_parse_hook(struct Buffer *buf, struct Buffer *s,
                                    intptr_t data, struct Buffer *err)
 {
-  struct Hook *hook = NULL;
   int rc = MUTT_CMD_ERROR;
   bool pat_not = false;
   bool use_regex = true;
@@ -285,8 +283,9 @@ enum CommandResult mutt_parse_hook(struct Buffer *buf, struct Buffer *s,
   }
 
   /* check to make sure that a matching hook doesn't already exist */
-  TAILQ_FOREACH(hook, &Hooks, entries)
+  for (GSList *np = Hooks; np != NULL; np = np->next)
   {
+    struct Hook *hook = np->data;
     if (data & MUTT_GLOBAL_HOOK)
     {
       /* Ignore duplicate global hooks */
@@ -363,7 +362,7 @@ enum CommandResult mutt_parse_hook(struct Buffer *buf, struct Buffer *s,
   if (data & (MUTT_IDXFMTHOOK | MUTT_MBOX_HOOK | MUTT_SAVE_HOOK | MUTT_FCC_HOOK))
     exp = expando_parse(buf_string(cmd), IndexFormatDef, err);
 
-  hook = hook_new();
+  struct Hook *hook = hook_new();
   hook->type = data;
   hook->command = buf_strdup(cmd);
   hook->source_file = mutt_get_sourced_cwd();
@@ -373,7 +372,7 @@ enum CommandResult mutt_parse_hook(struct Buffer *buf, struct Buffer *s,
   hook->regex.pat_not = pat_not;
   hook->expando = exp;
 
-  TAILQ_INSERT_TAIL(&Hooks, hook, entries);
+  Hooks = g_slist_append(Hooks, hook);
   rc = MUTT_CMD_SUCCESS;
 
 cleanup:
@@ -390,16 +389,16 @@ cleanup:
  */
 void mutt_delete_hooks(HookFlags type)
 {
-  struct Hook *h = NULL;
-  struct Hook *tmp = NULL;
-
-  TAILQ_FOREACH_SAFE(h, &Hooks, entries, tmp)
+  for (GSList *np = Hooks; np != NULL;)
   {
+    GSList *next = np->next;
+    struct Hook *h = np->data;
     if ((type == MUTT_HOOK_NO_FLAGS) || (type == h->type))
     {
-      TAILQ_REMOVE(&Hooks, h, entries);
+      Hooks = g_slist_delete_link(Hooks, np);
       hook_free(&h);
     }
+    np = next;
   }
 }
 
@@ -408,17 +407,12 @@ void mutt_delete_hooks(HookFlags type)
  */
 static void idxfmt_hashelem_free(int type, void *obj, intptr_t data)
 {
-  struct HookList *hl = obj;
-  struct Hook *h = NULL;
-  struct Hook *tmp = NULL;
-
-  TAILQ_FOREACH_SAFE(h, hl, entries, tmp)
+  HookList *hl = obj;
+  for (GSList *np = hl; np != NULL; np = np->next)
   {
-    TAILQ_REMOVE(hl, h, entries);
-    hook_free(&h);
+    hook_free((struct Hook**)&np->data);
   }
-
-  FREE(&hl);
+  g_slist_free(hl);
 }
 
 /**
@@ -455,7 +449,7 @@ static enum CommandResult mutt_parse_idxfmt_hook(struct Buffer *buf, struct Buff
     goto out;
   }
   parse_extract_token(name, s, TOKEN_NO_FLAGS);
-  struct HookList *hl = mutt_hash_find(IdxFmtHooks, buf_string(name));
+  HookList *hl = mutt_hash_find(IdxFmtHooks, buf_string(name));
 
   if (*s->dptr == '!')
   {
@@ -487,11 +481,11 @@ static enum CommandResult mutt_parse_idxfmt_hook(struct Buffer *buf, struct Buff
     mutt_check_simple(pattern, c_default_hook);
 
   /* check to make sure that a matching hook doesn't already exist */
-  struct Hook *hook = NULL;
   if (hl)
   {
-    TAILQ_FOREACH(hook, hl, entries)
+    for (GSList *np = hl; np != NULL; np = np->next)
     {
+      struct Hook *hook = np->data;
       if ((hook->regex.pat_not == pat_not) &&
           mutt_str_equal(buf_string(pattern), hook->regex.pattern))
       {
@@ -516,7 +510,7 @@ static enum CommandResult mutt_parse_idxfmt_hook(struct Buffer *buf, struct Buff
   if (!pat)
     goto out;
 
-  hook = hook_new();
+  struct Hook *hook = hook_new();
   hook->type = MUTT_IDXFMTHOOK;
   hook->command = NULL;
   hook->source_file = mutt_get_sourced_cwd();
@@ -527,14 +521,9 @@ static enum CommandResult mutt_parse_idxfmt_hook(struct Buffer *buf, struct Buff
   hook->expando = exp;
   exp = NULL;
 
-  if (!hl)
-  {
-    hl = mutt_mem_calloc(1, sizeof(*hl));
-    TAILQ_INIT(hl);
-    mutt_hash_insert(IdxFmtHooks, buf_string(name), hl);
-  }
+  hl = g_slist_append(hl, hook);
+  mutt_hash_insert(IdxFmtHooks, buf_string(name), hl);
 
-  TAILQ_INSERT_TAIL(hl, hook, entries);
   rc = MUTT_CMD_SUCCESS;
 
 out:
@@ -625,13 +614,13 @@ void mutt_folder_hook(const char *path, const char *desc)
   if (!path && !desc)
     return;
 
-  struct Hook *hook = NULL;
   struct Buffer *err = buf_pool_get();
 
   CurrentHookType = MUTT_FOLDER_HOOK;
 
-  TAILQ_FOREACH(hook, &Hooks, entries)
+  for (GSList *np = Hooks; np != NULL; np = np->next)
   {
+    struct Hook *hook = np->data;
     if (!hook->command)
       continue;
 
@@ -670,10 +659,10 @@ void mutt_folder_hook(const char *path, const char *desc)
  */
 char *mutt_find_hook(HookFlags type, const char *pat)
 {
-  struct Hook *tmp = NULL;
 
-  TAILQ_FOREACH(tmp, &Hooks, entries)
+  for (GSList *np = Hooks; np != NULL; np = np->next)
   {
+    struct Hook *tmp = np->data;
     if (tmp->type & type)
     {
       if (mutt_regex_match(&tmp->regex, pat))
@@ -691,14 +680,14 @@ char *mutt_find_hook(HookFlags type, const char *pat)
  */
 void mutt_message_hook(struct Mailbox *m, struct Email *e, HookFlags type)
 {
-  struct Hook *hook = NULL;
   struct PatternCache cache = { 0 };
   struct Buffer *err = buf_pool_get();
 
   CurrentHookType = type;
 
-  TAILQ_FOREACH(hook, &Hooks, entries)
+  for (GSList *np = Hooks; np != NULL; np = np->next)
   {
+    struct Hook *hook = np->data;
     if (!hook->command)
       continue;
 
@@ -737,12 +726,12 @@ void mutt_message_hook(struct Mailbox *m, struct Email *e, HookFlags type)
  */
 static int addr_hook(struct Buffer *path, HookFlags type, struct Mailbox *m, struct Email *e)
 {
-  struct Hook *hook = NULL;
   struct PatternCache cache = { 0 };
 
   /* determine if a matching hook exists */
-  TAILQ_FOREACH(hook, &Hooks, entries)
+  for (GSList *np = Hooks; np != NULL; np = np->next)
   {
+    struct Hook *hook = np->data;
     if (!hook->command)
       continue;
 
@@ -885,11 +874,11 @@ void mutt_account_hook(const char *url)
   if (inhook)
     return;
 
-  struct Hook *hook = NULL;
   struct Buffer *err = buf_pool_get();
 
-  TAILQ_FOREACH(hook, &Hooks, entries)
+  for (GSList *np = Hooks; np != NULL; np = np->next)
   {
+    struct Hook *hook = np->data;
     if (!(hook->command && (hook->type & MUTT_ACCOUNT_HOOK)))
       continue;
 
@@ -923,11 +912,11 @@ done:
  */
 void mutt_timeout_hook(void)
 {
-  struct Hook *hook = NULL;
   struct Buffer *err = buf_pool_get();
 
-  TAILQ_FOREACH(hook, &Hooks, entries)
+  for (GSList *np = Hooks; np != NULL; np = np->next)
   {
+    struct Hook *hook = np->data;
     if (!(hook->command && (hook->type & MUTT_TIMEOUT_HOOK)))
       continue;
 
@@ -955,11 +944,11 @@ void mutt_timeout_hook(void)
  */
 void mutt_startup_shutdown_hook(HookFlags type)
 {
-  struct Hook *hook = NULL;
   struct Buffer *err = buf_pool_get();
 
-  TAILQ_FOREACH(hook, &Hooks, entries)
+  for (GSList *np = Hooks; np != NULL; np = np->next)
   {
+    struct Hook *hook = np->data;
     if (!(hook->command && (hook->type & type)))
       continue;
 
@@ -985,7 +974,7 @@ const struct Expando *mutt_idxfmt_hook(const char *name, struct Mailbox *m, stru
   if (!IdxFmtHooks)
     return NULL;
 
-  struct HookList *hl = mutt_hash_find(IdxFmtHooks, name);
+  HookList *hl = mutt_hash_find(IdxFmtHooks, name);
   if (!hl)
     return NULL;
 
@@ -993,10 +982,10 @@ const struct Expando *mutt_idxfmt_hook(const char *name, struct Mailbox *m, stru
 
   struct PatternCache cache = { 0 };
   const struct Expando *exp = NULL;
-  struct Hook *hook = NULL;
 
-  TAILQ_FOREACH(hook, hl, entries)
+  for (GSList *np = hl; np != NULL; np = np->next)
   {
+    struct Hook *hook = np->data;
     struct Pattern *pat = SLIST_FIRST(hook->pattern);
     if ((mutt_pattern_exec(pat, 0, m, e, &cache) > 0) ^ hook->regex.pat_not)
     {
