@@ -411,7 +411,8 @@ struct KeyEvent km_dokey_event(enum MenuType mtype, GetChFlags flags)
     {
       if ((pos > map->eq) || !np->next)
         return retry_generic(mtype, map->keys, pos, event.ch, flags);
-      map = np->next->data;
+      np = np->next;
+      map = np ? np->data : NULL;
     }
 
     if (event.ch != map->keys[pos])
