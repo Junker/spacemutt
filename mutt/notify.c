@@ -52,7 +52,7 @@ static const char *NotifyTypeNames[] = {
 struct Notify
 {
   struct Notify *parent;         ///< Parent of the notification object
-  struct ObserverList observers; ///< List of observers of this object
+  ObserverList *observers;       ///< List of observers of this object
 };
 
 /**
@@ -63,7 +63,7 @@ struct Notify *notify_new(void)
 {
   struct Notify *notify = mutt_mem_calloc(1, sizeof(*notify));
 
-  STAILQ_INIT(&notify->observers);
+  notify->observers = NULL;
 
   return notify;
 }
@@ -124,10 +124,9 @@ static bool send(struct Notify *source, struct Notify *current,
     return false;
 
   log_notify("send: %d, %p", event_type, event_data);
-  struct ObserverNode *np = NULL;
-  STAILQ_FOREACH(np, &current->observers, entries)
+  for (GSList *np = current->observers; np != NULL; np = np->next)
   {
-    struct Observer *o = np->observer;
+    struct Observer *o = np->data;
     if (!o)
       continue;
 
@@ -147,15 +146,7 @@ static bool send(struct Notify *source, struct Notify *current,
     return send(source, current->parent, event_type, event_subtype, event_data);
 
   // Garbage collection time
-  struct ObserverNode *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, &current->observers, entries, tmp)
-  {
-    if (np->observer)
-      continue;
-
-    STAILQ_REMOVE(&current->observers, np, ObserverNode, entries);
-    FREE(&np);
-  }
+  current->observers = g_slist_remove_all(current->observers, NULL);
 
   return true;
 }
@@ -194,13 +185,13 @@ bool notify_observer_add(struct Notify *notify, enum NotifyType type,
   if (!notify || !callback)
     return false;
 
-  struct ObserverNode *np = NULL;
-  STAILQ_FOREACH(np, &notify->observers, entries)
+  for (GSList *np = notify->observers; np != NULL; np = np->next)
   {
-    if (!np->observer)
+    struct Observer *o = np->data;
+    if (!o)
       continue; // LCOV_EXCL_LINE
 
-    if ((np->observer->callback == callback) && (np->observer->global_data == global_data))
+    if ((o->callback == callback) && (o->global_data == global_data))
       return true;
   }
 
@@ -209,9 +200,7 @@ bool notify_observer_add(struct Notify *notify, enum NotifyType type,
   o->callback = callback;
   o->global_data = global_data;
 
-  np = mutt_mem_calloc(1, sizeof(*np));
-  np->observer = o;
-  STAILQ_INSERT_HEAD(&notify->observers, np, entries);
+  notify->observers = g_slist_prepend(notify->observers, o);
 
   return true;
 }
@@ -233,15 +222,15 @@ bool notify_observer_remove(struct Notify *notify, const observer_t callback,
   if (!notify || !callback)
     return false;
 
-  struct ObserverNode *np = NULL;
-  STAILQ_FOREACH(np, &notify->observers, entries)
+  for (GSList *np = notify->observers; np != NULL; np = np->next)
   {
-    if (!np->observer)
+    struct Observer *o = np->data;
+    if (!o)
       continue; // LCOV_EXCL_LINE
 
-    if ((np->observer->callback == callback) && (np->observer->global_data == global_data))
+    if ((o->callback == callback) && (o->global_data == global_data))
     {
-      FREE(&np->observer);
+      FREE((struct Observer**)&np->data);
       return true;
     }
   }
@@ -258,12 +247,10 @@ void notify_observer_remove_all(struct Notify *notify)
   if (!notify)
     return;
 
-  struct ObserverNode *np = NULL;
-  struct ObserverNode *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, &notify->observers, entries, tmp)
+  for (GSList *np = notify->observers; np != NULL; np = np->next)
   {
-    STAILQ_REMOVE(&notify->observers, np, ObserverNode, entries);
-    FREE(&np->observer);
-    FREE(&np);
+    struct Observer *o = np->data;
+    FREE(&o);
   }
+  g_slist_free(g_steal_pointer(&notify->observers));
 }

@@ -24,6 +24,7 @@
 #define MUTT_MUTT_OBSERVER_H
 
 #include <stdbool.h>
+#include <glib.h>
 #include "notify_type.h"
 #include "queue.h"
 
@@ -63,14 +64,6 @@ struct Observer
   void *global_data;     ///< Private data to pass to callback
 };
 
-/**
- * struct ObserverNode - List of Observers
- */
-struct ObserverNode
-{
-  struct Observer *observer;          ///< An Observer
-  STAILQ_ENTRY(ObserverNode) entries; ///< Linked list
-};
-STAILQ_HEAD(ObserverList, ObserverNode);
+typedef GSList ObserverList;
 
 #endif /* MUTT_MUTT_OBSERVER_H */
