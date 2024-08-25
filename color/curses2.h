@@ -43,9 +43,8 @@ struct CursesColor
   color_t bg;                       ///< Background colour
   short index;                      ///< Index number
   short ref_count;                  ///< Number of users
-  TAILQ_ENTRY(CursesColor) entries; ///< Linked list
 };
-TAILQ_HEAD(CursesColorList, CursesColor);
+typedef GSList CursesColorList;
 
 void                curses_color_free(struct CursesColor **ptr);
 struct CursesColor *curses_color_new (color_t fg, color_t bg);

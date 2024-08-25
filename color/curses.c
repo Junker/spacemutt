@@ -33,9 +33,10 @@
 #include "gui/lib.h"
 #include "color.h"
 #include "curses2.h"
+#include "mutt/gslist.h"
 #include "debug.h"
 
-struct CursesColorList CursesColors; ///< List of all Curses colours
+CursesColorList *CursesColors = NULL; ///< List of all Curses colours
 int NumCursesColors; ///< Number of ncurses colours left to allocate
 
 /**
@@ -44,7 +45,6 @@ int NumCursesColors; ///< Number of ncurses colours left to allocate
 void curses_colors_init(void)
 {
   log_color_debug("init CursesColors\n");
-  TAILQ_INIT(&CursesColors);
   NumCursesColors = 0;
 }
 
@@ -56,9 +56,9 @@ void curses_colors_init(void)
  */
 struct CursesColor *curses_colors_find(color_t fg, color_t bg)
 {
-  struct CursesColor *cc = NULL;
-  TAILQ_FOREACH(cc, &CursesColors, entries)
+  for (GSList *np = CursesColors; np != NULL; np = np->next)
   {
+    struct CursesColor *cc = np->data;
     if ((cc->fg == fg) && (cc->bg == bg))
     {
       curses_color_dump(cc, "find");
@@ -79,9 +79,9 @@ static int curses_color_init(color_t fg, color_t bg)
 {
   log_color_debug("find lowest index\n");
   int index = 16;
-  struct CursesColor *cc = NULL;
-  TAILQ_FOREACH(cc, &CursesColors, entries)
+  for (GSList *np = CursesColors; np != NULL; np = np->next)
   {
+    struct CursesColor *cc = np->data;
     if (cc->index == index)
       index++;
     else
@@ -133,7 +133,7 @@ void curses_color_free(struct CursesColor **ptr)
   }
 
   curses_color_dump(cc, "curses free");
-  TAILQ_REMOVE(&CursesColors, cc, entries);
+  CursesColors = g_slist_remove(CursesColors, cc);
   NumCursesColors--;
   log_color_debug("CursesColors: %d\n", NumCursesColors);
   FREE(ptr);
@@ -179,17 +179,18 @@ struct CursesColor *curses_color_new(color_t fg, color_t bg)
   cc_new->index = index;
 
   // insert curses colour
-  TAILQ_FOREACH(cc, &CursesColors, entries)
+  for (GSList *np = CursesColors; np != NULL; np = np->next)
   {
+    cc = np->data;
     if (cc->index > index)
     {
       log_color_debug("insert\n");
-      TAILQ_INSERT_BEFORE(cc, cc_new, entries);
+      CursesColors = g_slist_insert_before(CursesColors, np, cc_new);
       goto done;
     }
   }
 
-  TAILQ_INSERT_TAIL(&CursesColors, cc_new, entries);
+  CursesColors = g_slist_append(CursesColors, cc_new);
   log_color_debug("tail\n");
 
 done:

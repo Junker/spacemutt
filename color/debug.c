@@ -38,7 +38,7 @@
 #include "pager/private_data.h"
 
 extern AttrColorList *MergedColors;
-extern struct CursesColorList CursesColors;
+extern CursesColorList *CursesColors;
 
 /**
  * color_log_color - Get a colourful string to represent a colour in the log
@@ -143,7 +143,7 @@ void curses_color_dump(struct CursesColor *cc, const char *prefix)
  */
 void curses_colors_dump(struct Buffer *buf)
 {
-  if (TAILQ_EMPTY(&CursesColors))
+  if (!CursesColors)
     return;
 
   struct Buffer *swatch = buf_pool_get();
@@ -151,9 +151,9 @@ void curses_colors_dump(struct Buffer *buf)
   buf_addstr(buf, "# Curses Colors\n");
   buf_add_printf(buf, "# Index fg      bg      Color  rc\n");
 
-  struct CursesColor *cc = NULL;
-  TAILQ_FOREACH(cc, &CursesColors, entries)
+  for (GSList *np = CursesColors; np != NULL; np = np->next)
   {
+    struct CursesColor *cc = np->data;
     char fg[16] = "-";
     char bg[16] = "-";
 
