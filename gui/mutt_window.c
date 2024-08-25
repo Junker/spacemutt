@@ -148,10 +148,9 @@ void window_notify_all(struct MuttWindow *win)
 
   window_notify(win);
 
-  struct MuttWindow *np = NULL;
-  TAILQ_FOREACH(np, &win->children, entries)
+  for (GList *np = win->children->head; np != NULL; np = np->next)
   {
-    window_notify_all(np);
+    window_notify_all(np->data);
   }
   win->old = win->state;
 }
@@ -190,7 +189,7 @@ struct MuttWindow *mutt_window_new(enum WindowType type, enum MuttWindowOrientat
   win->req_cols = cols;
   win->state.visible = true;
   win->notify = notify_new();
-  TAILQ_INIT(&win->children);
+  win->children = g_queue_new();
   return win;
 }
 
@@ -213,7 +212,7 @@ void mutt_window_free(struct MuttWindow **ptr)
   struct EventWindow ev_w = { win, WN_NO_FLAGS };
   notify_send(win->notify, NT_WINDOW, NT_WINDOW_DELETE, &ev_w);
 
-  mutt_winlist_free(&win->children);
+  mutt_winlist_free_full(win->children);
 
   if (win->wdata_free && win->wdata)
     win->wdata_free(win, &win->wdata); // Custom function to free private data
@@ -447,7 +446,7 @@ void mutt_window_add_child(struct MuttWindow *parent, struct MuttWindow *child)
   if (!parent || !child)
     return;
 
-  TAILQ_INSERT_TAIL(&parent->children, child, entries);
+  g_queue_push_tail(parent->children, child);
   child->parent = parent;
 
   notify_set_parent(child->notify, parent->notify);
@@ -470,7 +469,7 @@ struct MuttWindow *mutt_window_remove_child(struct MuttWindow *parent, struct Mu
     return NULL;
 
   // A notification will be sent when the Window is freed
-  TAILQ_REMOVE(&parent->children, child, entries);
+  g_queue_remove(parent->children, child);
   child->parent = NULL;
 
   if (parent->focus == child)
@@ -482,22 +481,20 @@ struct MuttWindow *mutt_window_remove_child(struct MuttWindow *parent, struct Mu
 }
 
 /**
- * mutt_winlist_free - Free a tree of Windows
+ * mutt_winlist_free_full - Clear and Free a tree of Windows
  * @param head WindowList to free
  */
-void mutt_winlist_free(struct MuttWindowList *head)
+void mutt_winlist_free_full(MuttWindowList *head)
 {
   if (!head)
     return;
 
-  struct MuttWindow *np = NULL;
-  struct MuttWindow *tmp = NULL;
-  TAILQ_FOREACH_SAFE(np, head, entries, tmp)
+  struct MuttWindow *mw = NULL;
+  while ((mw = g_queue_pop_tail(head)) != NULL)
   {
-    TAILQ_REMOVE(head, np, entries);
-    mutt_winlist_free(&np->children);
-    mutt_window_free(&np);
+    mutt_window_free(&mw);
   }
+  g_queue_free(head);
 }
 
 /**
@@ -536,11 +533,11 @@ struct MuttWindow *window_find_child(struct MuttWindow *win, enum WindowType typ
   if (win->type == type)
     return win;
 
-  struct MuttWindow *np = NULL;
   struct MuttWindow *match = NULL;
-  TAILQ_FOREACH(np, &win->children, entries)
+  for (GList *np = win->children->head; np != NULL; np = np->next)
   {
-    match = window_find_child(np, type);
+    struct MuttWindow *mw = np->data;
+    match = window_find_child(mw, type);
     if (match)
       return match;
   }
@@ -578,10 +575,9 @@ static void window_recalc(struct MuttWindow *win)
     win->recalc(win);
   win->actions &= ~WA_RECALC;
 
-  struct MuttWindow *np = NULL;
-  TAILQ_FOREACH(np, &win->children, entries)
+  for (GList *np = win->children->head; np != NULL; np = np->next)
   {
-    window_recalc(np);
+    window_recalc(np->data);
   }
 }
 
@@ -598,10 +594,9 @@ static void window_repaint(struct MuttWindow *win)
     win->repaint(win);
   win->actions &= ~WA_REPAINT;
 
-  struct MuttWindow *np = NULL;
-  TAILQ_FOREACH(np, &win->children, entries)
+  for (GList *np = win->children->head; np != NULL; np = np->next)
   {
-    window_repaint(np);
+    window_repaint(np->data);
   }
 }
 
@@ -753,10 +748,9 @@ static void window_invalidate(struct MuttWindow *win)
 
   win->actions |= WA_RECALC | WA_REPAINT;
 
-  struct MuttWindow *np = NULL;
-  TAILQ_FOREACH(np, &win->children, entries)
+  for (GList *np = win->children->head; np != NULL; np = np->next)
   {
-    window_invalidate(np);
+    window_invalidate(np->data);
   }
 }
 
@@ -784,7 +778,7 @@ bool window_status_on_top(struct MuttWindow *panel, struct ConfigSubset *sub)
 {
   const bool c_status_on_top = cs_subset_bool(sub, "status_on_top");
 
-  struct MuttWindow *win = TAILQ_FIRST(&panel->children);
+  struct MuttWindow *win = g_queue_peek_head(panel->children);
 
   if ((c_status_on_top && (win->type == WT_STATUS_BAR)) ||
       (!c_status_on_top && (win->type != WT_STATUS_BAR)))
@@ -794,14 +788,13 @@ bool window_status_on_top(struct MuttWindow *panel, struct ConfigSubset *sub)
 
   if (c_status_on_top)
   {
-    win = TAILQ_LAST(&panel->children, MuttWindowList);
-    TAILQ_REMOVE(&panel->children, win, entries);
-    TAILQ_INSERT_HEAD(&panel->children, win, entries);
+    win = g_queue_pop_tail(panel->children);
+    g_queue_push_head(panel->children, win);
   }
   else
   {
-    TAILQ_REMOVE(&panel->children, win, entries);
-    TAILQ_INSERT_TAIL(&panel->children, win, entries);
+    g_queue_remove(panel->children, win);
+    g_queue_push_tail(panel->children, win);
   }
 
   mutt_window_reflow(panel);

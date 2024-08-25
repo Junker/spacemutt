@@ -685,17 +685,17 @@ struct MailboxView *get_current_mailbox_view(void)
   if (!AllDialogsWindow)
     return NULL;
 
-  struct MuttWindow *np = NULL;
-  TAILQ_FOREACH_REVERSE(np, &AllDialogsWindow->children, MuttWindowList, entries)
+  for (GList *np = AllDialogsWindow->children->tail; np != NULL; np = np->prev)
   {
-    struct MuttWindow *win = window_find_child(np, WT_DLG_INDEX);
+    struct MuttWindow *mw = np->data;
+    struct MuttWindow *win = window_find_child(mw, WT_DLG_INDEX);
     if (win)
     {
       struct IndexSharedData *shared = win->wdata;
       return shared->mailbox_view;
     }
 
-    win = window_find_child(np, WT_DLG_POSTPONED);
+    win = window_find_child(mw, WT_DLG_POSTPONED);
     if (win)
     {
       return postponed_get_mailbox_view(win);
@@ -733,10 +733,10 @@ struct Menu *get_current_menu(void)
   if (!AllDialogsWindow)
     return NULL;
 
-  struct MuttWindow *np = NULL;
-  TAILQ_FOREACH_REVERSE(np, &AllDialogsWindow->children, MuttWindowList, entries)
+  for (GList *np = AllDialogsWindow->children->tail; np != NULL; np = np->prev)
   {
-    struct MuttWindow *dlg = window_find_child(np, WT_DLG_INDEX);
+    struct MuttWindow *mw = np->data;
+    struct MuttWindow *dlg = window_find_child(mw, WT_DLG_INDEX);
     if (dlg)
     {
       struct MuttWindow *panel_index = window_find_child(dlg, WT_INDEX);

@@ -59,18 +59,16 @@ struct MuttWindow *msgcont_pop_window(void)
   if (!MessageContainer)
     return NULL;
 
-  struct MuttWindow *win_pop = TAILQ_LAST(&MessageContainer->children, MuttWindowList);
   // Don't pop the last entry
-  if (!TAILQ_PREV(win_pop, MuttWindowList, entries))
+  if (MessageContainer->children->length == 1)
     return NULL;
 
+  struct MuttWindow *win_pop = g_queue_pop_tail(MessageContainer->children);
   // Hide the old window
   window_set_visible(win_pop, false);
 
-  // Make the top of the stack visible
-  struct MuttWindow *win_top = TAILQ_PREV(win_pop, MuttWindowList, entries);
-
-  TAILQ_REMOVE(&MessageContainer->children, win_pop, entries);
+    // Make the top of the stack visible
+  struct MuttWindow *win_top = g_queue_peek_tail(MessageContainer->children);
 
   if (win_top)
   {
@@ -96,7 +94,7 @@ void msgcont_push_window(struct MuttWindow *win)
     return;
 
   // Hide the current top window
-  struct MuttWindow *win_top = TAILQ_LAST(&MessageContainer->children, MuttWindowList);
+  struct MuttWindow *win_top = g_queue_peek_tail(MessageContainer->children);
   window_set_visible(win_top, false);
 
   mutt_window_add_child(MessageContainer, win);
@@ -119,7 +117,7 @@ struct MuttWindow *msgcont_get_msgwin(void)
   if (!MessageContainer)
     return NULL;
 
-  struct MuttWindow *win = TAILQ_FIRST(&MessageContainer->children);
+  struct MuttWindow *win = g_queue_peek_head(MessageContainer->children);
   if (!win)
     return NULL;
 

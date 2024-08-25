@@ -71,10 +71,9 @@ static void win_serialise(struct MuttWindow *win, struct Buffer *buf)
   buf_add_printf(buf, "<%s {%dx,%dy} [%dC,%dR]", win_size(win), win->state.col_offset,
                  win->state.row_offset, win->state.cols, win->state.rows);
 
-  struct MuttWindow *np = NULL;
-  TAILQ_FOREACH(np, &win->children, entries)
+  for (GList *np = win->children->head; np != NULL; np = np->next)
   {
-    win_serialise(np, buf);
+    win_serialise(np->data, buf);
   }
 
   buf_addstr(buf, ">");

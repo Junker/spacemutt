@@ -111,11 +111,11 @@ void dialog_push(struct MuttWindow *dlg)
   if (!dlg || !AllDialogsWindow)
     return;
 
-  struct MuttWindow *last = TAILQ_LAST(&AllDialogsWindow->children, MuttWindowList);
+  struct MuttWindow *last = g_queue_peek_tail(AllDialogsWindow->children);
   if (last)
     last->state.visible = false;
 
-  TAILQ_INSERT_TAIL(&AllDialogsWindow->children, dlg, entries);
+  g_queue_push_tail(AllDialogsWindow->children, dlg);
   notify_set_parent(dlg->notify, AllDialogsWindow->notify);
 
   // Notify the world, allowing plugins to integrate
@@ -144,7 +144,7 @@ void dialog_pop(void)
   if (!AllDialogsWindow)
     return;
 
-  struct MuttWindow *last = TAILQ_LAST(&AllDialogsWindow->children, MuttWindowList);
+  struct MuttWindow *last = g_queue_peek_tail(AllDialogsWindow->children);
   if (!last)
     return;
 
@@ -156,9 +156,9 @@ void dialog_pop(void)
 
   last->state.visible = false;
   last->parent = NULL;
-  TAILQ_REMOVE(&AllDialogsWindow->children, last, entries);
+  g_queue_remove(AllDialogsWindow->children, last);
 
-  last = TAILQ_LAST(&AllDialogsWindow->children, MuttWindowList);
+  last = g_queue_peek_tail(AllDialogsWindow->children);
   if (last)
   {
     last->state.visible = true;
