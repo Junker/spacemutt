@@ -38,6 +38,7 @@
 #include "key/lib.h"
 #include "menu/lib.h"
 #include "parse/lib.h"
+#include "mutt/gslist.h"
 
 /// Maximum length of a key binding sequence used for buffer in km_bindkey
 #define MAX_SEQ 8
@@ -59,7 +60,8 @@ static enum CommandResult km_bind_err(const char *s, enum MenuType mtype, int op
                                       char *macro, char *desc, struct Buffer *err)
 {
   enum CommandResult rc = MUTT_CMD_SUCCESS;
-  struct Keymap *last = NULL, *np = NULL, *compare = NULL;
+  struct Keymap *compare = NULL;
+  GSList *last_np = NULL;
   keycode_t buf[MAX_SEQ];
   size_t pos = 0, lastpos = 0;
 
@@ -71,18 +73,19 @@ static enum CommandResult km_bind_err(const char *s, enum MenuType mtype, int op
   map->desc = mutt_str_dup(desc);
 
   /* find position to place new keymap */
-  STAILQ_FOREACH(np, &Keymaps[mtype], entries)
+  for (GSList *np = Keymaps[mtype]; np != NULL; np = np->next)
   {
-    compare = km_compare_keys(map, np, &pos);
+    struct Keymap *km = np->data;
+    compare = km_compare_keys(map, km, &pos);
 
     if (compare == map) /* map's keycode is bigger */
     {
-      last = np;
+      last_np = np;
       lastpos = pos;
-      if (pos > np->eq)
-        pos = np->eq;
+      if (pos > km->eq)
+        pos = km->eq;
     }
-    else if (compare == np) /* np's keycode is bigger, found insert location */
+    else if (compare == km) /* km's keycode is bigger, found insert location */
     {
       map->eq = pos;
       break;
@@ -90,14 +93,14 @@ static enum CommandResult km_bind_err(const char *s, enum MenuType mtype, int op
     else /* equal keycodes */
     {
       /* Don't warn on overwriting a 'noop' binding */
-      if ((np->len != len) && (np->op != OP_NULL))
+      if ((km->len != len) && (km->op != OP_NULL))
       {
         static const char *guide_link = "https://neomutt.org/guide/configuration.html#bind-warnings";
         /* Overwrite with the different lengths, warn */
         char old_binding[128] = { 0 };
         char new_binding[128] = { 0 };
         km_expand_key(old_binding, sizeof(old_binding), map);
-        km_expand_key(new_binding, sizeof(new_binding), np);
+        km_expand_key(new_binding, sizeof(new_binding), km);
         char *err_msg = _("Binding '%s' will alias '%s'  Before, try: 'bind %s %s noop'");
         if (err)
         {
@@ -118,9 +121,9 @@ static enum CommandResult km_bind_err(const char *s, enum MenuType mtype, int op
         rc = MUTT_CMD_WARNING;
       }
 
-      map->eq = np->eq;
-      STAILQ_REMOVE(&Keymaps[mtype], np, Keymap, entries);
-      mutt_keymap_free(&np);
+      map->eq = km->eq;
+      Keymaps[mtype] = g_slist_delete_link(Keymaps[mtype], np);
+      mutt_keymap_free(&km);
       break;
     }
   }
@@ -131,17 +134,17 @@ static enum CommandResult km_bind_err(const char *s, enum MenuType mtype, int op
   }
   else
   {
-    if (last) /* if queue has at least one entry */
+    if (last_np) /* if queue has at least one entry */
     {
-      if (STAILQ_NEXT(last, entries))
-        STAILQ_INSERT_AFTER(&Keymaps[mtype], last, map, entries);
+      if (last_np->next)
+        Keymaps[mtype] = g_slist_insert_after(Keymaps[mtype], last_np, map);
       else /* last entry in the queue */
-        STAILQ_INSERT_TAIL(&Keymaps[mtype], map, entries);
-      last->eq = lastpos;
+        Keymaps[mtype] = g_slist_append(Keymaps[mtype], map);
+      ((struct Keymap*)last_np->data)->eq = lastpos;
     }
     else /* queue is empty, so insert from head */
     {
-      STAILQ_INSERT_HEAD(&Keymaps[mtype], map, entries);
+      Keymaps[mtype] = g_slist_prepend(Keymaps[mtype], map);
     }
   }
 
@@ -195,17 +198,19 @@ enum CommandResult km_bindkey(const char *s, enum MenuType mtype, int op)
  *
  * Iterate through Keymap and free keys defined either by "macro" or "bind".
  */
-static void km_unbind_all(struct KeymapList *km_list, unsigned long mode)
+static void km_unbind_all(KeymapList **km_list, unsigned long mode)
 {
-  struct Keymap *np = NULL, *tmp = NULL;
 
-  STAILQ_FOREACH_SAFE(np, km_list, entries, tmp)
+  for (GSList *np = *km_list; np != NULL;)
   {
-    if (((mode & MUTT_UNBIND) && !np->macro) || ((mode & MUTT_UNMACRO) && np->macro))
+    GSList *next = np->next;
+    struct Keymap *km = np->data;
+    if (((mode & MUTT_UNBIND) && !km->macro) || ((mode & MUTT_UNMACRO) && km->macro))
     {
-      STAILQ_REMOVE(km_list, np, Keymap, entries);
-      mutt_keymap_free(&np);
+      *km_list = g_slist_delete_link(*km_list, np);
+      mutt_keymap_free(&km);
     }
+    np = next;
   }
 }
 

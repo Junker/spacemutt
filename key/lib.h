@@ -69,11 +69,8 @@ struct Keymap
   short eq;                     ///< Number of leading keys equal to next entry
   short len;                    ///< Length of key sequence (unit: sizeof (keycode_t))
   keycode_t *keys;              ///< key sequence
-  STAILQ_ENTRY(Keymap) entries; ///< Linked list
 };
-
-STAILQ_HEAD(KeymapList, Keymap);
-
+typedef GSList KeymapList;
 /**
  * struct KeyEvent - An event such as a keypress
  */
@@ -87,7 +84,7 @@ ARRAY_HEAD(KeyEventArray, struct KeyEvent);
 
 extern struct KeyEventArray MacroEvents;
 
-extern struct KeymapList Keymaps[]; ///< Array of Keymap keybindings, one for each Menu
+extern KeymapList *Keymaps[]; ///< Array of Keymap keybindings, one for each Menu
 extern struct Mapping KeyNames[];
 
 extern keycode_t AbortKey; ///< key to abort edits etc, normally Ctrl-G

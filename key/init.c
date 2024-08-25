@@ -164,7 +164,7 @@ void init_extended_keys(void)
  */
 static void create_bindings(const struct MenuOpSeq *map, enum MenuType mtype)
 {
-  STAILQ_INIT(&Keymaps[mtype]);
+  Keymaps[mtype] = NULL;
 
   for (int i = 0; map[i].op != OP_NULL; i++)
     if (map[i].seq)
@@ -176,8 +176,6 @@ static void create_bindings(const struct MenuOpSeq *map, enum MenuType mtype)
  */
 void km_init(void)
 {
-  memset(Keymaps, 0, sizeof(struct KeymapList) * MENU_MAX);
-
   create_bindings(AliasDefaultBindings, MENU_ALIAS);
   create_bindings(AttachmentDefaultBindings, MENU_ATTACHMENT);
 #ifdef USE_AUTOCRYPT
@@ -208,14 +206,14 @@ void km_init(void)
  * mutt_keymaplist_free - Free a List of Keymaps
  * @param km_list List of Keymaps to free
  */
-static void mutt_keymaplist_free(struct KeymapList *km_list)
+static void mutt_keymaplist_free(KeymapList *km_list)
 {
-  struct Keymap *np = NULL, *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, km_list, entries, tmp)
+  for (GSList *np = km_list; np != NULL; np = np->next)
   {
-    STAILQ_REMOVE(km_list, np, Keymap, entries);
-    mutt_keymap_free(&np);
+    struct Keymap *km = np->data;
+    mutt_keymap_free(&km);
   }
+  g_slist_free(km_list);
 }
 
 /**
@@ -225,7 +223,7 @@ void mutt_keys_cleanup(void)
 {
   for (enum MenuType i = 1; i < MENU_MAX; i++)
   {
-    mutt_keymaplist_free(&Keymaps[i]);
+    mutt_keymaplist_free(g_steal_pointer(&Keymaps[i]));
   }
 }
 

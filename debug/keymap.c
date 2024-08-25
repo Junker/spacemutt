@@ -112,18 +112,18 @@ void log_macro(const char *keystr, struct Keymap *map)
  * @param menu Menu to dump
  * @param kml  Map of keybindings
  */
-void log_menu(enum MenuType menu, struct KeymapList *kml)
+void log_menu(enum MenuType menu, KeymapList *kml)
 {
-  struct Keymap *map = NULL;
 
-  if (STAILQ_EMPTY(kml))
+  if (!kml)
   {
     log_debug1("    [NONE]");
     return;
   }
 
-  STAILQ_FOREACH(map, kml, entries)
+  for (GSList *np = kml; np != NULL; np = np->next)
   {
+    struct Keymap *map = np->data;
     char key_binding[128] = { 0 };
     km_expand_key(key_binding, sizeof(key_binding), map);
 
@@ -148,6 +148,6 @@ void dump_keybindings(void)
   for (int i = 1; i < MENU_MAX; i++)
   {
     log_debug1("Menu: %s", mutt_map_get_name(i, MenuNames));
-    log_menu(i, &Keymaps[i]);
+    log_menu(i, Keymaps[i]);
   }
 }

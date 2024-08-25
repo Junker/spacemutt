@@ -319,11 +319,11 @@ static void format_line(FILE *fp, int ismacro, const char *t1, const char *t2,
  */
 static void dump_menu(FILE *fp, enum MenuType menu, int wraplen)
 {
-  struct Keymap *map = NULL;
   char buf[128] = { 0 };
 
-  STAILQ_FOREACH(map, &Keymaps[menu], entries)
+  for (GSList *np = Keymaps[menu]; np != NULL; np = np->next)
   {
+    struct Keymap *map = np->data;
     if (map->op != OP_NULL)
     {
       km_expand_key(buf, sizeof(buf), map);
@@ -353,11 +353,11 @@ static void dump_menu(FILE *fp, enum MenuType menu, int wraplen)
  * @param op      Operation, e.g. OP_DELETE
  * @retval true A key is bound to that operation
  */
-static bool is_bound(struct KeymapList *km_list, int op)
+static bool is_bound(KeymapList *km_list, int op)
 {
-  struct Keymap *map = NULL;
-  STAILQ_FOREACH(map, km_list, entries)
+  for (GSList *np = km_list; np != NULL; np = np->next)
   {
+    struct Keymap *map = np->data;
     if (map->op == op)
       return true;
   }
@@ -373,7 +373,7 @@ static bool is_bound(struct KeymapList *km_list, int op)
  * @param wraplen Width to wrap to
  */
 static void dump_unbound(FILE *fp, const struct MenuFuncOp *funcs,
-                         struct KeymapList *km_list, struct KeymapList *aux, int wraplen)
+                         KeymapList *km_list, KeymapList *aux, int wraplen)
 {
   for (int i = 0; funcs[i].name; i++)
   {
@@ -503,9 +503,9 @@ void mutt_help(enum MenuType menu)
 
     fprintf(fp, "\n%s\n\n", _("Unbound functions:"));
     if (funcs)
-      dump_unbound(fp, funcs, &Keymaps[menu], NULL, wraplen);
+      dump_unbound(fp, funcs, Keymaps[menu], NULL, wraplen);
     if ((menu != MENU_EDITOR) && (menu != MENU_PAGER) && (menu != MENU_GENERIC))
-      dump_unbound(fp, OpGeneric, &Keymaps[MENU_GENERIC], &Keymaps[menu], wraplen);
+      dump_unbound(fp, OpGeneric, Keymaps[MENU_GENERIC], Keymaps[menu], wraplen);
 
     if (menu == MENU_INDEX)
     {

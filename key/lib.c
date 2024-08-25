@@ -122,7 +122,7 @@ struct Mapping KeyNames[] = {
 keycode_t AbortKey; ///< code of key to abort prompts, normally Ctrl-G
 
 /// Array of key mappings, one for each #MenuType
-struct KeymapList Keymaps[MENU_MAX];
+KeymapList *Keymaps[MENU_MAX];
 
 /**
  * mutt_keymap_free - Free a Keymap
@@ -508,13 +508,14 @@ int km_expand_key_string(char *str, char *buf, size_t buflen)
  */
 struct Keymap *km_find_func(enum MenuType mtype, int func)
 {
-  struct Keymap *np = NULL;
-  STAILQ_FOREACH(np, &Keymaps[mtype], entries)
+  struct Keymap *km = NULL;
+  for (GSList *np = Keymaps[mtype]; np != NULL; np = np->next)
   {
-    if (np->op == func)
+    km = np->data;
+    if (km->op == func)
       break;
   }
-  return np;
+  return km;
 }
 
 /**

@@ -346,7 +346,7 @@ static struct KeyEvent retry_generic(enum MenuType mtype, keycode_t *keys,
 struct KeyEvent km_dokey_event(enum MenuType mtype, GetChFlags flags)
 {
   struct KeyEvent event = { 0, OP_NULL };
-  struct Keymap *map = STAILQ_FIRST(&Keymaps[mtype]);
+  struct Keymap *map = Keymaps[mtype] ? Keymaps[mtype]->data : NULL;
   int pos = 0;
   int n = 0;
 
@@ -406,11 +406,12 @@ struct KeyEvent km_dokey_event(enum MenuType mtype, GetChFlags flags)
       return event;
 
     /* Nope. Business as usual */
+    GSList *np = g_slist_find(Keymaps[mtype], map);
     while (event.ch > map->keys[pos])
     {
-      if ((pos > map->eq) || !STAILQ_NEXT(map, entries))
+      if ((pos > map->eq) || !np->next)
         return retry_generic(mtype, map->keys, pos, event.ch, flags);
-      map = STAILQ_NEXT(map, entries);
+      map = np->next->data;
     }
 
     if (event.ch != map->keys[pos])
@@ -444,7 +445,7 @@ struct KeyEvent km_dokey_event(enum MenuType mtype, GetChFlags flags)
       }
 
       generic_tokenize_push_string(map->macro);
-      map = STAILQ_FIRST(&Keymaps[mtype]);
+      map = Keymaps[mtype] ? Keymaps[mtype]->data : NULL;
       pos = 0;
     }
   }

@@ -51,10 +51,10 @@
 static bool dump_bind(struct Buffer *buf, enum MenuType menu, const char *name)
 {
   bool empty = true;
-  struct Keymap *map = NULL;
 
-  STAILQ_FOREACH(map, &Keymaps[menu], entries)
+  for (GSList *np = Keymaps[menu]; np != NULL; np = np->next)
   {
+    struct Keymap *map = np->data;
     if (map->op == OP_MACRO)
       continue;
 
@@ -120,10 +120,10 @@ static void dump_all_binds(struct Buffer *buf)
 static bool dump_macro(struct Buffer *buf, enum MenuType menu, const char *name)
 {
   bool empty = true;
-  struct Keymap *map = NULL;
 
-  STAILQ_FOREACH(map, &Keymaps[menu], entries)
+  for (GSList *np = Keymaps[menu]; np != NULL; np = np->next)
   {
+    struct Keymap *map = np->data;
     if (map->op != OP_MACRO)
       continue;
 
