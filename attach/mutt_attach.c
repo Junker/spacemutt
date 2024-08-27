@@ -502,12 +502,12 @@ int mutt_view_attachment(FILE *fp, struct Body *b, enum ViewAttachMode mode,
         related_ancestor = attach_body_ancestor(e->body, b, "related");
       if (related_ancestor)
       {
-        struct CidMapList cid_map_list = STAILQ_HEAD_INITIALIZER(cid_map_list);
+        CidMapList *cid_map_list = NULL;
         log_debug2("viewing text/html attachment in multipart/related group");
         /* save attachments and build cid_map_list Content-ID to filename mapping list */
         cid_save_attachments(related_ancestor->parts, &cid_map_list);
         /* replace Content-IDs with filenames */
-        cid_to_filename(tmpfile, &cid_map_list);
+        cid_to_filename(tmpfile, cid_map_list);
         /* empty Content-ID to filename mapping list */
         cid_map_list_clear(&cid_map_list);
       }

@@ -36,14 +36,13 @@ struct CidMap
 {
   char *cid;                    ///< Content-ID
   char *fname;                  ///< Filename
-  STAILQ_ENTRY(CidMap) entries; ///< Linked list
 };
-STAILQ_HEAD(CidMapList, CidMap);
+typedef GSList CidMapList;
 
 void           cid_map_free        (struct CidMap **ptr);
 struct CidMap *cid_map_new         (const char *cid, const char *filename);
-void           cid_map_list_clear  (struct CidMapList *cid_map_list);
-void           cid_save_attachments(struct Body *body, struct CidMapList *cid_map_list);
-void           cid_to_filename     (struct Buffer *filename, const struct CidMapList *cid_map_list);
+void           cid_map_list_clear  (CidMapList **cid_map_list);
+void           cid_save_attachments(struct Body *body, CidMapList **cid_map_list);
+void           cid_to_filename     (struct Buffer *filename, const CidMapList *cid_map_list);
 
 #endif /* MUTT_ATTACH_CID_H */

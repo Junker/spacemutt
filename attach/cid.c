@@ -79,17 +79,17 @@ struct CidMap *cid_map_new(const char *cid, const char *filename)
  * cid_map_list_clear - Empty a CidMapList
  * @param cid_map_list List of Content-ID to filename mappings
  */
-void cid_map_list_clear(struct CidMapList *cid_map_list)
+void cid_map_list_clear(CidMapList **cid_map_list)
 {
-  if (!cid_map_list)
+  if (!*cid_map_list)
     return;
 
-  while (!STAILQ_EMPTY(cid_map_list))
+  for (GSList *np = *cid_map_list; np != NULL; np = np->next)
   {
-    struct CidMap *cid_map = STAILQ_FIRST(cid_map_list);
-    STAILQ_REMOVE_HEAD(cid_map_list, entries);
+    struct CidMap *cid_map = np->data;
     cid_map_free(&cid_map);
   }
+  g_slist_free(g_steal_pointer(cid_map_list));
 }
 
 /**
@@ -100,7 +100,7 @@ void cid_map_list_clear(struct CidMapList *cid_map_list)
  * If body has a Content-ID, it is saved to disk and a new Content-ID to filename
  * mapping is added to cid_map_list.
  */
-static void cid_save_attachment(struct Body *b, struct CidMapList *cid_map_list)
+static void cid_save_attachment(struct Body *b, CidMapList **cid_map_list)
 {
   if (!b || !cid_map_list)
     return;
@@ -133,7 +133,7 @@ static void cid_save_attachment(struct Body *b, struct CidMapList *cid_map_list)
   /* add Content-ID to filename mapping to list */
   buf_printf(cid, "cid:%s", id);
   struct CidMap *cid_map = cid_map_new(buf_string(cid), buf_string(tmpfile));
-  STAILQ_INSERT_TAIL(cid_map_list, cid_map, entries);
+  *cid_map_list = g_slist_append(*cid_map_list, cid_map);
 
 bail:
 
@@ -148,9 +148,9 @@ bail:
  * @param[in]  body         First body in "multipart/related" group
  * @param[out] cid_map_list List of Content-ID to filename mappings
  */
-void cid_save_attachments(struct Body *body, struct CidMapList *cid_map_list)
+void cid_save_attachments(struct Body *body, CidMapList **cid_map_list)
 {
-  if (!body || !cid_map_list)
+  if (!body || !*cid_map_list)
     return;
 
   for (struct Body *b = body; b; b = b->next)
@@ -167,7 +167,7 @@ void cid_save_attachments(struct Body *body, struct CidMapList *cid_map_list)
  * @param filename     Path to file to replace Content-IDs with filenames
  * @param cid_map_list List of Content-ID to filename mappings
  */
-void cid_to_filename(struct Buffer *filename, const struct CidMapList *cid_map_list)
+void cid_to_filename(struct Buffer *filename, const CidMapList *cid_map_list)
 {
   if (!filename || !cid_map_list)
     return;
@@ -178,7 +178,6 @@ void cid_to_filename(struct Buffer *filename, const struct CidMapList *cid_map_l
   char *buf = NULL;
   char *cid = NULL;
   size_t blen = 0;
-  struct CidMap *cid_map = NULL;
 
   struct Buffer *tmpfile = buf_pool_get();
   struct Buffer *tmpbuf = buf_pool_get();
@@ -212,10 +211,11 @@ void cid_to_filename(struct Buffer *filename, const struct CidMapList *cid_map_l
     buf_reset(tmpbuf);
 
     /* loop through Content-ID to filename mappings and do search and replace */
-    STAILQ_FOREACH(cid_map, cid_map_list, entries)
+    for (GSList *np = cid_map_list; np != NULL; np = np->next)
     {
-      pbuf = searchbuf;
-      while ((cid = strstr(pbuf, cid_map->cid)) != NULL)
+     struct CidMap *cid_map = np->data;
+     pbuf = searchbuf;
+     while ((cid = strstr(pbuf, cid_map->cid)) != NULL)
       {
         buf_addstr_n(tmpbuf, pbuf, cid - pbuf);
         buf_addstr(tmpbuf, cid_map->fname);
