@@ -266,8 +266,8 @@ void regex_colors_dump(struct Buffer *buf)
     if (!mutt_color_has_pattern(cid))
       continue;
 
-    struct RegexColorList *rcl = regex_colors_get_list(cid);
-    if (STAILQ_EMPTY(rcl))
+    RegexColorList *rcl = regex_colors_get_list(cid);
+    if (!rcl->head)
       continue;
 
     const char *name = mutt_map_get_name(cid, ColorFields);
@@ -276,9 +276,9 @@ void regex_colors_dump(struct Buffer *buf)
 
     buf_add_printf(buf, _("# Regex Color %s\n"), name);
 
-    struct RegexColor *rc = NULL;
-    STAILQ_FOREACH(rc, rcl, entries)
+    for (GSList *np = rcl->head; np != NULL; np = np->next)
     {
+      struct RegexColor *rc = np->data;
       struct AttrColor *ac = &rc->attr_color;
 
       buf_reset(pattern);
@@ -397,8 +397,8 @@ void status_colors_dump(struct Buffer *buf)
   if (attr_color_is_set(ac))
     set = true;
 
-  struct RegexColorList *rcl = regex_colors_get_list(cid);
-  if (!STAILQ_EMPTY(rcl))
+  RegexColorList *rcl = regex_colors_get_list(cid);
+  if (rcl->head)
     set = true;
 
   if (set)
@@ -412,9 +412,9 @@ void status_colors_dump(struct Buffer *buf)
                    color_log_name(color_bg, sizeof(color_bg), &ac->bg),
                    buf_string(swatch));
 
-    struct RegexColor *rc = NULL;
-    STAILQ_FOREACH(rc, rcl, entries)
+    for (GSList *np = rcl->head; np != NULL; np = np->next)
     {
+      struct RegexColor *rc = np->data;
       ac = &rc->attr_color;
 
       buf_reset(pattern);

@@ -374,8 +374,7 @@ static void match_body_patterns(char *pat, struct Line *lines, int line_num)
 
   int i = 0;
   int offset = 0;
-  struct RegexColor *color_line = NULL;
-  struct RegexColorList *head = NULL;
+  RegexColorList *head = NULL;
   bool found = false;
   bool null_rx = false;
   regmatch_t pmatch[1] = { 0 };
@@ -389,8 +388,9 @@ static void match_body_patterns(char *pat, struct Line *lines, int line_num)
   {
     head = regex_colors_get_list(MT_COLOR_BODY);
   }
-  STAILQ_FOREACH(color_line, head, entries)
+  for (GSList *np = head->head; np != NULL; np = np->next)
   {
+    struct RegexColor *color_line = np->data;
     color_line->stop_matching = false;
   }
 
@@ -405,8 +405,9 @@ static void match_body_patterns(char *pat, struct Line *lines, int line_num)
 
     found = false;
     null_rx = false;
-    STAILQ_FOREACH(color_line, head, entries)
+    for (GSList *np = head->head; np != NULL; np = np->next)
     {
+      struct RegexColor *color_line = np->data;
       if (color_line->stop_matching)
         continue;
 
@@ -497,7 +498,6 @@ static void resolve_types(struct MuttWindow *win, char *buf, char *raw,
                           struct QuoteStyle **quote_list, int *q_level,
                           bool *force_redraw, bool q_classify)
 {
-  struct RegexColor *color_line = NULL;
   regmatch_t pmatch[1] = { 0 };
   const bool c_header_color_partial = cs_subset_bool(NeoMutt->sub, "header_color_partial");
   int offset, i = 0;
@@ -534,8 +534,9 @@ static void resolve_types(struct MuttWindow *win, char *buf, char *raw,
        * like body patterns (further below).  */
       if (!c_header_color_partial)
       {
-        STAILQ_FOREACH(color_line, regex_colors_get_list(MT_COLOR_HEADER), entries)
+        for (GSList *np = regex_colors_get_list(MT_COLOR_HEADER)->head; np != NULL; np = np->next)
         {
+          struct RegexColor *color_line = np->data;
           if (regexec(&color_line->regex, buf, 0, NULL, 0) == 0)
           {
             lines[line_num].cid = MT_COLOR_HEADER;
@@ -641,8 +642,9 @@ static void resolve_types(struct MuttWindow *win, char *buf, char *raw,
 
       found = false;
       null_rx = false;
-      STAILQ_FOREACH(color_line, regex_colors_get_list(MT_COLOR_ATTACH_HEADERS), entries)
+      for (GSList *np = regex_colors_get_list(MT_COLOR_ATTACH_HEADERS)->head; np != NULL; np = np->next)
       {
+        struct RegexColor *color_line = np->data;
         if (regexec(&color_line->regex, buf + offset, 1, pmatch,
                     ((offset != 0) ? REG_NOTBOL : 0)) != 0)
         {

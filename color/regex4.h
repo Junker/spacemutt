@@ -41,20 +41,22 @@ struct RegexColor
   struct PatternList *color_pattern; ///< Compiled pattern to speed up index color calculation
 
   bool stop_matching : 1;            ///< Used by the pager for body patterns, to prevent the color from being retried once it fails
-
-  STAILQ_ENTRY(RegexColor) entries;  ///< Linked list
 };
-STAILQ_HEAD(RegexColorList, RegexColor);
+
+typedef struct
+{
+  GSList *head;
+} RegexColorList;
 
 void                   regex_color_clear(struct RegexColor *rcol);
-void                   regex_color_free(struct RegexColorList *list, struct RegexColor **ptr);
+void                   regex_color_free(RegexColorList *list, struct RegexColor **ptr);
 struct RegexColor *    regex_color_new (void);
 
 void                   regex_colors_cleanup(void);
-struct RegexColorList *regex_colors_get_list(enum ColorId cid);
+RegexColorList        *regex_colors_get_list(enum ColorId cid);
 void                   regex_colors_init(void);
 
-void                   regex_color_list_clear(struct RegexColorList *rcl);
+void                   regex_color_list_clear(RegexColorList *rcl);
 
 bool regex_colors_parse_color_list (enum ColorId cid, const char *pat, struct AttrColor *ac, int *rc, struct Buffer *err);
 int  regex_colors_parse_status_list(enum ColorId cid, const char *pat, struct AttrColor *ac, int match, struct Buffer *err);

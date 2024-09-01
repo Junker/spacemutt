@@ -45,21 +45,21 @@
 #include "regex4.h"
 
 // clang-format off
-struct RegexColorList AttachList;         ///< List of colours applied to the attachment headers
-struct RegexColorList BodyList;           ///< List of colours applied to the email body
-struct RegexColorList HeaderList;         ///< List of colours applied to the email headers
-struct RegexColorList IndexAuthorList;    ///< List of colours applied to the author in the index
-struct RegexColorList IndexCollapsedList; ///< List of colours applied to a collapsed thread in the index
-struct RegexColorList IndexDateList;      ///< List of colours applied to the date in the index
-struct RegexColorList IndexFlagsList;     ///< List of colours applied to the flags in the index
-struct RegexColorList IndexLabelList;     ///< List of colours applied to the label in the index
-struct RegexColorList IndexList;          ///< List of default colours applied to the index
-struct RegexColorList IndexNumberList;    ///< List of colours applied to the message number in the index
-struct RegexColorList IndexSizeList;      ///< List of colours applied to the size in the index
-struct RegexColorList IndexSubjectList;   ///< List of colours applied to the subject in the index
-struct RegexColorList IndexTagList;       ///< List of colours applied to tags in the index
-struct RegexColorList IndexTagsList;      ///< List of colours applied to the tags in the index
-struct RegexColorList StatusList;         ///< List of colours applied to the status bar
+RegexColorList *AttachList;         ///< List of colours applied to the attachment headers
+RegexColorList *BodyList;           ///< List of colours applied to the email body
+RegexColorList *HeaderList;         ///< List of colours applied to the email headers
+RegexColorList *IndexAuthorList;    ///< List of colours applied to the author in the index
+RegexColorList *IndexCollapsedList; ///< List of colours applied to a collapsed thread in the index
+RegexColorList *IndexDateList;      ///< List of colours applied to the date in the index
+RegexColorList *IndexFlagsList;     ///< List of colours applied to the flags in the index
+RegexColorList *IndexLabelList;     ///< List of colours applied to the label in the index
+RegexColorList *IndexList;          ///< List of default colours applied to the index
+RegexColorList *IndexNumberList;    ///< List of colours applied to the message number in the index
+RegexColorList *IndexSizeList;      ///< List of colours applied to the size in the index
+RegexColorList *IndexSubjectList;   ///< List of colours applied to the subject in the index
+RegexColorList *IndexTagList;       ///< List of colours applied to tags in the index
+RegexColorList *IndexTagsList;      ///< List of colours applied to the tags in the index
+RegexColorList *StatusList;         ///< List of colours applied to the status bar
 // clang-format on
 
 /**
@@ -68,21 +68,21 @@ struct RegexColorList StatusList;         ///< List of colours applied to the st
 void regex_colors_init(void)
 {
   log_color_debug("init AttachList, BodyList, etc\n");
-  STAILQ_INIT(&AttachList);
-  STAILQ_INIT(&BodyList);
-  STAILQ_INIT(&HeaderList);
-  STAILQ_INIT(&IndexAuthorList);
-  STAILQ_INIT(&IndexCollapsedList);
-  STAILQ_INIT(&IndexDateList);
-  STAILQ_INIT(&IndexLabelList);
-  STAILQ_INIT(&IndexNumberList);
-  STAILQ_INIT(&IndexSizeList);
-  STAILQ_INIT(&IndexTagsList);
-  STAILQ_INIT(&IndexFlagsList);
-  STAILQ_INIT(&IndexList);
-  STAILQ_INIT(&IndexSubjectList);
-  STAILQ_INIT(&IndexTagList);
-  STAILQ_INIT(&StatusList);
+  AttachList = g_slice_new0(RegexColorList);
+  BodyList = g_slice_new0(RegexColorList);
+  HeaderList = g_slice_new0(RegexColorList);
+  IndexAuthorList = g_slice_new0(RegexColorList);
+  IndexCollapsedList = g_slice_new0(RegexColorList);
+  IndexDateList = g_slice_new0(RegexColorList);
+  IndexLabelList = g_slice_new0(RegexColorList);
+  IndexNumberList = g_slice_new0(RegexColorList);
+  IndexSizeList = g_slice_new0(RegexColorList);
+  IndexTagsList = g_slice_new0(RegexColorList);
+  IndexFlagsList = g_slice_new0(RegexColorList);
+  IndexList = g_slice_new0(RegexColorList);
+  IndexSubjectList = g_slice_new0(RegexColorList);
+  IndexTagList = g_slice_new0(RegexColorList);
+  StatusList = g_slice_new0(RegexColorList);
 }
 
 /**
@@ -91,21 +91,21 @@ void regex_colors_init(void)
 void regex_colors_cleanup(void)
 {
   log_color_debug("clean up regex\n");
-  regex_color_list_clear(&AttachList);
-  regex_color_list_clear(&BodyList);
-  regex_color_list_clear(&HeaderList);
-  regex_color_list_clear(&IndexList);
-  regex_color_list_clear(&IndexAuthorList);
-  regex_color_list_clear(&IndexCollapsedList);
-  regex_color_list_clear(&IndexDateList);
-  regex_color_list_clear(&IndexLabelList);
-  regex_color_list_clear(&IndexNumberList);
-  regex_color_list_clear(&IndexSizeList);
-  regex_color_list_clear(&IndexTagsList);
-  regex_color_list_clear(&IndexFlagsList);
-  regex_color_list_clear(&IndexSubjectList);
-  regex_color_list_clear(&IndexTagList);
-  regex_color_list_clear(&StatusList);
+  regex_color_list_clear(AttachList);
+  regex_color_list_clear(BodyList);
+  regex_color_list_clear(HeaderList);
+  regex_color_list_clear(IndexList);
+  regex_color_list_clear(IndexAuthorList);
+  regex_color_list_clear(IndexCollapsedList);
+  regex_color_list_clear(IndexDateList);
+  regex_color_list_clear(IndexLabelList);
+  regex_color_list_clear(IndexNumberList);
+  regex_color_list_clear(IndexSizeList);
+  regex_color_list_clear(IndexTagsList);
+  regex_color_list_clear(IndexFlagsList);
+  regex_color_list_clear(IndexSubjectList);
+  regex_color_list_clear(IndexTagList);
+  regex_color_list_clear(StatusList);
 }
 
 /**
@@ -133,7 +133,7 @@ void regex_color_clear(struct RegexColor *rcol)
  * @param list RegexColorList holding the colour
  * @param ptr  RegexColor to free
  */
-void regex_color_free(struct RegexColorList *list, struct RegexColor **ptr)
+void regex_color_free(RegexColorList *list, struct RegexColor **ptr)
 {
   if (!ptr || !*ptr)
     return;
@@ -163,17 +163,17 @@ struct RegexColor *regex_color_new(void)
  *
  * @note The list object isn't freed, only emptied
  */
-void regex_color_list_clear(struct RegexColorList *rcl)
+void regex_color_list_clear(RegexColorList *rcl)
 {
   if (!rcl)
     return;
 
-  struct RegexColor *np = NULL, *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, rcl, entries, tmp)
+  for (GSList *np = rcl->head; np != NULL; np = np->next)
   {
-    STAILQ_REMOVE(rcl, np, RegexColor, entries);
-    regex_color_free(rcl, &np);
+    struct RegexColor *rc = np->data;
+    regex_color_free(rcl, &rc);
   }
+  g_slist_free(g_steal_pointer(&rcl->head));
 }
 
 /**
@@ -181,40 +181,40 @@ void regex_color_list_clear(struct RegexColorList *rcl)
  * @param cid Colour Id, e.g. #MT_COLOR_BODY
  * @retval ptr RegexColorList
  */
-struct RegexColorList *regex_colors_get_list(enum ColorId cid)
+RegexColorList *regex_colors_get_list(enum ColorId cid)
 {
   switch (cid)
   {
     case MT_COLOR_ATTACH_HEADERS:
-      return &AttachList;
+      return AttachList;
     case MT_COLOR_BODY:
-      return &BodyList;
+      return BodyList;
     case MT_COLOR_HEADER:
-      return &HeaderList;
+      return HeaderList;
     case MT_COLOR_INDEX:
-      return &IndexList;
+      return IndexList;
     case MT_COLOR_INDEX_AUTHOR:
-      return &IndexAuthorList;
+      return IndexAuthorList;
     case MT_COLOR_INDEX_COLLAPSED:
-      return &IndexCollapsedList;
+      return IndexCollapsedList;
     case MT_COLOR_INDEX_DATE:
-      return &IndexDateList;
+      return IndexDateList;
     case MT_COLOR_INDEX_FLAGS:
-      return &IndexFlagsList;
+      return IndexFlagsList;
     case MT_COLOR_INDEX_LABEL:
-      return &IndexLabelList;
+      return IndexLabelList;
     case MT_COLOR_INDEX_NUMBER:
-      return &IndexNumberList;
+      return IndexNumberList;
     case MT_COLOR_INDEX_SIZE:
-      return &IndexSizeList;
+      return IndexSizeList;
     case MT_COLOR_INDEX_SUBJECT:
-      return &IndexSubjectList;
+      return IndexSubjectList;
     case MT_COLOR_INDEX_TAG:
-      return &IndexTagList;
+      return IndexTagList;
     case MT_COLOR_INDEX_TAGS:
-      return &IndexTagsList;
+      return IndexTagsList;
     case MT_COLOR_STATUS:
-      return &StatusList;
+      return StatusList;
     default:
       return NULL;
   }
@@ -234,17 +234,19 @@ struct RegexColorList *regex_colors_get_list(enum ColorId cid)
  * is_index used to store compiled pattern only for 'index' color object when
  * called from mutt_parse_color()
  */
-static enum CommandResult add_pattern(struct RegexColorList *rcl, const char *s,
+static enum CommandResult add_pattern(RegexColorList *rcl, const char *s,
                                       bool sensitive, struct AttrColor *ac_val,
                                       struct Buffer *err, bool is_index, int match)
 {
-  struct RegexColor *rcol = NULL;
 
-  STAILQ_FOREACH(rcol, rcl, entries)
+  struct RegexColor *rcol = NULL;
+  for (GSList *np = rcl->head; np != NULL; np = np->next)
   {
-    if ((sensitive && mutt_str_equal(s, rcol->pattern)) ||
-        (!sensitive && mutt_istr_equal(s, rcol->pattern)))
+    struct RegexColor *rc = np->data;
+    if ((sensitive && mutt_str_equal(s, rc->pattern)) ||
+        (!sensitive && mutt_istr_equal(s, rc->pattern)))
     {
+      rcol = rc;
       break;
     }
   }
@@ -296,7 +298,7 @@ static enum CommandResult add_pattern(struct RegexColorList *rcl, const char *s,
 
     attr_color_overwrite(ac, ac_val);
 
-    STAILQ_INSERT_TAIL(rcl, rcol, entries);
+    rcl->head = g_slist_append(rcl->head, rcol);
   }
 
   if (is_index)
@@ -327,7 +329,9 @@ bool regex_colors_parse_color_list(enum ColorId cid, const char *pat,
   if (cid == MT_COLOR_STATUS)
     return false;
 
-  struct RegexColorList *rcl = regex_colors_get_list(cid);
+
+  RegexColorList *rcl = regex_colors_get_list(cid);
+
   if (!rcl)
     return false;
 
@@ -393,7 +397,7 @@ int regex_colors_parse_status_list(enum ColorId cid, const char *pat,
   if (cid != MT_COLOR_STATUS)
     return MUTT_CMD_ERROR;
 
-  int rc = add_pattern(&StatusList, pat, true, ac, err, false, match);
+  int rc = add_pattern(StatusList, pat, true, ac, err, false, match);
   if (rc != MUTT_CMD_SUCCESS)
     return rc;
 
@@ -417,13 +421,13 @@ int regex_colors_parse_status_list(enum ColorId cid, const char *pat,
  */
 bool regex_colors_parse_uncolor(enum ColorId cid, const char *pat, bool uncolor)
 {
-  struct RegexColorList *cl = regex_colors_get_list(cid);
+  RegexColorList *cl = regex_colors_get_list(cid);
   if (!cl)
     return false;
 
   if (!pat) // Reset all patterns
   {
-    if (STAILQ_EMPTY(cl))
+    if (!cl->head)
       return true;
 
     log_notify("NT_COLOR_RESET: [ALL]");
@@ -434,30 +438,24 @@ bool regex_colors_parse_uncolor(enum ColorId cid, const char *pat, bool uncolor)
     return true;
   }
 
-  bool rc = false;
-  struct RegexColor *np = NULL, *prev = NULL;
-  prev = NULL;
-  STAILQ_FOREACH(np, cl, entries)
+  bool res = false;
+  for (GSList *np = cl->head; np != NULL; np = np->next)
   {
-    if (mutt_str_equal(pat, np->pattern))
+    struct RegexColor *rc = np->data;
+    if (mutt_str_equal(pat, rc->pattern))
     {
-      rc = true;
+      res = true;
 
       log_color_debug("Freeing pattern \"%s\" from XXX\n", pat);
-      if (prev)
-        STAILQ_REMOVE_AFTER(cl, prev, entries);
-      else
-        STAILQ_REMOVE_HEAD(cl, entries);
-
+      cl->head = g_slist_remove_link(cl->head, np);
       log_notify("NT_COLOR_RESET: XXX");
-      struct EventColor ev_c = { cid, &np->attr_color };
+      struct EventColor ev_c = { cid, &rc->attr_color };
       notify_send(ColorsNotify, NT_COLOR, NT_COLOR_RESET, &ev_c);
 
-      regex_color_free(cl, &np);
+      regex_color_free(cl, &rc);
       break;
     }
-    prev = np;
   }
 
-  return rc;
+  return res;
 }
