@@ -378,7 +378,7 @@ void test_fini(void);
   NEOMUTT_TEST_ITEM(test_mutt_grouplist_add_regex)                             \
   NEOMUTT_TEST_ITEM(test_mutt_grouplist_cleanup)                               \
   NEOMUTT_TEST_ITEM(test_mutt_grouplist_clear)                                 \
-  NEOMUTT_TEST_ITEM(test_mutt_grouplist_destroy)                               \
+  NEOMUTT_TEST_ITEM(test_mutt_grouplist_free)                                  \
   NEOMUTT_TEST_ITEM(test_mutt_grouplist_init)                                  \
   NEOMUTT_TEST_ITEM(test_mutt_grouplist_remove_addrlist)                       \
   NEOMUTT_TEST_ITEM(test_mutt_grouplist_remove_regex)                          \

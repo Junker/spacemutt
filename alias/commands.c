@@ -135,7 +135,7 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
                                intptr_t data, struct Buffer *err)
 {
   struct Alias *tmp = NULL;
-  struct GroupList gl = STAILQ_HEAD_INITIALIZER(gl);
+  GroupList *gl = NULL;
   enum NotifyAlias event;
 
   if (!MoreArgs(s))
@@ -163,7 +163,8 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
     buf_printf(err, _("Warning: Bad address '%s' in alias '%s'"), buf->data, name);
     g_queue_free(al);
     FREE(&name);
-    goto bail;
+    mutt_grouplist_free(gl);
+    return MUTT_CMD_ERROR;
   }
 
   /* IDN */
@@ -173,7 +174,8 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
     buf_printf(err, _("Warning: Bad IDN '%s' in alias '%s'"), estr, name);
     FREE(&name);
     FREE(&estr);
-    goto bail;
+    mutt_grouplist_free(gl);
+    return MUTT_CMD_ERROR;
   }
 
   /* check to see if an alias with this name already exists */
@@ -204,7 +206,7 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
   }
   tmp->addr = al;
 
-  mutt_grouplist_add_addrlist(&gl, tmp->addr);
+  mutt_grouplist_add_addrlist(gl, tmp->addr);
 
   const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
   if (c_debug_level > 4)
@@ -222,7 +224,7 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
         log_debug5("  %s", buf_string(a->mailbox));
     }
   }
-  mutt_grouplist_destroy(&gl);
+  mutt_grouplist_free(g_steal_pointer(&gl));
   if (!MoreArgs(s) && (s->dptr[0] == '#'))
   {
     s->dptr++; // skip over the "# "
@@ -241,10 +243,6 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
   notify_send(NeoMutt->notify, NT_ALIAS, event, &ev_a);
 
   return MUTT_CMD_SUCCESS;
-
-bail:
-  mutt_grouplist_destroy(&gl);
-  return MUTT_CMD_ERROR;
 }
 
 /**

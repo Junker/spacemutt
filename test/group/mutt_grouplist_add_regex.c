@@ -30,23 +30,24 @@
 
 void test_mutt_grouplist_add_regex(void)
 {
-  // int mutt_grouplist_add_regex(struct GroupList *gl, const char *s, uint16_t flags, struct Buffer *err);
+  // int mutt_grouplist_add_regex(GroupList *gl, const char *s, uint16_t flags, struct Buffer *err);
 
   {
     struct Buffer *err = buf_pool_get();
-    TEST_CHECK(mutt_grouplist_add_regex(NULL, "apple", 0, err) == -1);
+    TEST_CHECK(mutt_grouplist_add_regex(NULL, "apple", 0, err) == 0);
     buf_pool_release(&err);
   }
 
   {
-    struct GroupList head = { 0 };
+    GroupList *head = g_slist_alloc();
     struct Buffer *err = buf_pool_get();
-    TEST_CHECK(mutt_grouplist_add_regex(&head, NULL, 0, err) == -1);
+    TEST_CHECK(mutt_grouplist_add_regex(head, NULL, 0, err) == -1);
     buf_pool_release(&err);
+    g_slist_free_1(head);
   }
 
   {
-    struct GroupList head = { 0 };
-    TEST_CHECK(mutt_grouplist_add_regex(&head, "apple", 0, NULL) == 0);
+    GroupList *head = NULL;
+    TEST_CHECK(mutt_grouplist_add_regex(head, "apple", 0, NULL) == 0);
   }
 }

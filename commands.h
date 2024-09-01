@@ -28,9 +28,9 @@
 #include <stdint.h>
 #include "config/lib.h"
 #include "core/lib.h"
+#include "address/group.h"
 
 struct Buffer;
-struct GroupList;
 
 /* parameter to parse_mailboxes */
 #define MUTT_NAMED   (1 << 0)
@@ -48,7 +48,7 @@ enum CommandResult parse_rc_line_cwd(const char *line, char *cwd, struct Buffer 
 char *mutt_get_sourced_cwd(void);
 bool mailbox_add_simple(const char *mailbox, struct Buffer *err);
 
-int parse_grouplist(struct GroupList *gl, struct Buffer *buf, struct Buffer *s, struct Buffer *err);
+int parse_grouplist(GroupList **gl, struct Buffer *buf, struct Buffer *s, struct Buffer *err);
 void source_stack_cleanup(void);
 
 enum CommandResult set_dump(ConfigDumpFlags flags, struct Buffer *err);

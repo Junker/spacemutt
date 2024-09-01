@@ -30,16 +30,17 @@
 
 void test_mutt_grouplist_remove_addrlist(void)
 {
-  // int mutt_grouplist_remove_addrlist(struct GroupList *head, struct Address *a);
+  // int mutt_grouplist_remove_addrlist(GroupList *head, struct Address *a);
 
   {
     AddressList *addr = mutt_addrlist_new();
-    TEST_CHECK(mutt_grouplist_remove_addrlist(NULL, addr) == -1);
+    TEST_CHECK(mutt_grouplist_remove_addrlist(NULL, addr) == 0);
     mutt_addrlist_free_full(addr);
   }
 
   {
-    struct GroupList head = { 0 };
-    TEST_CHECK(mutt_grouplist_remove_addrlist(&head, NULL) == -1);
+    GroupList *head = g_slist_alloc();
+    TEST_CHECK(mutt_grouplist_remove_addrlist(head, NULL) == -1);
+    g_slist_free_1(head);
   }
 }

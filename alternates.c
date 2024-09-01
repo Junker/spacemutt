@@ -92,34 +92,35 @@ void mutt_alternates_reset(struct MailboxView *mv)
 enum CommandResult parse_alternates(struct Buffer *buf, struct Buffer *s,
                                     intptr_t data, struct Buffer *err)
 {
-  struct GroupList gl = STAILQ_HEAD_INITIALIZER(gl);
+  GroupList *gl = NULL;
 
   do
   {
     parse_extract_token(buf, s, TOKEN_NO_FLAGS);
 
     if (parse_grouplist(&gl, buf, s, err) == -1)
-      goto bail;
+    {
+      mutt_grouplist_free(gl);
+      return MUTT_CMD_ERROR;
+    }
 
     mutt_regexlist_remove(&UnAlternates, buf->data);
 
-    if (mutt_regexlist_add(&Alternates, buf->data, REG_ICASE, err) != 0)
-      goto bail;
-
-    if (mutt_grouplist_add_regex(&gl, buf->data, REG_ICASE, err) != 0)
-      goto bail;
+    if ((mutt_regexlist_add(&Alternates, buf->data, REG_ICASE, err) != 0) ||
+        (mutt_grouplist_add_regex(gl, buf->data, REG_ICASE, err) != 0))
+    {
+      mutt_grouplist_free(gl);
+      return MUTT_CMD_ERROR;
+    }
   } while (MoreArgs(s));
 
-  mutt_grouplist_destroy(&gl);
+  mutt_grouplist_free(gl);
 
   log_notify("NT_ALTERN_ADD: %s", buf->data);
   notify_send(AlternatesNotify, NT_ALTERN, NT_ALTERN_ADD, NULL);
 
   return MUTT_CMD_SUCCESS;
 
-bail:
-  mutt_grouplist_destroy(&gl);
-  return MUTT_CMD_ERROR;
 }
 
 /**

@@ -29,7 +29,7 @@
 
 void test_mutt_grouplist_add(void)
 {
-  // void mutt_grouplist_add(struct GroupList *head, struct Group *group);
+  // void mutt_grouplist_add(GroupList *head, struct Group *group);
 
   {
     struct Group group;
@@ -38,8 +38,9 @@ void test_mutt_grouplist_add(void)
   }
 
   {
-    struct GroupList head = { 0 };
+    GroupList *head = g_slist_alloc();
     mutt_grouplist_add(&head, NULL);
     TEST_CHECK_(1, "mutt_grouplist_add(&head, NULL)");
+    g_slist_free_1(head);
   }
 }

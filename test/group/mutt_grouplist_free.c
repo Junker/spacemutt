@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for mutt_grouplist_destroy()
+ * Test code for mutt_grouplist_free()
  *
  * @authors
  * Copyright (C) 2019 Richard Russon <rich@flatcap.org>
@@ -26,12 +26,12 @@
 #include <stddef.h>
 #include "address/lib.h"
 
-void test_mutt_grouplist_destroy(void)
+void test_mutt_grouplist_free(void)
 {
-  // void mutt_grouplist_destroy(struct GroupList *head);
+  // void mutt_grouplist_free(GroupList *head);
 
   {
-    mutt_grouplist_destroy(NULL);
-    TEST_CHECK_(1, "mutt_grouplist_destroy(NULL)");
+    mutt_grouplist_free(NULL);
+    TEST_CHECK_(1, "mutt_grouplist_free(NULL)");
   }
 }

@@ -128,7 +128,7 @@ static bool is_function(const char *name)
  * @retval  0 Success
  * @retval -1 Error
  */
-int parse_grouplist(struct GroupList *gl, struct Buffer *buf, struct Buffer *s,
+int parse_grouplist(GroupList **gl, struct Buffer *buf, struct Buffer *s,
                     struct Buffer *err)
 {
   while (mutt_istr_equal(buf->data, "-group"))
@@ -271,7 +271,7 @@ static enum CommandResult parse_finish(struct Buffer *buf, struct Buffer *s,
 static enum CommandResult parse_group(struct Buffer *buf, struct Buffer *s,
                                       intptr_t data, struct Buffer *err)
 {
-  struct GroupList gl = STAILQ_HEAD_INITIALIZER(gl);
+  GroupList *gl = NULL;
   enum GroupState gstate = GS_NONE;
 
   do
@@ -282,8 +282,8 @@ static enum CommandResult parse_group(struct Buffer *buf, struct Buffer *s,
 
     if ((data == MUTT_UNGROUP) && mutt_istr_equal(buf->data, "*"))
     {
-      mutt_grouplist_clear(&gl);
-      goto out;
+      mutt_grouplist_clear(gl);
+      return MUTT_CMD_SUCCESS;
     }
 
     if (mutt_istr_equal(buf->data, "-rx"))
@@ -305,12 +305,12 @@ static enum CommandResult parse_group(struct Buffer *buf, struct Buffer *s,
 
         case GS_RX:
           if ((data == MUTT_GROUP) &&
-              (mutt_grouplist_add_regex(&gl, buf->data, REG_ICASE, err) != 0))
+              (mutt_grouplist_add_regex(gl, buf->data, REG_ICASE, err) != 0))
           {
             goto bail;
           }
           else if ((data == MUTT_UNGROUP) &&
-                   (mutt_grouplist_remove_regex(&gl, buf->data) < 0))
+                   (mutt_grouplist_remove_regex(gl, buf->data) < 0))
           {
             goto bail;
           }
@@ -335,9 +335,9 @@ static enum CommandResult parse_group(struct Buffer *buf, struct Buffer *s,
             goto bail;
           }
           if (data == MUTT_GROUP)
-            mutt_grouplist_add_addrlist(&gl, al);
+            mutt_grouplist_add_addrlist(gl, al);
           else if (data == MUTT_UNGROUP)
-            mutt_grouplist_remove_addrlist(&gl, al);
+            mutt_grouplist_remove_addrlist(gl, al);
           mutt_addrlist_free_full(al);
           break;
         }
@@ -345,16 +345,12 @@ static enum CommandResult parse_group(struct Buffer *buf, struct Buffer *s,
     }
   } while (MoreArgs(s));
 
-out:
-  mutt_grouplist_destroy(&gl);
-  return MUTT_CMD_SUCCESS;
-
 bail:
-  mutt_grouplist_destroy(&gl);
+  mutt_grouplist_free(gl);
   return MUTT_CMD_ERROR;
 
 warn:
-  mutt_grouplist_destroy(&gl);
+  mutt_grouplist_free(gl);
   return MUTT_CMD_WARNING;
 }
 
@@ -435,30 +431,30 @@ static enum CommandResult parse_ignore(struct Buffer *buf, struct Buffer *s,
 static enum CommandResult parse_lists(struct Buffer *buf, struct Buffer *s,
                                       intptr_t data, struct Buffer *err)
 {
-  struct GroupList gl = STAILQ_HEAD_INITIALIZER(gl);
+  GroupList *gl = NULL;
 
   do
   {
     parse_extract_token(buf, s, TOKEN_NO_FLAGS);
 
     if (parse_grouplist(&gl, buf, s, err) == -1)
-      goto bail;
+    {
+      mutt_grouplist_free(gl);
+      return MUTT_CMD_ERROR;
+    }
 
     mutt_regexlist_remove(&UnMailLists, buf->data);
 
-    if (mutt_regexlist_add(&MailLists, buf->data, REG_ICASE, err) != 0)
-      goto bail;
-
-    if (mutt_grouplist_add_regex(&gl, buf->data, REG_ICASE, err) != 0)
-      goto bail;
+    if ((mutt_regexlist_add(&MailLists, buf->data, REG_ICASE, err) != 0) ||
+        (mutt_grouplist_add_regex(gl, buf->data, REG_ICASE, err) != 0))
+    {
+      mutt_grouplist_free(gl);
+      return MUTT_CMD_ERROR;
+    }
   } while (MoreArgs(s));
 
-  mutt_grouplist_destroy(&gl);
+  mutt_grouplist_free(gl);
   return MUTT_CMD_SUCCESS;
-
-bail:
-  mutt_grouplist_destroy(&gl);
-  return MUTT_CMD_ERROR;
 }
 
 /**
@@ -1017,32 +1013,32 @@ static enum CommandResult parse_gslist(struct Buffer *buf, struct Buffer *s,
 static enum CommandResult parse_subscribe(struct Buffer *buf, struct Buffer *s,
                                           intptr_t data, struct Buffer *err)
 {
-  struct GroupList gl = STAILQ_HEAD_INITIALIZER(gl);
+  GroupList *gl = NULL;
 
   do
   {
     parse_extract_token(buf, s, TOKEN_NO_FLAGS);
 
     if (parse_grouplist(&gl, buf, s, err) == -1)
-      goto bail;
+    {
+       mutt_grouplist_free(gl);
+       return MUTT_CMD_ERROR;
+    }
 
     mutt_regexlist_remove(&UnMailLists, buf->data);
     mutt_regexlist_remove(&UnSubscribedLists, buf->data);
 
-    if (mutt_regexlist_add(&MailLists, buf->data, REG_ICASE, err) != 0)
-      goto bail;
-    if (mutt_regexlist_add(&SubscribedLists, buf->data, REG_ICASE, err) != 0)
-      goto bail;
-    if (mutt_grouplist_add_regex(&gl, buf->data, REG_ICASE, err) != 0)
-      goto bail;
+    if ((mutt_regexlist_add(&MailLists, buf->data, REG_ICASE, err) != 0) ||
+        (mutt_regexlist_add(&SubscribedLists, buf->data, REG_ICASE, err) != 0) ||
+        (mutt_grouplist_add_regex(gl, buf->data, REG_ICASE, err) != 0))
+    {
+       mutt_grouplist_free(gl);
+       return MUTT_CMD_ERROR;
+    }
   } while (MoreArgs(s));
 
-  mutt_grouplist_destroy(&gl);
+  mutt_grouplist_free(gl);
   return MUTT_CMD_SUCCESS;
-
-bail:
-  mutt_grouplist_destroy(&gl);
-  return MUTT_CMD_ERROR;
 }
 
 /**

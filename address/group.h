@@ -41,26 +41,17 @@ struct Group
   struct RegexList rs;   ///< Group Regex patterns
   char *name;            ///< Name of Group
 };
+typedef GSList GroupList;
 
-/**
- * struct GroupNode - An element in a GroupList
- */
-struct GroupNode
-{
-  struct Group *group;             ///< Address Group
-  STAILQ_ENTRY(GroupNode) entries; ///< Linked list
-};
-STAILQ_HEAD(GroupList, GroupNode);
-
-void mutt_grouplist_add            (struct GroupList *gl, struct Group *group);
-void mutt_grouplist_add_addrlist   (struct GroupList *gl, AddressList *a);
-int  mutt_grouplist_add_regex      (struct GroupList *gl, const char *s, uint16_t flags, struct Buffer *err);
+void mutt_grouplist_add            (GroupList **gl, struct Group *group);
+void mutt_grouplist_add_addrlist   (GroupList *gl, AddressList *a);
+int  mutt_grouplist_add_regex      (GroupList *gl, const char *s, uint16_t flags, struct Buffer *err);
 void mutt_grouplist_cleanup        (void);
-void mutt_grouplist_clear          (struct GroupList *gl);
-void mutt_grouplist_destroy        (struct GroupList *gl);
+void mutt_grouplist_clear          (GroupList *gl);
+void mutt_grouplist_free           (GroupList *gl);
 void mutt_grouplist_init           (void);
-int  mutt_grouplist_remove_addrlist(struct GroupList *gl, AddressList *a);
-int  mutt_grouplist_remove_regex   (struct GroupList *gl, const char *s);
+int  mutt_grouplist_remove_addrlist(GroupList *gl, AddressList *a);
+int  mutt_grouplist_remove_regex   (GroupList *gl, const char *s);
 
 bool          mutt_group_match  (struct Group *g, const char *s);
 struct Group *mutt_pattern_group(const char *pat);

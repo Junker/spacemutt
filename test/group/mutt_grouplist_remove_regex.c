@@ -28,14 +28,15 @@
 
 void test_mutt_grouplist_remove_regex(void)
 {
-  // int mutt_grouplist_remove_regex(struct GroupList *head, const char *s);
+  // int mutt_grouplist_remove_regex(GroupList *head, const char *s);
 
   {
-    TEST_CHECK(mutt_grouplist_remove_regex(NULL, "apple") == -1);
+    TEST_CHECK(mutt_grouplist_remove_regex(NULL, "apple") == 0);
   }
 
   {
-    struct GroupList head = { 0 };
-    TEST_CHECK(mutt_grouplist_remove_regex(&head, NULL) == -1);
+    GroupList *head = g_slist_alloc();
+    TEST_CHECK(mutt_grouplist_remove_regex(head, NULL) == -1);
+    g_slist_free_1(head);
   }
 }

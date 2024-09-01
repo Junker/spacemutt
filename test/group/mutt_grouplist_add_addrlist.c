@@ -30,7 +30,7 @@
 
 void test_mutt_grouplist_add_addrlist(void)
 {
-  // void mutt_grouplist_add_addrlist(struct GroupList *head, struct Address *a);
+  // void mutt_grouplist_add_addrlist(GroupList *head, struct Address *a);
 
   {
     AddressList *addr = mutt_addrlist_new();
@@ -40,8 +40,9 @@ void test_mutt_grouplist_add_addrlist(void)
   }
 
   {
-    struct GroupList head = { 0 };
-    mutt_grouplist_add_addrlist(&head, NULL);
-    TEST_CHECK_(1, "mutt_grouplist_add_addrlist(&head, NULL)");
+    GroupList *head = g_slist_alloc();
+    mutt_grouplist_add_addrlist(head, NULL);
+    TEST_CHECK_(1, "mutt_grouplist_add_addrlist(head, NULL)");
+    g_slist_free_1(head);
   }
 }
