@@ -210,7 +210,7 @@ void alias_Y(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 {
   const struct AliasView *av = data;
 
-  alias_tags_to_buffer(&av->alias->tags, buf);
+  alias_tags_to_buffer(av->alias->tags, buf);
 }
 
 /**

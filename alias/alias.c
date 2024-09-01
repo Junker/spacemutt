@@ -485,7 +485,7 @@ retry_name:
 
   buf_printf(prompt, "alias %s %s", alias->name, buf_string(buf));
 
-  bool has_tags = STAILQ_FIRST(&alias->tags);
+  bool has_tags = alias->tags;
 
   if (alias->comment || has_tags)
     buf_addstr(prompt, " #");
@@ -495,10 +495,10 @@ retry_name:
 
   if (has_tags)
   {
-    if (STAILQ_FIRST(&alias->tags))
+    if (alias->tags)
     {
       buf_addstr(prompt, " tags:");
-      alias_tags_to_buffer(&alias->tags, prompt);
+      alias_tags_to_buffer(alias->tags, prompt);
     }
   }
 
@@ -568,15 +568,15 @@ retry_name:
   write_safe_address(fp_alias, buf_string(buf));
   if (alias->comment)
     fprintf(fp_alias, " # %s", alias->comment);
-  if (STAILQ_FIRST(&alias->tags))
+  if (alias->tags)
   {
     fprintf(fp_alias, " tags:");
 
-    struct Tag *tag = NULL;
-    STAILQ_FOREACH(tag, &alias->tags, entries)
+    for (GSList *np = alias->tags; np != NULL; np = np->next)
     {
+      struct Tag *tag = np->data;
       fprintf(fp_alias, "%s", tag->name);
-      if (STAILQ_NEXT(tag, entries))
+      if (np->next)
         fprintf(fp_alias, ",");
     }
   }
@@ -663,7 +663,7 @@ struct Alias *alias_new(void)
 {
   struct Alias *a = mutt_mem_calloc(1, sizeof(struct Alias));
   a->addr = mutt_addrlist_new();
-  STAILQ_INIT(&a->tags);
+  a->tags = NULL;
   return a;
 }
 
@@ -684,7 +684,7 @@ void alias_free(struct Alias **ptr)
 
   FREE(&alias->name);
   FREE(&alias->comment);
-  driver_tags_free(&alias->tags);
+  driver_tags_free(alias->tags);
   mutt_addrlist_free_full(g_steal_pointer(&alias->addr));
 
   FREE(ptr);

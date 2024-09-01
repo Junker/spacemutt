@@ -1078,7 +1078,7 @@ static bool pattern_exec(struct Pattern *pat, PatternExecFlags flags,
     case MUTT_PAT_DRIVER_TAGS:
     {
       struct Buffer *tags = buf_pool_get();
-      driver_tags_get_with_hidden(&e->tags, tags);
+      driver_tags_get_with_hidden(e->tags, tags);
       const bool rc = (pat->pat_not ^
                        (!buf_is_empty(tags) && patmatch(pat, buf_string(tags))));
       buf_pool_release(&tags);
@@ -1180,7 +1180,7 @@ bool mutt_pattern_alias_exec(struct Pattern *pat, PatternExecFlags flags,
         return false;
 
       struct Buffer *tags = buf_pool_get();
-      alias_tags_to_buffer(&av->alias->tags, tags);
+      alias_tags_to_buffer(av->alias->tags, tags);
 
       bool rc = false;
       if (!buf_is_empty(tags))

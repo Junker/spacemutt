@@ -77,15 +77,15 @@ struct Tag *tag_new(void)
  * @param[in]  filter           Match tags to this string
  * @param[out] tags             String list of tags
  */
-void driver_tags_getter(struct TagList *tl, bool show_hidden, bool show_transformed,
+void driver_tags_getter(TagList *tl, bool show_hidden, bool show_transformed,
                         const char *filter, struct Buffer *tags)
 {
   if (!tl)
     return;
 
-  struct Tag *tag = NULL;
-  STAILQ_FOREACH(tag, tl, entries)
+  for (GSList *np = tl; np != NULL; np = np->next)
   {
+    struct Tag *tag = np->data;
     if (filter && !mutt_str_equal(tag->name, filter))
       continue;
     if (show_hidden || !tag->hidden)
@@ -107,7 +107,7 @@ void driver_tags_getter(struct TagList *tl, bool show_hidden, bool show_transfor
  *
  * @note The ownership of the string is passed to the TagList structure
  */
-void driver_tags_add(struct TagList *tl, char *new_tag)
+void driver_tags_add(TagList **tl, char *new_tag)
 {
   char *new_tag_transformed = mutt_hash_find(TagTransforms, new_tag);
 
@@ -122,7 +122,7 @@ void driver_tags_add(struct TagList *tl, char *new_tag)
     if (g_slist_find_str(c_hidden_tags->head, new_tag, false))
       tag->hidden = true;
 
-  STAILQ_INSERT_TAIL(tl, tag, entries);
+  *tl = g_slist_append(*tl, tag);
 }
 
 /**
@@ -131,20 +131,17 @@ void driver_tags_add(struct TagList *tl, char *new_tag)
  *
  * Free the whole tags structure
  */
-void driver_tags_free(struct TagList *tl)
+void driver_tags_free(TagList *tl)
 {
   if (!tl)
     return;
 
-  struct Tag *tag = STAILQ_FIRST(tl);
-  struct Tag *next = NULL;
-  while (tag)
+  for (GSList *np = tl; np != NULL; np = np->next)
   {
-    next = STAILQ_NEXT(tag, entries);
+    struct Tag *tag = np->data;
     tag_free(&tag);
-    tag = next;
   }
-  STAILQ_INIT(tl);
+  g_slist_free(tl);
 }
 
 /**
@@ -152,7 +149,7 @@ void driver_tags_free(struct TagList *tl)
  * @param[in]  tl List of tags
  * @param[out] tags String list of tags
  */
-void driver_tags_get_transformed(struct TagList *tl, struct Buffer *tags)
+void driver_tags_get_transformed(TagList *tl, struct Buffer *tags)
 {
   driver_tags_getter(tl, false, true, NULL, tags);
 }
@@ -164,7 +161,7 @@ void driver_tags_get_transformed(struct TagList *tl, struct Buffer *tags)
  *
  * @note Hidden tags are not returned. Use driver_tags_get_with_hidden() for that.
  */
-void driver_tags_get(struct TagList *tl, struct Buffer *tags)
+void driver_tags_get(TagList *tl, struct Buffer *tags)
 {
   driver_tags_getter(tl, false, false, NULL, tags);
 }
@@ -174,7 +171,7 @@ void driver_tags_get(struct TagList *tl, struct Buffer *tags)
  * @param[in]  tl List of tags
  * @param[out] tags String list of tags
  */
-void driver_tags_get_with_hidden(struct TagList *tl, struct Buffer *tags)
+void driver_tags_get_with_hidden(TagList *tl, struct Buffer *tags)
 {
   driver_tags_getter(tl, true, false, NULL, tags);
 }
@@ -187,7 +184,7 @@ void driver_tags_get_with_hidden(struct TagList *tl, struct Buffer *tags)
  *
  * @note Will also return hidden tags.
  */
-void driver_tags_get_transformed_for(struct TagList *tl, const char *name, struct Buffer *tags)
+void driver_tags_get_transformed_for(TagList *tl, const char *name, struct Buffer *tags)
 {
   driver_tags_getter(tl, true, true, name, tags);
 }
@@ -201,12 +198,12 @@ void driver_tags_get_transformed_for(struct TagList *tl, const char *name, struc
  *
  * Free current tags structures and replace it by new tags
  */
-bool driver_tags_replace(struct TagList *tl, const char *tags)
+bool driver_tags_replace(TagList **tl, const char *tags)
 {
-  if (!tl)
+  if (!tl || !*tl)
     return false;
 
-  driver_tags_free(tl);
+  driver_tags_free(g_steal_pointer(tl));
 
   if (tags)
   {

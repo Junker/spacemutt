@@ -32,7 +32,7 @@
 
 void test_driver_tags_get_transformed(void)
 {
-  // char *driver_tags_get_transformed(struct TagList *list);
+  // char *driver_tags_get_transformed(TagList *list);
 
   struct Tags
   {
@@ -52,16 +52,17 @@ void test_driver_tags_get_transformed(void)
     };
     // clang-format on
 
-    struct TagList tl = STAILQ_HEAD_INITIALIZER(tl);
+    TagList *tl = NULL;
 
     for (size_t i = 0; i < mutt_array_size(tags); i++)
     {
-      STAILQ_INSERT_TAIL(&tl, &tags[i], entries);
+      tl = g_slist_append(tl, &tags[i]);
     }
 
     struct Buffer *buf = buf_pool_get();
-    driver_tags_get_transformed(&tl, buf);
+    driver_tags_get_transformed(tl, buf);
     TEST_CHECK_STR_EQ(buf_string(buf), "banana apple peach");
     buf_pool_release(&buf);
+    g_slist_free(tl);
   }
 }

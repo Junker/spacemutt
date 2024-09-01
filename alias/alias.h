@@ -36,7 +36,7 @@ struct Alias
   char              *name;        ///< Short name
   AddressList       *addr;        ///< List of Addresses the Alias expands to
   char              *comment;     ///< Free-form comment string
-  struct TagList     tags;        ///< Tags
+  TagList           *tags;        ///< Tags
 };
 
 typedef GQueue AliasList;

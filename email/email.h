@@ -70,7 +70,7 @@ struct Email
   struct Body *body;           ///< List of MIME parts
   char *path;                  ///< Path of Email (for local Mailboxes)
   LOFF_T offset;               ///< Where in the stream does this message begin?
-  struct TagList tags;         ///< For drivers that support server tagging
+  TagList *tags;               ///< For drivers that support server tagging
   struct Notify *notify;       ///< Notifications: #NotifyEmail, #EventEmail
   void *edata;                 ///< Driver-specific data
 

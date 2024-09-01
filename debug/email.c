@@ -229,7 +229,7 @@ void dump_email(const struct Email *e)
   // struct MuttThread *thread
   // struct Envelope *env
   // struct Body *content
-  // struct TagList tags
+  // TagList tags
 
   // void *edata
 }

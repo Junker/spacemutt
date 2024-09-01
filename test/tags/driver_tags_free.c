@@ -28,7 +28,7 @@
 
 void test_driver_tags_free(void)
 {
-  // void driver_tags_free(struct TagList *list);
+  // void driver_tags_free(TagList *list);
 
   {
     driver_tags_free(NULL);

@@ -1391,7 +1391,7 @@ void dot_email(FILE *fp, struct Email *e, GSList **links)
   }
 #endif
 
-  // struct TagList tags;
+  // TagList tags;
 
   buf_pool_release(&buf);
 }

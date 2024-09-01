@@ -32,7 +32,7 @@
 
 void test_driver_tags_get_transformed_for(void)
 {
-  // char *driver_tags_get_transformed_for(struct TagList *list, const char *name, struct Buffer *tags);
+  // char *driver_tags_get_transformed_for(TagList *list, const char *name, struct Buffer *tags);
 
   struct Tags
   {
@@ -52,16 +52,18 @@ void test_driver_tags_get_transformed_for(void)
     };
     // clang-format on
 
-    struct TagList tl = STAILQ_HEAD_INITIALIZER(tl);
+    TagList *tl = NULL;
 
     for (size_t i = 0; i < mutt_array_size(tags); i++)
     {
-      STAILQ_INSERT_TAIL(&tl, &tags[i], entries);
+      tl = g_slist_append(tl, &tags[i]);
     }
 
     struct Buffer *buf = buf_pool_get();
-    driver_tags_get_transformed_for(&tl, "foo", buf);
+    driver_tags_get_transformed_for(tl, "foo", buf);
     TEST_CHECK_STR_EQ(buf_string(buf), "bar blubb hidden");
     buf_pool_release(&buf);
+    g_slist_free(tl);
+
   }
 }

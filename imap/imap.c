@@ -956,7 +956,7 @@ int imap_sync_message_for_copy(struct Mailbox *m, struct Email *e,
 
     /* set custom flags */
     struct Buffer *tags = buf_pool_get();
-    driver_tags_get_with_hidden(&e->tags, tags);
+    driver_tags_get_with_hidden(e->tags, tags);
     if (!buf_is_empty(tags))
       buf_addstr(flags, buf_string(tags));
     buf_pool_release(&tags);
@@ -1008,7 +1008,7 @@ int imap_sync_message_for_copy(struct Mailbox *m, struct Email *e,
   /* server have now the updated flags */
   FREE(&edata->flags_remote);
   struct Buffer *flags_remote = buf_pool_get();
-  driver_tags_get_with_hidden(&e->tags, flags_remote);
+  driver_tags_get_with_hidden(e->tags, flags_remote);
   edata->flags_remote = buf_strdup(flags_remote);
   buf_pool_release(&flags_remote);
 
@@ -2330,7 +2330,7 @@ static int imap_tags_commit(struct Mailbox *m, struct Email *e, const char *buf)
   driver_tags_replace(&e->tags, buf);
   FREE(&imap_edata_get(e)->flags_remote);
   struct Buffer *flags_remote = buf_pool_get();
-  driver_tags_get_with_hidden(&e->tags, flags_remote);
+  driver_tags_get_with_hidden(e->tags, flags_remote);
   imap_edata_get(e)->flags_remote = buf_strdup(flags_remote);
   buf_pool_release(&flags_remote);
   imap_msg_save_hcache(m, e);

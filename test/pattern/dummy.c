@@ -34,6 +34,7 @@
 #include "menu/lib.h"
 #include "ncrypt/lib.h"
 #include "mview.h"
+#include "email/tags.h"
 
 struct Address;
 struct Body;
@@ -46,7 +47,6 @@ struct MuttWindow;
 struct Pager;
 struct Pattern;
 struct State;
-struct TagList;
 
 enum WindowType
 {
@@ -325,6 +325,6 @@ struct MuttWindow *simple_dialog_new(enum MenuType mtype, enum WindowType wtype,
   return NULL;
 }
 
-void alias_tags_to_buffer(struct TagList *tl, struct Buffer *buf)
+void alias_tags_to_buffer(TagList *tl, struct Buffer *buf)
 {
 }

@@ -252,7 +252,7 @@ static void *dump_email(struct HeaderCache *hc, const struct Email *e, int *off,
 
   d = serial_dump_envelope(e->env, d, off, convert);
   d = serial_dump_body(e->body, d, off, convert);
-  d = serial_dump_tags(&e->tags, d, off);
+  d = serial_dump_tags(e->tags, d, off);
 
   return d;
 }

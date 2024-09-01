@@ -497,7 +497,7 @@ static int update_email_tags(struct Email *e, notmuch_message_t *msg)
     buf_join_str(new_tags, t, ' ');
   }
 
-  driver_tags_get(&e->tags, old_tags);
+  driver_tags_get(e->tags, old_tags);
 
   if (!buf_is_empty(new_tags) && !buf_is_empty(old_tags) &&
       (buf_str_equal(old_tags, new_tags)))
@@ -513,11 +513,11 @@ static int update_email_tags(struct Email *e, notmuch_message_t *msg)
   driver_tags_replace(&e->tags, buf_string(new_tags));
   buf_reset(new_tags);
 
-  driver_tags_get_transformed(&e->tags, new_tags);
+  driver_tags_get_transformed(e->tags, new_tags);
   log_debug2("nm: new tags transformed: '%s'", buf_string(new_tags));
   buf_reset(new_tags);
 
-  driver_tags_get(&e->tags, new_tags);
+  driver_tags_get(e->tags, new_tags);
   log_debug2("nm: new tag: '%s'", buf_string(new_tags));
   buf_pool_release(&new_tags);
 
@@ -1413,7 +1413,7 @@ static int rename_filename(struct Mailbox *m, const char *old_file,
     update_email_tags(e, msg);
 
     struct Buffer *tags = buf_pool_get();
-    driver_tags_get(&e->tags, tags);
+    driver_tags_get(e->tags, tags);
     update_tags(msg, buf_string(tags));
     buf_pool_release(&tags);
   }
@@ -1946,7 +1946,7 @@ int nm_record_message(struct Mailbox *m, char *path, struct Email *e)
     if (e)
     {
       struct Buffer *tags = buf_pool_get();
-      driver_tags_get(&e->tags, tags);
+      driver_tags_get(e->tags, tags);
       update_tags(msg, buf_string(tags));
       buf_pool_release(&tags);
     }

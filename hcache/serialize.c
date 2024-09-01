@@ -685,16 +685,16 @@ void serial_restore_envelope(struct Envelope *env, const unsigned char *d, int *
  * @param[in,out] off  Offset into the blob
  * @retval ptr End of the newly packed binary
  */
-unsigned char *serial_dump_tags(const struct TagList *tl, unsigned char *d, int *off)
+unsigned char *serial_dump_tags(const TagList *tl, unsigned char *d, int *off)
 {
   unsigned int counter = 0;
   unsigned int start_off = *off;
 
   d = serial_dump_int(0xdeadbeef, d, off);
 
-  struct Tag *tag = NULL;
-  STAILQ_FOREACH(tag, tl, entries)
+  for (GSList *np = tl; np != NULL; np = np->next)
   {
+    struct Tag *tag = np->data;
     d = serial_dump_char(tag->name, d, off, false);
     counter++;
   }
@@ -710,7 +710,7 @@ unsigned char *serial_dump_tags(const struct TagList *tl, unsigned char *d, int 
  * @param[in]     d    Binary blob to add to
  * @param[in,out] off  Offset into the blob
  */
-void serial_restore_tags(struct TagList *tl, const unsigned char *d, int *off)
+void serial_restore_tags(TagList **tl, const unsigned char *d, int *off)
 {
   unsigned int counter = 0;
 

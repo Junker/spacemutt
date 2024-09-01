@@ -814,7 +814,7 @@ void index_g(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 
   if (flags & MUTT_FORMAT_INDEX)
     node_expando_set_color(node, MT_COLOR_INDEX_TAGS);
-  driver_tags_get_transformed(&e->tags, buf);
+  driver_tags_get_transformed(e->tags, buf);
 }
 
 /**
@@ -840,7 +840,7 @@ void index_G(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 
   if (flags & MUTT_FORMAT_INDEX)
     node_expando_set_color(node, MT_COLOR_INDEX_TAG);
-  driver_tags_get_transformed_for(&e->tags, tag, buf);
+  driver_tags_get_transformed_for(e->tags, tag, buf);
 }
 
 /**
@@ -912,7 +912,7 @@ void index_J(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 
   bool have_tags = true;
   struct Buffer *tags = buf_pool_get();
-  driver_tags_get_transformed(&e->tags, tags);
+  driver_tags_get_transformed(e->tags, tags);
   if (!buf_is_empty(tags))
   {
     if (flags & MUTT_FORMAT_TREE)
@@ -920,11 +920,11 @@ void index_J(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
       struct Buffer *parent_tags = buf_pool_get();
       if (e->thread->prev && e->thread->prev->message)
       {
-        driver_tags_get_transformed(&e->thread->prev->message->tags, parent_tags);
+        driver_tags_get_transformed(e->thread->prev->message->tags, parent_tags);
       }
       if (!parent_tags && e->thread->parent && e->thread->parent->message)
       {
-        driver_tags_get_transformed(&e->thread->parent->message->tags, parent_tags);
+        driver_tags_get_transformed(e->thread->parent->message->tags, parent_tags);
       }
       if (parent_tags && buf_istr_equal(tags, parent_tags))
         have_tags = false;

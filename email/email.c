@@ -64,7 +64,7 @@ void email_free(struct Email **ptr)
 #ifdef USE_NOTMUCH
   nm_edata_free(&e->nm_edata);
 #endif
-  driver_tags_free(&e->tags);
+  driver_tags_free(e->tags);
   notify_free(&e->notify);
 
   FREE(ptr);
@@ -79,7 +79,7 @@ struct Email *email_new(void)
   static size_t sequence = 0;
 
   struct Email *e = mutt_mem_calloc(1, sizeof(struct Email));
-  STAILQ_INIT(&e->tags);
+  e->tags = NULL;
   e->visible = true;
   e->sequence = sequence++;
   e->notify = notify_new();

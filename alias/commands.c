@@ -46,13 +46,13 @@
  * @param tl  Tags
  * @param buf Buffer for the result
  */
-void alias_tags_to_buffer(struct TagList *tl, struct Buffer *buf)
+void alias_tags_to_buffer(TagList *tl, struct Buffer *buf)
 {
-  struct Tag *tag = NULL;
-  STAILQ_FOREACH(tag, tl, entries)
+  for (GSList *np = tl; np != NULL; np = np->next)
   {
+    struct Tag *tag = np->data;
     buf_addstr(buf, tag->name);
-    if (STAILQ_NEXT(tag, entries))
+    if (np->next)
       buf_addch(buf, ',');
   }
 }
@@ -62,7 +62,7 @@ void alias_tags_to_buffer(struct TagList *tl, struct Buffer *buf)
  * @param tags Comma-separated string
  * @param tl   TagList for the results
  */
-void parse_alias_tags(const char *tags, struct TagList *tl)
+void parse_alias_tags(const char *tags, TagList **tl)
 {
   if (!tags || !tl)
     return;
@@ -79,7 +79,7 @@ void parse_alias_tags(const char *tags, struct TagList *tl)
     struct Tag *tag = tag_new();
     tag->name = np->data; // Transfer string
     np->data = NULL;
-    STAILQ_INSERT_TAIL(tl, tag, entries);
+    *tl = g_slist_append(*tl, tag);
   }
   slist_free(&sl);
 }

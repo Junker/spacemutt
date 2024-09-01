@@ -1265,7 +1265,7 @@ static int read_headers_fetch_new(struct Mailbox *m, unsigned int msn_begin,
       e->received = h.received;
       e->edata = (void *) imap_edata_clone(h.edata);
       e->edata_free = imap_edata_free;
-      STAILQ_INIT(&e->tags);
+      e->tags = NULL;
 
       /* We take a copy of the tags so we can split the string */
       char *tags_copy = mutt_str_dup(h.edata->flags_remote);

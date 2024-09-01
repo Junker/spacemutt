@@ -518,7 +518,7 @@ int mutt_copy_header(FILE *fp_in, struct Email *e, FILE *fp_out,
 #endif
 
   struct Buffer *tags = buf_pool_get();
-  driver_tags_get(&e->tags, tags);
+  driver_tags_get(e->tags, tags);
   if (!buf_is_empty(tags) && !(c_weed && mutt_matches_ignore("tags")))
   {
     fputs("Tags: ", fp_out);

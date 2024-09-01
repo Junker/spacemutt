@@ -25,17 +25,18 @@
 #include "acutest.h"
 #include <stddef.h>
 #include "email/lib.h"
+#include "email/tags.h"
 
 void test_driver_tags_replace(void)
 {
-  // bool driver_tags_replace(struct TagList *list, char *tags);
+  // bool driver_tags_replace(TagList *list, char *tags);
 
   {
     TEST_CHECK(!driver_tags_replace(NULL, "apple"));
   }
 
   {
-    struct TagList taghead = { 0 };
+    TagList *taghead = g_slist_alloc();
     TEST_CHECK(driver_tags_replace(&taghead, NULL));
   }
 }
