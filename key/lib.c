@@ -508,14 +508,13 @@ int km_expand_key_string(char *str, char *buf, size_t buflen)
  */
 struct Keymap *km_find_func(enum MenuType mtype, int func)
 {
-  struct Keymap *km = NULL;
   for (GSList *np = Keymaps[mtype]; np != NULL; np = np->next)
   {
-    km = np->data;
+    struct Keymap *km = np->data;
     if (km->op == func)
-      break;
+      return km;
   }
-  return km;
+  return NULL;
 }
 
 /**

@@ -461,6 +461,7 @@ int mutt_autocrypt_process_gossip_header(struct Email *e, struct Envelope *prot_
       peer_addr = np->data;
       if (buf_str_equal(peer_addr->mailbox, ac_hdr_addr.mailbox))
         break;
+      peer_addr = NULL;
     }
 
     if (!peer_addr)

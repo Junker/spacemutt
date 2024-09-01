@@ -182,6 +182,7 @@ enum CommandResult parse_alias(struct Buffer *buf, struct Buffer *s,
     tmp = np->data;
     if (mutt_istr_equal(tmp->name, name))
       break;
+    tmp = NULL;
   }
 
   if (tmp)

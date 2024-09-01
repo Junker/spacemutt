@@ -547,17 +547,20 @@ static void make_subject_list(GSList **subjects, struct MuttThread *cur, time_t 
     env = cur->message->env;
     if (env->real_subj && ((env->real_subj != env->subject) || !c_sort_re))
     {
-      GSList *np = NULL;
-      for (np = *subjects; np != NULL; np = np->next)
+      GSList *npfound = NULL;
+      for (GSList *np = *subjects; np != NULL; np = np->next)
       {
         rc = mutt_str_cmp(env->real_subj, np->data);
         if (rc >= 0)
+        {
+          npfound = np;
           break;
+        }
       }
-      if (!np)
+      if (!npfound)
         *subjects = g_slist_prepend(*subjects, env->real_subj);
       else if (rc > 0)
-        *subjects = g_slist_insert_after(*subjects, np, env->real_subj);
+        *subjects = g_slist_insert_after(*subjects, npfound, env->real_subj);
     }
 
     while (!cur->next && (cur != start))
