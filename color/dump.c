@@ -267,7 +267,7 @@ void regex_colors_dump(struct Buffer *buf)
       continue;
 
     RegexColorList *rcl = regex_colors_get_list(cid);
-    if (!rcl->head)
+    if (!rcl || !rcl->head)
       continue;
 
     const char *name = mutt_map_get_name(cid, ColorFields);
@@ -398,7 +398,7 @@ void status_colors_dump(struct Buffer *buf)
     set = true;
 
   RegexColorList *rcl = regex_colors_get_list(cid);
-  if (rcl->head)
+  if (rcl && rcl->head)
     set = true;
 
   if (set)
