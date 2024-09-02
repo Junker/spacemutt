@@ -454,10 +454,10 @@ static unsigned int generate_hcachever(void)
   }
 
   /* Mix in user's nospam list */
-  struct RegexNode *np = NULL;
-  STAILQ_FOREACH(np, &NoSpamList, entries)
+  for (GSList *np = NoSpamList; np != NULL; np = np->next)
   {
-    mutt_md5_process(np->regex->pattern, &md5ctx);
+    struct Regex *regex = np->data;
+    mutt_md5_process(regex->pattern, &md5ctx);
   }
 
   /* Get a hash and take its bytes as an (unsigned int) hash version */

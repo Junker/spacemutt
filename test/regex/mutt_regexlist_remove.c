@@ -28,14 +28,14 @@
 
 void test_mutt_regexlist_remove(void)
 {
-  // int mutt_regexlist_remove(struct RegexList *rl, const char *str);
+  // int mutt_regexlist_remove(RegexList *rl, const char *str);
 
   {
     TEST_CHECK(mutt_regexlist_remove(NULL, "apple") != 0);
   }
 
   {
-    struct RegexList regexlist = { 0 };
+    RegexList *regexlist = NULL;
     TEST_CHECK(mutt_regexlist_remove(&regexlist, NULL) != 0);
   }
 }

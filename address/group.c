@@ -56,7 +56,7 @@ static void group_free(struct Group **ptr)
   struct Group *g = *ptr;
 
   mutt_addrlist_free_full(g->al);
-  mutt_regexlist_free(&g->rs);
+  mutt_regexlist_free(g->rs);
   FREE(&g->name);
 
   FREE(ptr);
@@ -74,7 +74,7 @@ static struct Group *group_new(const char *pat)
   struct Group *g = mutt_mem_calloc(1, sizeof(struct Group));
 
   g->name = mutt_str_dup(pat);
-  STAILQ_INIT(&g->rs);
+  g->rs = NULL;
   g->al = mutt_addrlist_new();
 
   return g;
@@ -164,7 +164,7 @@ static bool empty_group(struct Group *g)
 {
   if (!g)
     return true;
-  return g_queue_is_empty(g->al) && STAILQ_EMPTY(&g->rs);
+  return g_queue_is_empty(g->al) && !g->rs;
 }
 
 /**
@@ -348,7 +348,7 @@ bool mutt_group_match(struct Group *g, const char *s)
   if (!g || !s)
     return false;
 
-  if (mutt_regexlist_match(&g->rs, s))
+  if (mutt_regexlist_match(g->rs, s))
     return true;
   for (GList *np = g->al->head; np != NULL; np = np->next)
   {

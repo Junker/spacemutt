@@ -39,8 +39,8 @@
 #include "commands.h"
 #include "mview.h"
 
-static struct RegexList Alternates = STAILQ_HEAD_INITIALIZER(Alternates); ///< List of regexes to match the user's alternate email addresses
-static struct RegexList UnAlternates = STAILQ_HEAD_INITIALIZER(UnAlternates); ///< List of regexes to exclude false matches in Alternates
+static RegexList *Alternates = NULL; ///< List of regexes to match the user's alternate email addresses
+static RegexList *UnAlternates = NULL; ///< List of regexes to exclude false matches in Alternates
 static struct Notify *AlternatesNotify = NULL; ///< Notifications: #NotifyAlternates
 
 /**
@@ -50,8 +50,8 @@ void alternates_cleanup(void)
 {
   notify_free(&AlternatesNotify);
 
-  mutt_regexlist_free(&Alternates);
-  mutt_regexlist_free(&UnAlternates);
+  mutt_regexlist_free(g_steal_pointer(&Alternates));
+  mutt_regexlist_free(g_steal_pointer(&UnAlternates));
 }
 
 /**
@@ -158,10 +158,10 @@ bool mutt_alternates_match(const char *addr)
   if (!addr)
     return false;
 
-  if (mutt_regexlist_match(&Alternates, addr))
+  if (mutt_regexlist_match(Alternates, addr))
   {
     log_debug5("yes, %s matched by alternates", addr);
-    if (mutt_regexlist_match(&UnAlternates, addr))
+    if (mutt_regexlist_match(UnAlternates, addr))
       log_debug5("but, %s matched by unalternates", addr);
     else
       return true;

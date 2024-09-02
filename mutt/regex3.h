@@ -28,6 +28,7 @@
 #include <regex.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <glib.h>
 #include "queue.h"
 
 struct Buffer;
@@ -87,16 +88,7 @@ struct Regex
   regex_t *regex; ///< compiled expression
   bool pat_not;   ///< do not match
 };
-
-/**
- * struct RegexNode - List of regular expressions
- */
-struct RegexNode
-{
-  struct Regex *regex;             ///< Regex containing a regular expression
-  STAILQ_ENTRY(RegexNode) entries; ///< Linked list
-};
-STAILQ_HEAD(RegexList, RegexNode);
+typedef GSList RegexList;
 
 /**
  * struct Replace - List of regular expressions
@@ -114,11 +106,10 @@ struct Regex *mutt_regex_compile(const char *str, uint16_t flags);
 struct Regex *mutt_regex_new(const char *str, uint32_t flags, struct Buffer *err);
 void          mutt_regex_free(struct Regex **ptr);
 
-int               mutt_regexlist_add   (struct RegexList *rl, const char *str, uint16_t flags, struct Buffer *err);
-void              mutt_regexlist_free  (struct RegexList *rl);
-bool              mutt_regexlist_match (struct RegexList *rl, const char *str);
-struct RegexNode *mutt_regexlist_new   (void);
-int               mutt_regexlist_remove(struct RegexList *rl, const char *str);
+int               mutt_regexlist_add   (RegexList **rl, const char *str, uint16_t flags, struct Buffer *err);
+void              mutt_regexlist_free  (RegexList *rl);
+bool              mutt_regexlist_match (RegexList *rl, const char *str);
+int               mutt_regexlist_remove(RegexList **rl, const char *str);
 
 int             mutt_replacelist_add   (struct ReplaceList *rl, const char *pat, const char *templ, struct Buffer *err);
 char *          mutt_replacelist_apply (struct ReplaceList *rl, const char *str);

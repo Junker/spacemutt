@@ -126,9 +126,9 @@ void mutt_auto_subscribe(const char *mailto)
   if (mutt_parse_mailto(lpenv, NULL, mailto) && !g_queue_is_empty(lpenv->to))
   {
     const char *mailbox = buf_string(((struct Address*)g_queue_peek_head(lpenv->to))->mailbox);
-    if (mailbox && !mutt_regexlist_match(&SubscribedLists, mailbox) &&
-        !mutt_regexlist_match(&UnMailLists, mailbox) &&
-        !mutt_regexlist_match(&UnSubscribedLists, mailbox))
+    if (mailbox && !mutt_regexlist_match(SubscribedLists, mailbox) &&
+        !mutt_regexlist_match(UnMailLists, mailbox) &&
+        !mutt_regexlist_match(UnSubscribedLists, mailbox))
     {
       /* mutt_regexlist_add() detects duplicates, so it is safe to
        * try to add here without any checks. */
@@ -1277,7 +1277,7 @@ struct Envelope *mutt_rfc822_read_header(FILE *fp, struct Email *e, bool user_hd
     char buf[1024] = { 0 };
     if (mutt_replacelist_match(&SpamList, buf, sizeof(buf), lines))
     {
-      if (!mutt_regexlist_match(&NoSpamList, lines))
+      if (!mutt_regexlist_match(NoSpamList, lines))
       {
         /* if spam tag already exists, figure out how to amend it */
         if ((!buf_is_empty(&env->spam)) && (*buf != '\0'))

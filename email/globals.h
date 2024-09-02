@@ -28,13 +28,13 @@
 
 extern struct HashTable  *AutoSubscribeCache;
 extern GSList *Ignore;
-extern struct RegexList   MailLists;
+extern RegexList   *MailLists;
 extern GSList *MailToAllow;
-extern struct RegexList   NoSpamList;
+extern RegexList   *NoSpamList;
 extern struct ReplaceList SpamList;
-extern struct RegexList   SubscribedLists;
+extern RegexList   *SubscribedLists;
 extern GSList *UnIgnore;
-extern struct RegexList   UnMailLists;
-extern struct RegexList   UnSubscribedLists;
+extern RegexList   *UnMailLists;
+extern RegexList   *UnSubscribedLists;
 
 #endif /* MUTT_EMAIL_GLOBALS_H */

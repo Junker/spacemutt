@@ -38,18 +38,18 @@ struct HashTable *AutoSubscribeCache = NULL;
 ///< List of header patterns to ignore
 GSList *Ignore = NULL;
 ///< List of regexes to match mailing lists
-struct RegexList MailLists = STAILQ_HEAD_INITIALIZER(MailLists);
+RegexList *MailLists = NULL;
 ///< List of permitted fields in a mailto: url
 GSList *MailToAllow = NULL;
 ///< List of regexes to identify non-spam emails
-struct RegexList NoSpamList = STAILQ_HEAD_INITIALIZER(NoSpamList);
+RegexList *NoSpamList = NULL;
 ///< List of regexes and patterns to match spam emails
 struct ReplaceList SpamList = STAILQ_HEAD_INITIALIZER(SpamList);
 ///< List of regexes to match subscribed mailing lists
-struct RegexList SubscribedLists = STAILQ_HEAD_INITIALIZER(SubscribedLists);
+RegexList *SubscribedLists = NULL;
 ///< List of header patterns to unignore (see)
 GSList *UnIgnore = NULL;
 ///< List of regexes to exclude false matches in MailLists
-struct RegexList UnMailLists = STAILQ_HEAD_INITIALIZER(UnMailLists);
+RegexList *UnMailLists = NULL;
 ///< List of regexes to exclude false matches in SubscribedLists
-struct RegexList UnSubscribedLists = STAILQ_HEAD_INITIALIZER(UnSubscribedLists);
+RegexList *UnSubscribedLists = NULL;

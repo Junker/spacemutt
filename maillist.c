@@ -44,8 +44,8 @@
  */
 bool mutt_is_mail_list(const struct Address *addr)
 {
-  if (!mutt_regexlist_match(&UnMailLists, buf_string(addr->mailbox)))
-    return mutt_regexlist_match(&MailLists, buf_string(addr->mailbox));
+  if (!mutt_regexlist_match(UnMailLists, buf_string(addr->mailbox)))
+    return mutt_regexlist_match(MailLists, buf_string(addr->mailbox));
   return false;
 }
 
@@ -56,10 +56,10 @@ bool mutt_is_mail_list(const struct Address *addr)
  */
 bool mutt_is_subscribed_list(const struct Address *addr)
 {
-  if (!mutt_regexlist_match(&UnMailLists, buf_string(addr->mailbox)) &&
-      !mutt_regexlist_match(&UnSubscribedLists, buf_string(addr->mailbox)))
+  if (!mutt_regexlist_match(UnMailLists, buf_string(addr->mailbox)) &&
+      !mutt_regexlist_match(UnSubscribedLists, buf_string(addr->mailbox)))
   {
-    return mutt_regexlist_match(&SubscribedLists, buf_string(addr->mailbox));
+    return mutt_regexlist_match(SubscribedLists, buf_string(addr->mailbox));
   }
   return false;
 }

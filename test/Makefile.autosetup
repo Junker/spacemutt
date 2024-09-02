@@ -529,7 +529,6 @@ RANDOM_OBJS	= test/random/random.o
 REGEX_OBJS	= test/regex/mutt_regexlist_add.o \
 		  test/regex/mutt_regexlist_free.o \
 		  test/regex/mutt_regexlist_match.o \
-		  test/regex/mutt_regexlist_new.o \
 		  test/regex/mutt_regexlist_remove.o \
 		  test/regex/mutt_regex_capture.o \
 		  test/regex/mutt_regex_compile.o \

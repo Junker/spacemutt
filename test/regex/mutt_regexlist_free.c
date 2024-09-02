@@ -28,7 +28,7 @@
 
 void test_mutt_regexlist_free(void)
 {
-  // void mutt_regexlist_free(struct RegexList *rl);
+  // void mutt_regexlist_free(RegexList *rl);
 
   {
     mutt_regexlist_free(NULL);

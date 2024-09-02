@@ -38,7 +38,7 @@
 struct Group
 {
   AddressList *al;       ///< List of Addresses
-  struct RegexList rs;   ///< Group Regex patterns
+  RegexList *rs;         ///< Group Regex patterns
   char *name;            ///< Name of Group
 };
 typedef GSList GroupList;

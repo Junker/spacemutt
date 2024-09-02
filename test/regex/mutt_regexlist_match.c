@@ -35,7 +35,7 @@ void test_mutt_regexlist_match(void)
   }
 
   {
-    struct RegexList regexlist = { 0 };
-    TEST_CHECK(!mutt_regexlist_match(&regexlist, NULL));
+    RegexList *regexlist = NULL;
+    TEST_CHECK(!mutt_regexlist_match(regexlist, NULL));
   }
 }

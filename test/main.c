@@ -581,7 +581,6 @@ void test_fini(void);
   NEOMUTT_TEST_ITEM(test_mutt_regexlist_add)                                   \
   NEOMUTT_TEST_ITEM(test_mutt_regexlist_free)                                  \
   NEOMUTT_TEST_ITEM(test_mutt_regexlist_match)                                 \
-  NEOMUTT_TEST_ITEM(test_mutt_regexlist_new)                                   \
   NEOMUTT_TEST_ITEM(test_mutt_regexlist_remove)                                \
   NEOMUTT_TEST_ITEM(test_mutt_replacelist_add)                                 \
   NEOMUTT_TEST_ITEM(test_mutt_replacelist_apply)                               \

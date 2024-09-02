@@ -137,7 +137,7 @@ void mutt_regex_free(struct Regex **ptr)
  * @retval 0  Success, Regex compiled and added to the list
  * @retval -1 Error, see message in 'err'
  */
-int mutt_regexlist_add(struct RegexList *rl, const char *str, uint16_t flags,
+int mutt_regexlist_add(RegexList **rl, const char *str, uint16_t flags,
                        struct Buffer *err)
 {
   if (!rl || !str || (*str == '\0'))
@@ -151,22 +151,22 @@ int mutt_regexlist_add(struct RegexList *rl, const char *str, uint16_t flags,
   }
 
   /* check to make sure the item is not already on this rl */
-  struct RegexNode *np = NULL;
-  STAILQ_FOREACH(np, rl, entries)
+  struct Regex *regex = NULL;
+  for (GSList *np = *rl; np != NULL; np = np->next)
   {
-    if (mutt_istr_equal(rx->pattern, np->regex->pattern))
+    regex = np->data;
+    if (mutt_istr_equal(rx->pattern, regex->pattern))
       break; /* already on the rl */
+    regex = NULL;
   }
 
-  if (np)
+  if (regex)
   {
     mutt_regex_free(&rx);
   }
   else
   {
-    np = mutt_regexlist_new();
-    np->regex = rx;
-    STAILQ_INSERT_TAIL(rl, np, entries);
+    *rl = g_slist_append(*rl, rx);
   }
 
   return 0;
@@ -176,19 +176,17 @@ int mutt_regexlist_add(struct RegexList *rl, const char *str, uint16_t flags,
  * mutt_regexlist_free - Free a RegexList object
  * @param rl RegexList to free
  */
-void mutt_regexlist_free(struct RegexList *rl)
+void mutt_regexlist_free(RegexList *rl)
 {
   if (!rl)
     return;
 
-  struct RegexNode *np = NULL, *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, rl, entries, tmp)
+  for (GSList *np = rl; np != NULL; np = np->next)
   {
-    STAILQ_REMOVE(rl, np, RegexNode, entries);
-    mutt_regex_free(&np->regex);
-    FREE(&np);
+    struct Regex *regex = np->data;
+    mutt_regex_free(&regex);
   }
-  STAILQ_INIT(rl);
+  g_slist_free(rl);
 }
 
 /**
@@ -197,30 +195,21 @@ void mutt_regexlist_free(struct RegexList *rl)
  * @param str String to compare
  * @retval true String matches one of the Regexes in the list
  */
-bool mutt_regexlist_match(struct RegexList *rl, const char *str)
+bool mutt_regexlist_match(RegexList *rl, const char *str)
 {
   if (!rl || !str)
     return false;
-  struct RegexNode *np = NULL;
-  STAILQ_FOREACH(np, rl, entries)
+  for (GSList *np = rl; np != NULL; np = np->next)
   {
-    if (mutt_regex_match(np->regex, str))
+    struct Regex *regex = np->data;
+    if (mutt_regex_match(regex, str))
     {
-      log_debug5("%s matches %s", str, np->regex->pattern);
+      log_debug5("%s matches %s", str, regex->pattern);
       return true;
     }
   }
 
   return false;
-}
-
-/**
- * mutt_regexlist_new - Create a new RegexList
- * @retval ptr New RegexList object
- */
-struct RegexNode *mutt_regexlist_new(void)
-{
-  return mutt_mem_calloc(1, sizeof(struct RegexNode));
 }
 
 /**
@@ -232,28 +221,29 @@ struct RegexNode *mutt_regexlist_new(void)
  *
  * If the pattern is "*", then all the Regexes are removed.
  */
-int mutt_regexlist_remove(struct RegexList *rl, const char *str)
+int mutt_regexlist_remove(RegexList **rl, const char *str)
 {
   if (!rl || !str)
     return -1;
 
   if (mutt_str_equal("*", str))
   {
-    mutt_regexlist_free(rl); /* "unCMD *" means delete all current entries */
+    mutt_regexlist_free(g_steal_pointer(rl)); /* "unCMD *" means delete all current entries */
     return 0;
   }
 
   int rc = -1;
-  struct RegexNode *np = NULL, *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, rl, entries, tmp)
+  for (GSList *np = *rl; np != NULL;)
   {
-    if (mutt_istr_equal(str, np->regex->pattern))
+    struct Regex *regex = np->data;
+    GSList *next = np->next;
+    if (mutt_istr_equal(str, regex->pattern))
     {
-      STAILQ_REMOVE(rl, np, RegexNode, entries);
-      mutt_regex_free(&np->regex);
-      FREE(&np);
+      *rl = g_slist_remove_link(*rl, np);
+      mutt_regex_free(&regex);
       rc = 0;
     }
+    np = next;
   }
 
   return rc;
