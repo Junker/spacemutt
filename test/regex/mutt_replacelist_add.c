@@ -29,7 +29,7 @@
 
 void test_mutt_replacelist_add(void)
 {
-  // int mutt_replacelist_add(struct ReplaceList *rl, const char *pat, const char *templ, struct Buffer *err);
+  // int mutt_replacelist_add(ReplaceList *rl, const char *pat, const char *templ, struct Buffer *err);
 
   {
     struct Buffer *buf = buf_pool_get();
@@ -38,22 +38,24 @@ void test_mutt_replacelist_add(void)
   }
 
   {
-    struct ReplaceList replacelist = { 0 };
+    ReplaceList *replacelist = g_slist_alloc();
     struct Buffer *buf = buf_pool_get();
     TEST_CHECK(mutt_replacelist_add(&replacelist, NULL, "banana", buf) == 0);
     buf_pool_release(&buf);
+    g_slist_free(replacelist);
   }
 
   {
-    struct ReplaceList replacelist = { 0 };
+    ReplaceList *replacelist = g_slist_alloc();
     struct Buffer *buf = buf_pool_get();
     TEST_CHECK(mutt_replacelist_add(&replacelist, "apple", NULL, buf) == 0);
     buf_pool_release(&buf);
+    g_slist_free(replacelist);
   }
 
   {
-    struct ReplaceList replacelist = STAILQ_HEAD_INITIALIZER(replacelist);
+    ReplaceList *replacelist = NULL;
     TEST_CHECK(mutt_replacelist_add(&replacelist, "apple", "banana", NULL) == 0);
-    mutt_replacelist_free(&replacelist);
+    mutt_replacelist_free_full(replacelist);
   }
 }

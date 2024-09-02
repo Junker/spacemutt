@@ -37,7 +37,7 @@
 #include "mview.h"
 
 /// List of subjectrx rules for modifying the Subject:
-static struct ReplaceList SubjectRegexList = STAILQ_HEAD_INITIALIZER(SubjectRegexList);
+static ReplaceList *SubjectRegexList = NULL;
 static struct Notify *SubjRxNotify = NULL; ///< Notifications: #NotifySubjRx
 
 /**
@@ -46,7 +46,7 @@ static struct Notify *SubjRxNotify = NULL; ///< Notifications: #NotifySubjRx
 void subjrx_cleanup(void)
 {
   notify_free(&SubjRxNotify);
-  mutt_replacelist_free(&SubjectRegexList);
+  mutt_replacelist_free_full(g_steal_pointer(&SubjectRegexList));
 }
 
 /**
@@ -65,7 +65,7 @@ void subjrx_init(void)
  * parse_unreplace_list - Remove a string replacement rule - Implements Command::parse() - @ingroup command_parse
  */
 static enum CommandResult parse_unreplace_list(struct Buffer *buf, struct Buffer *s,
-                                               struct ReplaceList *list, struct Buffer *err)
+                                               ReplaceList **list, struct Buffer *err)
 {
   /* First token is a regex. */
   if (!MoreArgs(s))
@@ -79,7 +79,7 @@ static enum CommandResult parse_unreplace_list(struct Buffer *buf, struct Buffer
   /* "*" is a special case. */
   if (mutt_str_equal(buf->data, "*"))
   {
-    mutt_replacelist_free(list);
+    mutt_replacelist_free_full(g_steal_pointer(list));
     return MUTT_CMD_SUCCESS;
   }
 
@@ -91,7 +91,7 @@ static enum CommandResult parse_unreplace_list(struct Buffer *buf, struct Buffer
  * parse_replace_list - Parse a string replacement rule - Implements Command::parse() - @ingroup command_parse
  */
 static enum CommandResult parse_replace_list(struct Buffer *buf, struct Buffer *s,
-                                             struct ReplaceList *list, struct Buffer *err)
+                                             ReplaceList **list, struct Buffer *err)
 {
   struct Buffer *templ = buf_pool_get();
   int rc = MUTT_CMD_WARNING;
@@ -138,10 +138,10 @@ bool subjrx_apply_mods(struct Envelope *env)
   if (env->disp_subj)
     return true;
 
-  if (STAILQ_EMPTY(&SubjectRegexList))
+  if (!SubjectRegexList)
     return false;
 
-  env->disp_subj = mutt_replacelist_apply(&SubjectRegexList, env->subject);
+  env->disp_subj = mutt_replacelist_apply(SubjectRegexList, env->subject);
   return true;
 }
 

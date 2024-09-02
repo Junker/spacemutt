@@ -28,14 +28,14 @@
 
 void test_mutt_replacelist_remove(void)
 {
-  // int mutt_replacelist_remove(struct ReplaceList *rl, const char *pat);
+  // int mutt_replacelist_remove(ReplaceList *rl, const char *pat);
 
   {
     TEST_CHECK(mutt_replacelist_remove(NULL, "apple") == 0);
   }
 
   {
-    struct ReplaceList replacelist = { 0 };
+    ReplaceList *replacelist = NULL;
     TEST_CHECK(mutt_replacelist_remove(&replacelist, NULL) == 0);
   }
 }

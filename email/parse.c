@@ -1275,7 +1275,7 @@ struct Envelope *mutt_rfc822_read_header(FILE *fp, struct Email *e, bool user_hd
     size_t name_len = p - lines;
 
     char buf[1024] = { 0 };
-    if (mutt_replacelist_match(&SpamList, buf, sizeof(buf), lines))
+    if (mutt_replacelist_match(SpamList, buf, sizeof(buf), lines))
     {
       if (!mutt_regexlist_match(NoSpamList, lines))
       {

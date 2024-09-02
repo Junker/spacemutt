@@ -446,9 +446,9 @@ static unsigned int generate_hcachever(void)
   mutt_md5_process_bytes(&ver, sizeof(ver), &md5ctx);
 
   /* Mix in user's spam list */
-  struct Replace *sp = NULL;
-  STAILQ_FOREACH(sp, &SpamList, entries)
+  for (GSList *np = SpamList; np != NULL; np = np->next)
   {
+    struct Replace *sp = np->data;
     mutt_md5_process(sp->regex->pattern, &md5ctx);
     mutt_md5_process(sp->templ, &md5ctx);
   }

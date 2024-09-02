@@ -28,22 +28,22 @@
 
 void test_mutt_replacelist_apply(void)
 {
-  // char *mutt_replacelist_apply(struct ReplaceList *rl, const char *str);
+  // char *mutt_replacelist_apply(ReplaceList *rl, const char *str);
 
   {
     TEST_CHECK(mutt_replacelist_apply(NULL, "apple") == NULL);
   }
 
   {
-    struct ReplaceList replacelist = { 0 };
-    const char *str = mutt_replacelist_apply(&replacelist, NULL);
+    ReplaceList *replacelist = NULL;
+    const char *str = mutt_replacelist_apply(replacelist, NULL);
     TEST_CHECK(str == NULL);
   }
 
   {
-    struct ReplaceList replacelist = { 0 };
-    const char *str = mutt_replacelist_apply(&replacelist, "apple");
-    TEST_CHECK(str != NULL);
+    ReplaceList *replacelist = NULL;
+    const char *str = mutt_replacelist_apply(replacelist, "apple");
+    TEST_CHECK(str == NULL);
     FREE(&str);
   }
 }

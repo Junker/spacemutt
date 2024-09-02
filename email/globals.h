@@ -31,7 +31,7 @@ extern GSList *Ignore;
 extern RegexList   *MailLists;
 extern GSList *MailToAllow;
 extern RegexList   *NoSpamList;
-extern struct ReplaceList SpamList;
+extern ReplaceList *SpamList;
 extern RegexList   *SubscribedLists;
 extern GSList *UnIgnore;
 extern RegexList   *UnMailLists;

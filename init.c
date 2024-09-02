@@ -289,7 +289,7 @@ void mutt_opts_cleanup(void)
   FREE(&ShortHostname);
   FREE(&Username);
 
-  mutt_replacelist_free(&SpamList);
+  mutt_replacelist_free_full(g_steal_pointer(&SpamList));
 
   mutt_delete_hooks(MUTT_HOOK_NO_FLAGS);
 

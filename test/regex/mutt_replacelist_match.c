@@ -30,7 +30,7 @@
 
 void test_mutt_replacelist_match(void)
 {
-  // bool mutt_replacelist_match(struct ReplaceList *rl, char *buf, size_t buflen, const char *str);
+  // bool mutt_replacelist_match(ReplaceList *rl, char *buf, size_t buflen, const char *str);
 
   {
     char buf[32] = { 0 };
@@ -38,39 +38,40 @@ void test_mutt_replacelist_match(void)
   }
 
   {
-    struct ReplaceList replacelist = { 0 };
-    TEST_CHECK(!mutt_replacelist_match(&replacelist, NULL, 10, "apple"));
+    ReplaceList *replacelist = NULL;
+    TEST_CHECK(!mutt_replacelist_match(replacelist, NULL, 10, "apple"));
   }
 
   {
-    struct ReplaceList replacelist = { 0 };
+    ReplaceList *replacelist = NULL;
     char buf[32] = { 0 };
-    TEST_CHECK(!mutt_replacelist_match(&replacelist, buf, sizeof(buf), NULL));
+    TEST_CHECK(!mutt_replacelist_match(replacelist, buf, sizeof(buf), NULL));
   }
 
   {
-    struct ReplaceList replacelist = STAILQ_HEAD_INITIALIZER(replacelist);
+    ReplaceList *replacelist = NULL;
     mutt_replacelist_add(&replacelist, "foo-([^-]+)-bar", "foo [%0] bar", NULL);
     char buf[32] = { 0 };
-    TEST_CHECK(mutt_replacelist_match(&replacelist, buf, sizeof(buf), "foo-1234-bar"));
+    TEST_CHECK(mutt_replacelist_match(replacelist, buf, sizeof(buf), "foo-1234-bar"));
     TEST_CHECK_STR_EQ(buf, "foo [foo-1234-bar] bar");
-    mutt_replacelist_free(&replacelist);
+    mutt_replacelist_free_full(replacelist);
   }
 
   {
-    struct ReplaceList replacelist = STAILQ_HEAD_INITIALIZER(replacelist);
+    ReplaceList *replacelist = NULL;
     mutt_replacelist_add(&replacelist, "foo-([^-]+)-bar", "foo [%1] bar", NULL);
     char buf[32] = { 0 };
-    TEST_CHECK(mutt_replacelist_match(&replacelist, buf, sizeof(buf), "foo-1234-bar"));
+    TEST_CHECK(mutt_replacelist_match(replacelist, buf, sizeof(buf), "foo-1234-bar"));
     TEST_CHECK_STR_EQ(buf, "foo [1234] bar");
-    mutt_replacelist_free(&replacelist);
+    mutt_replacelist_free_full(replacelist);
   }
 
   {
-    struct ReplaceList replacelist = STAILQ_HEAD_INITIALIZER(replacelist);
+    ReplaceList *replacelist = NULL;
     mutt_replacelist_add(&replacelist, "foo-([^-]+)-bar", "foo [%2] bar", NULL);
+    TEST_CHECK(g_slist_length(replacelist) == 0);
     char buf[32] = { 0 };
-    TEST_CHECK(!mutt_replacelist_match(&replacelist, buf, sizeof(buf), "foo-1234-bar"));
-    mutt_replacelist_free(&replacelist);
+    TEST_CHECK(!mutt_replacelist_match(replacelist, buf, sizeof(buf), "foo-1234-bar"));
+    mutt_replacelist_free_full(replacelist);
   }
 }

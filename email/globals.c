@@ -44,7 +44,7 @@ GSList *MailToAllow = NULL;
 ///< List of regexes to identify non-spam emails
 RegexList *NoSpamList = NULL;
 ///< List of regexes and patterns to match spam emails
-struct ReplaceList SpamList = STAILQ_HEAD_INITIALIZER(SpamList);
+ReplaceList *SpamList = NULL;
 ///< List of regexes to match subscribed mailing lists
 RegexList *SubscribedLists = NULL;
 ///< List of header patterns to unignore (see)

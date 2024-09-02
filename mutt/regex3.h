@@ -98,9 +98,8 @@ struct Replace
   struct Regex *regex;           ///< Regex containing a regular expression
   size_t nmatch;                 ///< Match the 'nth' occurrence (0 means the whole expression)
   char *templ;                   ///< Template to match
-  STAILQ_ENTRY(Replace) entries; ///< Linked list
 };
-STAILQ_HEAD(ReplaceList, Replace);
+typedef GSList ReplaceList;
 
 struct Regex *mutt_regex_compile(const char *str, uint16_t flags);
 struct Regex *mutt_regex_new(const char *str, uint32_t flags, struct Buffer *err);
@@ -111,12 +110,12 @@ void              mutt_regexlist_free  (RegexList *rl);
 bool              mutt_regexlist_match (RegexList *rl, const char *str);
 int               mutt_regexlist_remove(RegexList **rl, const char *str);
 
-int             mutt_replacelist_add   (struct ReplaceList *rl, const char *pat, const char *templ, struct Buffer *err);
-char *          mutt_replacelist_apply (struct ReplaceList *rl, const char *str);
-void            mutt_replacelist_free  (struct ReplaceList *rl);
-bool            mutt_replacelist_match (struct ReplaceList *rl, char *buf, size_t buflen, const char *str);
+int             mutt_replacelist_add   (ReplaceList **rl, const char *pat, const char *templ, struct Buffer *err);
+char *          mutt_replacelist_apply (ReplaceList *rl, const char *str);
+void            mutt_replacelist_free_full (ReplaceList *rl);
+bool            mutt_replacelist_match (ReplaceList *rl, char *buf, size_t buflen, const char *str);
 struct Replace *mutt_replacelist_new   (void);
-int             mutt_replacelist_remove(struct ReplaceList *rl, const char *pat);
+int             mutt_replacelist_remove(ReplaceList **rl, const char *pat);
 
 bool mutt_regex_match  (const struct Regex *regex, const char *str);
 bool mutt_regex_capture(const struct Regex *regex, const char *str, size_t num, regmatch_t matches[]);
