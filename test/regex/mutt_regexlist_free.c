@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for mutt_regexlist_free()
+ * Test code for mutt_regexlist_free_full()
  *
  * @authors
  * Copyright (C) 2019 Richard Russon <rich@flatcap.org>
@@ -28,10 +28,10 @@
 
 void test_mutt_regexlist_free(void)
 {
-  // void mutt_regexlist_free(RegexList *rl);
+  // void mutt_regexlist_free_full(RegexList *rl);
 
   {
-    mutt_regexlist_free(NULL);
-    TEST_CHECK_(1, "mutt_regexlist_free(NULL)");
+    mutt_regexlist_free_full(NULL);
+    TEST_CHECK_(1, "mutt_regexlist_free_full(NULL)");
   }
 }

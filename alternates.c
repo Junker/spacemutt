@@ -50,8 +50,8 @@ void alternates_cleanup(void)
 {
   notify_free(&AlternatesNotify);
 
-  mutt_regexlist_free(g_steal_pointer(&Alternates));
-  mutt_regexlist_free(g_steal_pointer(&UnAlternates));
+  mutt_regexlist_free_full(g_steal_pointer(&Alternates));
+  mutt_regexlist_free_full(g_steal_pointer(&UnAlternates));
 }
 
 /**

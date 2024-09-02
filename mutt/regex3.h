@@ -106,7 +106,7 @@ struct Regex *mutt_regex_new(const char *str, uint32_t flags, struct Buffer *err
 void          mutt_regex_free(struct Regex **ptr);
 
 int               mutt_regexlist_add   (RegexList **rl, const char *str, uint16_t flags, struct Buffer *err);
-void              mutt_regexlist_free  (RegexList *rl);
+void              mutt_regexlist_free_full (RegexList *rl);
 bool              mutt_regexlist_match (RegexList *rl, const char *str);
 int               mutt_regexlist_remove(RegexList **rl, const char *str);
 

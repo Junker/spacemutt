@@ -173,10 +173,10 @@ int mutt_regexlist_add(RegexList **rl, const char *str, uint16_t flags,
 }
 
 /**
- * mutt_regexlist_free - Free a RegexList object
+ * mutt_regexlist_free_full - Free a RegexList object
  * @param rl RegexList to free
  */
-void mutt_regexlist_free(RegexList *rl)
+void mutt_regexlist_free_full(RegexList *rl)
 {
   if (!rl)
     return;
@@ -228,7 +228,7 @@ int mutt_regexlist_remove(RegexList **rl, const char *str)
 
   if (mutt_str_equal("*", str))
   {
-    mutt_regexlist_free(g_steal_pointer(rl)); /* "unCMD *" means delete all current entries */
+    mutt_regexlist_free_full(g_steal_pointer(rl)); /* "unCMD *" means delete all current entries */
     return 0;
   }
 

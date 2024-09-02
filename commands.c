@@ -938,7 +938,7 @@ static enum CommandResult parse_nospam(struct Buffer *buf, struct Buffer *s,
   if (mutt_str_equal(buf_string(buf), "*"))
   {
     mutt_replacelist_free_full(g_steal_pointer(&SpamList));
-    mutt_regexlist_free(g_steal_pointer(&NoSpamList));
+    mutt_regexlist_free_full(g_steal_pointer(&NoSpamList));
     return MUTT_CMD_SUCCESS;
   }
 

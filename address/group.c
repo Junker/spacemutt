@@ -56,7 +56,7 @@ static void group_free(struct Group **ptr)
   struct Group *g = *ptr;
 
   mutt_addrlist_free_full(g->al);
-  mutt_regexlist_free(g->rs);
+  mutt_regexlist_free_full(g->rs);
   FREE(&g->name);
 
   FREE(ptr);

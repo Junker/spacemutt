@@ -261,11 +261,11 @@ void mutt_opts_cleanup(void)
   alias_cleanup();
   sb_cleanup();
 
-  mutt_regexlist_free(g_steal_pointer(&MailLists));
-  mutt_regexlist_free(g_steal_pointer(&NoSpamList));
-  mutt_regexlist_free(g_steal_pointer(&SubscribedLists));
-  mutt_regexlist_free(g_steal_pointer(&UnMailLists));
-  mutt_regexlist_free(g_steal_pointer(&UnSubscribedLists));
+  mutt_regexlist_free_full(g_steal_pointer(&MailLists));
+  mutt_regexlist_free_full(g_steal_pointer(&NoSpamList));
+  mutt_regexlist_free_full(g_steal_pointer(&SubscribedLists));
+  mutt_regexlist_free_full(g_steal_pointer(&UnMailLists));
+  mutt_regexlist_free_full(g_steal_pointer(&UnSubscribedLists));
 
   mutt_grouplist_cleanup();
   driver_tags_cleanup();
@@ -296,7 +296,7 @@ void mutt_opts_cleanup(void)
   mutt_hist_cleanup();
   mutt_keys_cleanup();
 
-  mutt_regexlist_free(g_steal_pointer(&NoSpamList));
+  mutt_regexlist_free_full(g_steal_pointer(&NoSpamList));
   commands_cleanup();
 }
 
