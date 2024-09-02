@@ -447,7 +447,7 @@ bool regex_colors_parse_uncolor(enum ColorId cid, const char *pat, bool uncolor)
       res = true;
 
       log_color_debug("Freeing pattern \"%s\" from XXX\n", pat);
-      cl->head = g_slist_remove_link(cl->head, np);
+      cl->head = g_slist_delete_link(cl->head, np);
       log_notify("NT_COLOR_RESET: XXX");
       struct EventColor ev_c = { cid, &rc->attr_color };
       notify_send(ColorsNotify, NT_COLOR, NT_COLOR_RESET, &ev_c);

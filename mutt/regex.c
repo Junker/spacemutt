@@ -239,7 +239,7 @@ int mutt_regexlist_remove(RegexList **rl, const char *str)
     GSList *next = np->next;
     if (mutt_istr_equal(str, regex->pattern))
     {
-      *rl = g_slist_remove_link(*rl, np);
+      *rl = g_slist_delete_link(*rl, np);
       mutt_regex_free(&regex);
       rc = 0;
     }

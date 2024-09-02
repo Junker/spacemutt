@@ -169,7 +169,7 @@ enum CommandResult parse_rc_line_cwd(const char *line, char *cwd, struct Buffer 
   enum CommandResult ret = parse_rc_line(line, err);
 
   g_free(MuttrcStack->data);
-  MuttrcStack = g_slist_remove_link(MuttrcStack, MuttrcStack);
+  MuttrcStack = g_slist_delete_link(MuttrcStack, MuttrcStack);
 
   return ret;
 }
