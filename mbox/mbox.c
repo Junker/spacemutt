@@ -778,11 +778,10 @@ static bool mbox_ac_owns_path(struct Account *a, const char *path)
   if ((a->type != MUTT_MBOX) && (a->type != MUTT_MMDF))
     return false;
 
-  struct MailboxNode *np = STAILQ_FIRST(&a->mailboxes);
-  if (!np)
+  if (!a->mailboxes)
     return false;
 
-  return mutt_str_equal(mailbox_path(np->mailbox), path);
+  return mutt_str_equal(mailbox_path(a->mailboxes->data), path);
 }
 
 /**

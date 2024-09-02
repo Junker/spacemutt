@@ -159,15 +159,7 @@ enum ExpandoDataMailbox
   ED_MBX_PERCENTAGE,           ///< HdrFormatInfo.pager_progress
 };
 
-/**
- * struct MailboxNode - List of Mailboxes
- */
-struct MailboxNode
-{
-  struct Mailbox *mailbox;           ///< Mailbox in the list
-  STAILQ_ENTRY(MailboxNode) entries; ///< Linked list
-};
-STAILQ_HEAD(MailboxList, MailboxNode);
+typedef GSList MailboxList;
 
 /**
  * enum NotifyMailbox - Types of Mailbox Event

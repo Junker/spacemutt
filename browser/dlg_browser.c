@@ -775,7 +775,7 @@ int examine_directory(struct Mailbox *m, struct Menu *menu, struct BrowserState 
 
     init_state(state, menu);
 
-    struct MailboxList ml = STAILQ_HEAD_INITIALIZER(ml);
+    MailboxList *ml = NULL;
     neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
 
     const struct Regex *c_mask = cs_subset_regex(NeoMutt->sub, "mask");
@@ -803,21 +803,23 @@ int examine_directory(struct Mailbox *m, struct Menu *menu, struct BrowserState 
       else if (!S_ISREG(st.st_mode))
         continue;
 
-      struct MailboxNode *np = NULL;
-      STAILQ_FOREACH(np, &ml, entries)
+      struct Mailbox *mn = NULL;
+      for (GSList *np = ml; np != NULL; np = np->next)
       {
-        if (mutt_str_equal(buf_string(buf), mailbox_path(np->mailbox)))
+        mn = np->data;
+        if (mutt_str_equal(buf_string(buf), mailbox_path(mn)))
           break;
+        m = NULL;
       }
 
-      if (np && m && m->poll_new_mail && mutt_str_equal(np->mailbox->realpath, m->realpath))
+      if (mn && m && m->poll_new_mail && mutt_str_equal(mn->realpath, m->realpath))
       {
-        np->mailbox->msg_count = m->msg_count;
-        np->mailbox->msg_unread = m->msg_unread;
+        mn->msg_count = m->msg_count;
+        mn->msg_unread = m->msg_unread;
       }
-      browser_add_folder(menu, state, de->d_name, NULL, &st, np ? np->mailbox : NULL, NULL);
+      browser_add_folder(menu, state, de->d_name, NULL, &st, mn, NULL);
     }
-    neomutt_mailboxlist_clear(&ml);
+    neomutt_mailboxlist_free(ml);
     closedir(dir);
   }
   browser_sort(state);
@@ -869,66 +871,64 @@ int examine_mailboxes(struct Mailbox *m, struct Menu *menu, struct BrowserState 
 
     mutt_mailbox_check(m, MUTT_MAILBOX_CHECK_NO_FLAGS);
 
-    struct MailboxList ml = STAILQ_HEAD_INITIALIZER(ml);
+    MailboxList *ml = NULL;
     neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
-    struct MailboxNode *np = NULL;
     const bool c_browser_abbreviate_mailboxes = cs_subset_bool(NeoMutt->sub, "browser_abbreviate_mailboxes");
 
-    STAILQ_FOREACH(np, &ml, entries)
-    {
-      if (!np->mailbox)
-        continue;
 
-      if (m && m->poll_new_mail && mutt_str_equal(np->mailbox->realpath, m->realpath))
+    for (GSList *np = ml; np != NULL; np = np->next)
+    {
+      struct Mailbox *mn = np->data;
+      if (m && m->poll_new_mail && mutt_str_equal(mn->realpath, m->realpath))
       {
-        np->mailbox->msg_count = m->msg_count;
-        np->mailbox->msg_unread = m->msg_unread;
+        mn->msg_count = m->msg_count;
+        mn->msg_unread = m->msg_unread;
       }
 
-      buf_strcpy(mailbox, mailbox_path(np->mailbox));
+      buf_strcpy(mailbox, mailbox_path(mn));
       if (c_browser_abbreviate_mailboxes)
         buf_pretty_mailbox(mailbox);
 
-      switch (np->mailbox->type)
+      switch (mn->type)
       {
         case MUTT_IMAP:
         case MUTT_POP:
           browser_add_folder(menu, state, buf_string(mailbox),
-                             np->mailbox->name, NULL, np->mailbox, NULL);
+                             mn->name, NULL, mn, NULL);
           continue;
         case MUTT_NOTMUCH:
         case MUTT_NNTP:
-          browser_add_folder(menu, state, mailbox_path(np->mailbox),
-                             np->mailbox->name, NULL, np->mailbox, NULL);
+          browser_add_folder(menu, state, mailbox_path(mn),
+                             mn->name, NULL, mn, NULL);
           continue;
         default: /* Continue */
           break;
       }
 
-      if (lstat(mailbox_path(np->mailbox), &st) == -1)
+      if (lstat(mailbox_path(mn), &st) == -1)
         continue;
 
       if ((!S_ISREG(st.st_mode)) && (!S_ISDIR(st.st_mode)) && (!S_ISLNK(st.st_mode)))
         continue;
 
-      if (np->mailbox->type == MUTT_MAILDIR)
+      if (mn->type == MUTT_MAILDIR)
       {
         struct stat st2 = { 0 };
 
-        buf_printf(md, "%s/new", mailbox_path(np->mailbox));
+        buf_printf(md, "%s/new", mailbox_path(mn));
         if (stat(buf_string(md), &st) < 0)
           st.st_mtime = 0;
-        buf_printf(md, "%s/cur", mailbox_path(np->mailbox));
+        buf_printf(md, "%s/cur", mailbox_path(mn));
         if (stat(buf_string(md), &st2) < 0)
           st2.st_mtime = 0;
         if (st2.st_mtime > st.st_mtime)
           st.st_mtime = st2.st_mtime;
       }
 
-      browser_add_folder(menu, state, buf_string(mailbox), np->mailbox->name,
-                         &st, np->mailbox, NULL);
+      browser_add_folder(menu, state, buf_string(mailbox), mn->name,
+                         &st, mn, NULL);
     }
-    neomutt_mailboxlist_clear(&ml);
+    neomutt_mailboxlist_free(ml);
   }
   browser_sort(state);
 

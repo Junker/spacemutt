@@ -621,57 +621,16 @@ void dot_mailbox(FILE *fp, struct Mailbox *m, GSList **links)
 #endif
 }
 
-void dot_mailbox_node(FILE *fp, struct MailboxNode *mn, GSList **links)
+void dot_mailbox_list(FILE *fp, MailboxList *ml, GSList **links, bool abbr)
 {
-  dot_node(fp, mn, "MN", "#80ff80");
-
-  dot_mailbox(fp, mn->mailbox, links);
-
-  dot_add_link(links, mn, mn->mailbox, "MailboxNode->mailbox", NULL, false, NULL);
-
-  struct Buffer *buf = buf_pool_get();
-
-  char name[256] = { 0 };
-  buf_addstr(buf, "{ rank=same ");
-
-  dot_ptr_name(name, sizeof(name), mn);
-  buf_add_printf(buf, "%s ", name);
-
-  dot_ptr_name(name, sizeof(name), mn->mailbox);
-  buf_add_printf(buf, "%s ", name);
-
-#ifndef GV_HIDE_MDATA
-  if (mn->mailbox->mdata)
+  GSList *prev = NULL;
+  for (GSList *np = ml; np != NULL; np = np->next)
   {
-    dot_ptr_name(name, sizeof(name), mn->mailbox->mdata);
-    buf_add_printf(buf, "%s ", name);
-  }
-#endif
-
-#ifndef GV_HIDE_CONFIG
-  if (mn->mailbox->name)
-  {
-    dot_ptr_name(name, sizeof(name), mn->mailbox->name);
-    buf_add_printf(buf, "%s ", name);
-  }
-#endif
-
-  buf_addstr(buf, "}");
-
-  *links = g_slist_append(*links, buf_strdup(buf));
-  buf_pool_release(&buf);
-}
-
-void dot_mailbox_list(FILE *fp, struct MailboxList *ml, GSList **links, bool abbr)
-{
-  struct MailboxNode *prev = NULL;
-  struct MailboxNode *np = NULL;
-  STAILQ_FOREACH(np, ml, entries)
-  {
+    struct Mailbox *m = np->data;
     if (abbr)
-      dot_node_link(fp, np, "MN", np->mailbox, "#80ff80");
+      dot_node_link(fp, np, "MN", m, "#80ff80");
     else
-      dot_mailbox_node(fp, np, links);
+      dot_mailbox(fp, m, links);
     if (prev)
       dot_add_link(links, prev, np, "MailboxNode->next", NULL, false, NULL);
     prev = np;
@@ -855,9 +814,8 @@ void dot_account(FILE *fp, struct Account *a, GSList **links)
   }
 #endif
 
-  struct MailboxNode *first = STAILQ_FIRST(&a->mailboxes);
-  dot_add_link(links, a, first, "Account->mailboxes", NULL, false, NULL);
-  dot_mailbox_list(fp, &a->mailboxes, links, false);
+  dot_add_link(links, a, a->mailboxes, "Account->mailboxes", NULL, false, NULL);
+  dot_mailbox_list(fp, a->mailboxes, links, false);
 }
 
 void dot_account_list(FILE *fp, AccountList *al, GSList **links)

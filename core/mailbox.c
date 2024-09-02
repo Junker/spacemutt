@@ -158,20 +158,18 @@ struct Mailbox *mailbox_find(const char *path)
   if (stat(path, &st) != 0)
     return NULL;
 
-  struct MailboxList ml = STAILQ_HEAD_INITIALIZER(ml);
+  MailboxList *ml = NULL;
   neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
-  struct MailboxNode *np = NULL;
-  struct Mailbox *m = NULL;
-  STAILQ_FOREACH(np, &ml, entries)
+  struct Mailbox *m;
+  for (GSList *np = ml; np != NULL; np = np->next)
   {
-    if ((stat(mailbox_path(np->mailbox), &st_tmp) == 0) &&
+    m = np->data;
+    if ((stat(mailbox_path(m), &st_tmp) == 0) &&
         (st.st_dev == st_tmp.st_dev) && (st.st_ino == st_tmp.st_ino))
-    {
-      m = np->mailbox;
       break;
-    }
+    m = NULL;
   }
-  neomutt_mailboxlist_clear(&ml);
+  neomutt_mailboxlist_free(ml);
 
   return m;
 }
@@ -189,19 +187,17 @@ struct Mailbox *mailbox_find_name(const char *name)
   if (!name)
     return NULL;
 
-  struct MailboxList ml = STAILQ_HEAD_INITIALIZER(ml);
+  MailboxList *ml = NULL;
   neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
-  struct MailboxNode *np = NULL;
   struct Mailbox *m = NULL;
-  STAILQ_FOREACH(np, &ml, entries)
+  for (GSList *np = ml; np != NULL; np = np->next)
   {
-    if (mutt_str_equal(np->mailbox->name, name))
-    {
-      m = np->mailbox;
+    m = np->data;
+    if (mutt_str_equal(m->name, name))
       break;
-    }
+    m = NULL;
   }
-  neomutt_mailboxlist_clear(&ml);
+  neomutt_mailboxlist_free(ml);
 
   return m;
 }

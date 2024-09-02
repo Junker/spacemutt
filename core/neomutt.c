@@ -161,23 +161,17 @@ bool neomutt_account_remove(struct NeoMutt *n, const struct Account *a)
 }
 
 /**
- * neomutt_mailboxlist_clear - Free a Mailbox List
+ * neomutt_mailboxlist_free - Free a Mailbox List
  * @param ml Mailbox List to free
  *
  * @note The Mailboxes aren't freed
  */
-void neomutt_mailboxlist_clear(struct MailboxList *ml)
+void neomutt_mailboxlist_free(MailboxList *ml)
 {
   if (!ml)
     return;
 
-  struct MailboxNode *mn = NULL;
-  struct MailboxNode *tmp = NULL;
-  STAILQ_FOREACH_SAFE(mn, ml, entries, tmp)
-  {
-    STAILQ_REMOVE(ml, mn, MailboxNode, entries);
-    FREE(&mn);
-  }
+  g_slist_free(ml);
 }
 
 /**
@@ -189,14 +183,13 @@ void neomutt_mailboxlist_clear(struct MailboxList *ml)
  *
  * @note If type is #MUTT_MAILBOX_ANY then all Mailbox types will be matched
  */
-size_t neomutt_mailboxlist_get_all(struct MailboxList *head, struct NeoMutt *n,
+size_t neomutt_mailboxlist_get_all(MailboxList **head, struct NeoMutt *n,
                                    enum MailboxType type)
 {
   if (!n)
     return 0;
 
   size_t count = 0;
-  struct MailboxNode *mn = NULL;
 
   for (GList *np = n->accounts->head; np != NULL; np = np->next)
   {
@@ -204,13 +197,8 @@ size_t neomutt_mailboxlist_get_all(struct MailboxList *head, struct NeoMutt *n,
     if ((type > MUTT_UNKNOWN) && (a->type != type))
       continue;
 
-    STAILQ_FOREACH(mn, &a->mailboxes, entries)
-    {
-      struct MailboxNode *mn2 = mutt_mem_calloc(1, sizeof(*mn2));
-      mn2->mailbox = mn->mailbox;
-      STAILQ_INSERT_TAIL(head, mn2, entries);
-      count++;
-    }
+    *head = g_slist_concat(*head, g_slist_copy(a->mailboxes));
+    count += g_slist_length(a->mailboxes);
   }
 
   return count;

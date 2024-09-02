@@ -1245,15 +1245,13 @@ static void do_unmailboxes(struct Mailbox *m)
  */
 static void do_unmailboxes_star(void)
 {
-  struct MailboxList ml = STAILQ_HEAD_INITIALIZER(ml);
+  MailboxList *ml = NULL;
   neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
-  struct MailboxNode *np = NULL;
-  struct MailboxNode *nptmp = NULL;
-  STAILQ_FOREACH_SAFE(np, &ml, entries, nptmp)
+  for (GSList *np = ml; np != NULL; np = np->next)
   {
-    do_unmailboxes(np->mailbox);
+    do_unmailboxes(np->data);
   }
-  neomutt_mailboxlist_clear(&ml);
+  neomutt_mailboxlist_free(ml);
 }
 
 /**

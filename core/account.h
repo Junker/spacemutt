@@ -37,7 +37,7 @@ struct Account
   enum MailboxType type;          ///< Type of Mailboxes this Account contains
   char *name;                     ///< Name of Account
   struct ConfigSubset *sub;       ///< Inherited config items
-  struct MailboxList mailboxes;   ///< List of Mailboxes
+  MailboxList *mailboxes;         ///< List of Mailboxes
   struct Notify *notify;          ///< Notifications: #NotifyAccount, #EventAccount
   void *adata;                    ///< Private data (for Mailbox backends)
 

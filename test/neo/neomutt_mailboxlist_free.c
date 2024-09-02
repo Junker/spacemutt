@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for neomutt_mailboxlist_clear()
+ * Test code for neomutt_mailboxlist_free()
  *
  * @authors
  * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
@@ -26,12 +26,12 @@
 #include <stddef.h>
 #include "core/lib.h"
 
-void test_neomutt_mailboxlist_clear(void)
+void test_neomutt_mailboxlist_free(void)
 {
-  // void neomutt_mailboxlist_clear(struct MailboxList *ml);
+  // void neomutt_mailboxlist_free(MailboxList *ml);
 
   {
-    neomutt_mailboxlist_clear(NULL);
-    TEST_CHECK_(1, "neomutt_mailboxlist_clear(NULL)");
+    neomutt_mailboxlist_free(NULL);
+    TEST_CHECK_(1, "neomutt_mailboxlist_free(NULL)");
   }
 }

@@ -122,23 +122,26 @@ static void add_folder(char delim, char *folder, bool noselect, bool noinferiors
   ff.selectable = !noselect;
   ff.inferiors = !noinferiors;
 
-  struct MailboxList ml = STAILQ_HEAD_INITIALIZER(ml);
+  MailboxList *ml = NULL;
   neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
-  struct MailboxNode *np = NULL;
-  STAILQ_FOREACH(np, &ml, entries)
+
+  struct Mailbox *m = NULL;
+  for (GSList *np = ml; np != NULL; np = np->next)
   {
-    if (mutt_str_equal(tmp, mailbox_path(np->mailbox)))
+    m = np->data;
+    if (mutt_str_equal(tmp, mailbox_path(m)))
       break;
+    m = NULL;
   }
 
-  if (np)
+  if (m)
   {
     ff.has_mailbox = true;
-    ff.has_new_mail = np->mailbox->has_new;
-    ff.msg_count = np->mailbox->msg_count;
-    ff.msg_unread = np->mailbox->msg_unread;
+    ff.has_new_mail = m->has_new;
+    ff.msg_count = m->msg_count;
+    ff.msg_unread = m->msg_unread;
   }
-  neomutt_mailboxlist_clear(&ml);
+  neomutt_mailboxlist_free(ml);
 
   ARRAY_ADD(&state->entry, ff);
 }
@@ -218,18 +221,17 @@ int imap_browse(const char *path, struct BrowserState *state)
   cs_subset_str_native_set(NeoMutt->sub, "imap_check_subscribed", false, NULL);
 
   // Pick first mailbox connected to the same server
-  struct MailboxList ml = STAILQ_HEAD_INITIALIZER(ml);
+  MailboxList *ml = NULL;
   neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_IMAP);
-  struct MailboxNode *np = NULL;
-  STAILQ_FOREACH(np, &ml, entries)
+  for (GSList *np = ml; np != NULL; np = np->next)
   {
-    adata = imap_adata_get(np->mailbox);
+    adata = imap_adata_get(np->data);
     // Pick first mailbox connected on the same server
     if (imap_account_match(&adata->conn->account, &cac))
       break;
     adata = NULL;
   }
-  neomutt_mailboxlist_clear(&ml);
+  neomutt_mailboxlist_free(ml);
   if (!adata)
     goto fail;
 

@@ -48,7 +48,7 @@ struct Account *account_new(const char *name, struct ConfigSubset *sub)
 
   struct Account *a = mutt_mem_calloc(1, sizeof(struct Account));
 
-  STAILQ_INIT(&a->mailboxes);
+  a->mailboxes = NULL;
   a->notify = notify_new();
   a->name = mutt_str_dup(name);
   a->sub = cs_subset_new(name, sub, a->notify);
@@ -73,9 +73,7 @@ bool account_mailbox_add(struct Account *a, struct Mailbox *m)
     a->type = m->type;
 
   m->account = a;
-  struct MailboxNode *np = mutt_mem_calloc(1, sizeof(*np));
-  np->mailbox = m;
-  STAILQ_INSERT_TAIL(&a->mailboxes, np, entries);
+  a->mailboxes = g_slist_append(a->mailboxes, m);
   mailbox_set_subset(m, a->sub);
   notify_set_parent(m->notify, a->notify);
 
@@ -97,7 +95,7 @@ bool account_mailbox_add(struct Account *a, struct Mailbox *m)
  */
 bool account_mailbox_remove(struct Account *a, struct Mailbox *m)
 {
-  if (!a || STAILQ_EMPTY(&a->mailboxes))
+  if (!a || !a->mailboxes)
     return false;
 
   if (!m)
@@ -108,14 +106,14 @@ bool account_mailbox_remove(struct Account *a, struct Mailbox *m)
   }
 
   bool result = false;
-  struct MailboxNode *np = NULL;
-  struct MailboxNode *tmp = NULL;
-  STAILQ_FOREACH_SAFE(np, &a->mailboxes, entries, tmp)
+  for (GSList *np = a->mailboxes; np != NULL;)
   {
-    if (m && (np->mailbox != m))
+    struct Mailbox *mn = np->data;
+    np = np->next;
+    if (m && (mn != m))
       continue;
 
-    STAILQ_REMOVE(&a->mailboxes, np, MailboxNode, entries);
+    a->mailboxes = g_slist_remove(a->mailboxes, mn);
     if (m)
     {
       m->account = NULL;
@@ -124,10 +122,9 @@ bool account_mailbox_remove(struct Account *a, struct Mailbox *m)
     else
     {
       // we make it invisible here to force the deletion of the mailbox
-      np->mailbox->visible = false;
-      mailbox_free(&np->mailbox);
+      mn->visible = false;
+      mailbox_free(&mn);
     }
-    FREE(&np);
     result = true;
     if (m)
       break;

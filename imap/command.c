@@ -790,12 +790,12 @@ static struct Mailbox *find_mailbox(struct ImapAccountData *adata, const char *n
   if (!adata || !adata->account || !name)
     return NULL;
 
-  struct MailboxNode *np = NULL;
-  STAILQ_FOREACH(np, &adata->account->mailboxes, entries)
+  for (GSList *np = adata->account->mailboxes; np != NULL; np = np->next)
   {
-    struct ImapMboxData *mdata = imap_mdata_get(np->mailbox);
+    struct Mailbox *m = np->data;
+    struct ImapMboxData *mdata = imap_mdata_get(m);
     if (mutt_str_equal(name, mdata->name))
-      return np->mailbox;
+      return m;
   }
 
   return NULL;
