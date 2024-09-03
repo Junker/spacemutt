@@ -898,27 +898,27 @@ static bool pattern_exec(struct Pattern *pat, PatternExecFlags flags,
       if (!e->env)
         return false;
       return pat->pat_not ^ match_addrlist(pat, (flags & MUTT_MATCH_FULL_ADDRESS),
-                                           1, &e->env->sender);
+                                           1, e->env->sender);
     case MUTT_PAT_FROM:
       if (!e->env)
         return false;
       return pat->pat_not ^
-             match_addrlist(pat, (flags & MUTT_MATCH_FULL_ADDRESS), 1, &e->env->from);
+             match_addrlist(pat, (flags & MUTT_MATCH_FULL_ADDRESS), 1, e->env->from);
     case MUTT_PAT_TO:
       if (!e->env)
         return false;
       return pat->pat_not ^
-             match_addrlist(pat, (flags & MUTT_MATCH_FULL_ADDRESS), 1, &e->env->to);
+             match_addrlist(pat, (flags & MUTT_MATCH_FULL_ADDRESS), 1, e->env->to);
     case MUTT_PAT_CC:
       if (!e->env)
         return false;
       return pat->pat_not ^
-             match_addrlist(pat, (flags & MUTT_MATCH_FULL_ADDRESS), 1, &e->env->cc);
+             match_addrlist(pat, (flags & MUTT_MATCH_FULL_ADDRESS), 1, e->env->cc);
     case MUTT_PAT_BCC:
       if (!e->env)
         return false;
       return pat->pat_not ^
-             match_addrlist(pat, (flags & MUTT_MATCH_FULL_ADDRESS), 1, &e->env->bcc);
+             match_addrlist(pat, (flags & MUTT_MATCH_FULL_ADDRESS), 1, e->env->bcc);
     case MUTT_PAT_SUBJECT:
       if (!e->env)
         return false;
