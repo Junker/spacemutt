@@ -425,20 +425,6 @@ void test_fini(void);
   /* imap */                                                                   \
   NEOMUTT_TEST_ITEM(test_imap_msg_set)                                         \
                                                                                \
-  /* list */                                                                   \
-  NEOMUTT_TEST_ITEM(test_mutt_list_clear)                                      \
-  NEOMUTT_TEST_ITEM(test_mutt_list_copy_tail)                                  \
-  NEOMUTT_TEST_ITEM(test_mutt_list_equal)                                      \
-  NEOMUTT_TEST_ITEM(test_mutt_list_find)                                       \
-  NEOMUTT_TEST_ITEM(test_mutt_list_free)                                       \
-  NEOMUTT_TEST_ITEM(test_mutt_list_free_type)                                  \
-  NEOMUTT_TEST_ITEM(test_mutt_list_insert_after)                               \
-  NEOMUTT_TEST_ITEM(test_mutt_list_insert_head)                                \
-  NEOMUTT_TEST_ITEM(test_mutt_list_insert_tail)                                \
-  NEOMUTT_TEST_ITEM(test_mutt_list_match)                                      \
-  NEOMUTT_TEST_ITEM(test_mutt_list_str_split)                                  \
-  NEOMUTT_TEST_ITEM(test_mutt_list_write)                                      \
-                                                                               \
   /* logging */                                                                \
   NEOMUTT_TEST_ITEM(test_log_disp_file)                                        \
   NEOMUTT_TEST_ITEM(test_log_disp_queue)                                       \

@@ -45,7 +45,6 @@
 #include "memory.h"
 #include "message.h"
 #include "pool.h"
-#include "queue.h"
 #include "regex3.h"
 #include "string2.h"
 

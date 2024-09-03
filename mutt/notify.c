@@ -34,7 +34,6 @@
 #include "memory.h"
 #include "notify_type.h"
 #include "observer.h"
-#include "queue.h"
 
 /// Lookup table for NotifyType
 /// Must be the same size and order as #NotifyType

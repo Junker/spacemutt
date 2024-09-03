@@ -40,11 +40,9 @@
 #include <glib.h>
 #include "charset.h"
 #include "buffer.h"
-#include "list.h"
 #include "logging2.h"
 #include "memory.h"
 #include "pool.h"
-#include "queue.h"
 #include "regex3.h"
 #include "slist.h"
 #include "string2.h"

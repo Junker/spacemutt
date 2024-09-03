@@ -380,20 +380,6 @@ IDNA_OBJS	= test/idna/mutt_idna_intl_to_local.o \
 
 IMAP_OBJS	= test/imap/msg_set.o
 
-LIST_OBJS	= test/list/common.o \
-		  test/list/mutt_list_clear.o \
-		  test/list/mutt_list_copy_tail.o \
-		  test/list/mutt_list_equal.o \
-		  test/list/mutt_list_find.o \
-		  test/list/mutt_list_free.o \
-		  test/list/mutt_list_free_type.o \
-		  test/list/mutt_list_insert_after.o \
-		  test/list/mutt_list_insert_head.o \
-		  test/list/mutt_list_insert_tail.o \
-		  test/list/mutt_list_match.o \
-		  test/list/mutt_list_str_split.o \
-		  test/list/mutt_list_write.o
-
 LOGGING_OBJS	= test/logging/log_disp_file.o \
 		  test/logging/log_disp_queue.o \
 		  test/logging/log_disp_terminal.o \
@@ -707,7 +693,6 @@ TEST_OBJS	= test/common.o test/main.o \
 		  $(HISTORY_OBJS) \
 		  $(IDNA_OBJS) \
 		  $(IMAP_OBJS) \
-		  $(LIST_OBJS) \
 		  $(LOGGING_OBJS) \
 		  $(MAILBOX_OBJS) \
 		  $(MAPPING_OBJS) \

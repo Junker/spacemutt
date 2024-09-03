@@ -26,7 +26,6 @@
 #include <stdbool.h>
 #include <glib.h>
 #include "notify_type.h"
-#include "queue.h"
 
 /**
  * struct NotifyCallback - Data passed to a notification function

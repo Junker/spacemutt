@@ -163,15 +163,6 @@ enum ExpandoDataEmail
 };
 
 /**
- * struct EmailNode - List of Emails
- */
-struct EmailNode
-{
-  struct Email *email;             ///< Email in the list
-  STAILQ_ENTRY(EmailNode) entries; ///< Linked list
-};
-
-/**
  * enum NotifyEmail - Types of Email Event
  *
  * Observers of #NT_EMAIL will be passed an #EventEmail.

@@ -69,7 +69,6 @@ struct AttrColor
   int attrs;                        ///< Text attributes, e.g. A_BOLD
   struct CursesColor *curses_color; ///< Underlying Curses colour
   short ref_count;                  ///< Number of users
-  TAILQ_ENTRY(AttrColor) entries;   ///< Linked list
 };
 typedef GQueue AttrColorList;
 

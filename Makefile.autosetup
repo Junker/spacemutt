@@ -624,7 +624,7 @@ $(PWD)/mh:
 LIBMUTT=	libmutt.a
 LIBMUTTOBJS=	mutt/atoi.o mutt/base64.o mutt/buffer.o mutt/charset.o \
 		mutt/date.o mutt/envlist.o mutt/exit.o mutt/file.o \
-		mutt/filter.o mutt/hash.o mutt/list.o mutt/gqueue.o mutt/gslist.o mutt/logging.o \
+		mutt/filter.o mutt/hash.o mutt/gqueue.o mutt/gslist.o mutt/logging.o \
 		mutt/mapping.o mutt/mbyte.o mutt/md5.o mutt/memory.o \
 		mutt/notify.o mutt/path.o mutt/pool.o mutt/prex.o \
 		mutt/qsort_r.o mutt/random.o mutt/regex.o mutt/signal.o \
@@ -952,7 +952,7 @@ git_ver.c: $(ALL_FILES)
 hcache/hcversion.h:	$(SRCDIR)/address/address.h $(SRCDIR)/email/body.h \
 			$(SRCDIR)/email/email.h $(SRCDIR)/email/envelope.h \
 			$(SRCDIR)/email/parameter.h $(SRCDIR)/hcache/hcachever.sh \
-			$(SRCDIR)/mutt/buffer.h $(SRCDIR)/mutt/list.h
+			$(SRCDIR)/mutt/buffer.h
 	$(MKDIR_P) $(PWD)/hcache
 	( echo '#include "config.h"'; \
 	echo '#include "address/address.h"'; \
@@ -960,8 +960,7 @@ hcache/hcversion.h:	$(SRCDIR)/address/address.h $(SRCDIR)/email/body.h \
 	echo '#include "email/email.h"'; \
 	echo '#include "email/envelope.h"'; \
 	echo '#include "email/parameter.h"'; \
-	echo '#include "mutt/buffer.h"'; \
-	echo '#include "mutt/list.h"';) | $(CPP) $(CFLAGS) - | \
+	echo '#include "mutt/buffer.h"';) | $(CPP) $(CFLAGS) - | \
 	$(SH) $(SRCDIR)/hcache/hcachever.sh hcache/hcversion.h
 
 ###############################################################################

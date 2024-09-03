@@ -27,7 +27,6 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <glib.h>
-#include "list.h"
 
 struct Buffer;
 

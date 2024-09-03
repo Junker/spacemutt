@@ -38,9 +38,7 @@
 #include "config/types.h"
 #include "slist.h"
 #include "buffer.h"
-#include "list.h"
 #include "memory.h"
-#include "queue.h"
 #include "string2.h"
 #include "mutt/gslist.h"
 
