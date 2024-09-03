@@ -42,24 +42,21 @@
  *
  * A set of all the Address Groups.
  */
-static struct HashTable *Groups = NULL;
+static GHashTable *Groups = NULL;
 
 /**
  * group_free - Free an Address Group
  * @param ptr Group to free
  */
-static void group_free(struct Group **ptr)
+static void group_free(struct Group *g)
 {
-  if (!ptr || !*ptr)
+  if (!g)
     return;
-
-  struct Group *g = *ptr;
 
   mutt_addrlist_free_full(g->al);
   mutt_regexlist_free_full(g->rs);
-  FREE(&g->name);
-
-  FREE(ptr);
+  free(g->name);
+  free(g);
 }
 
 /**
@@ -80,14 +77,6 @@ static struct Group *group_new(const char *pat)
   return g;
 }
 
-/**
- * group_hash_free - Free our hash table data - Implements ::hash_hdata_free_t - @ingroup hash_hdata_free_api
- */
-static void group_hash_free(int type, void *obj, intptr_t data)
-{
-  struct Group *g = obj;
-  group_free(&g);
-}
 
 /**
  * mutt_grouplist_init - Initialize the GroupList singleton
@@ -96,9 +85,7 @@ static void group_hash_free(int type, void *obj, intptr_t data)
  */
 void mutt_grouplist_init(void)
 {
-  Groups = mutt_hash_new(1031, MUTT_HASH_NO_FLAGS);
-
-  mutt_hash_set_destructor(Groups, group_hash_free, 0);
+  Groups = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify)group_free);
 }
 
 /**
@@ -108,7 +95,7 @@ void mutt_grouplist_init(void)
  */
 void mutt_grouplist_cleanup(void)
 {
-  mutt_hash_free(&Groups);
+  g_hash_table_destroy(Groups);
 }
 
 /**
@@ -121,12 +108,12 @@ struct Group *mutt_pattern_group(const char *pat)
   if (!pat)
     return NULL;
 
-  struct Group *g = mutt_hash_find(Groups, pat);
+  struct Group *g = g_hash_table_lookup(Groups, pat);
   if (!g)
   {
     log_debug2("Creating group %s", pat);
     g = group_new(pat);
-    mutt_hash_insert(Groups, g->name, g);
+    g_hash_table_insert(Groups, g->name, g);
   }
 
   return g;
@@ -140,7 +127,7 @@ static void group_remove(struct Group *g)
 {
   if (!g)
     return;
-  mutt_hash_delete(Groups, g->name, g);
+  g_hash_table_remove(Groups, g->name);
 }
 
 /**
