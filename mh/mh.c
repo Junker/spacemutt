@@ -914,7 +914,7 @@ static enum MxStatus mh_check(struct Mailbox *m)
   bool modified = false, occult = false, flags_changed = false;
   int num_new = 0;
   struct MhSequences mhs = { 0 };
-  struct HashTable *fnames = NULL;
+  GHashTable *fnames = NULL;
   struct MhMboxData *mdata = mh_mdata_get(m);
 
   const bool c_check_new = cs_subset_bool(NeoMutt->sub, "check_new");
@@ -982,8 +982,7 @@ static enum MxStatus mh_check(struct Mailbox *m)
   mh_update_emails(&mha, &mhs);
   mh_seq_free(&mhs);
 
-  /* check for modifications and adjust flags */
-  fnames = mutt_hash_new(ARRAY_SIZE(&mha), MUTT_HASH_NO_FLAGS);
+  fnames = g_hash_table_new(g_str_hash, g_str_equal);
 
   struct MhEmail *md = NULL;
   struct MhEmail **mdp = NULL;
@@ -992,7 +991,7 @@ static enum MxStatus mh_check(struct Mailbox *m)
     md = *mdp;
     /* the hash key must survive past the header, which is freed below. */
     md->canon_fname = mutt_str_dup(md->email->path);
-    mutt_hash_insert(fnames, md->canon_fname, md);
+    g_hash_table_insert(fnames, md->canon_fname, md);
   }
 
   for (int i = 0; i < m->msg_count; i++)
@@ -1001,7 +1000,7 @@ static enum MxStatus mh_check(struct Mailbox *m)
     if (!e)
       break;
 
-    md = mutt_hash_find(fnames, e->path);
+    md = g_hash_table_lookup(fnames, e->path);
     if (md && md->email && email_cmp_strict(e, md->email))
     {
       /* found the right message */
@@ -1019,7 +1018,7 @@ static enum MxStatus mh_check(struct Mailbox *m)
 
   /* destroy the file name hash */
 
-  mutt_hash_free(&fnames);
+  g_hash_table_destroy(fnames);
 
   /* If we didn't just get new mail, update the tables. */
   if (occult)
