@@ -111,13 +111,6 @@ struct ChildCtx
   anum_t *child;
 };
 
-/**
- * nntp_hashelem_free - Free our hash table data - Implements ::hash_hdata_free_t - @ingroup hash_hdata_free_api
- */
-void nntp_hashelem_free(int type, void *obj, intptr_t data)
-{
-  nntp_mdata_free(&obj);
-}
 
 /**
  * nntp_connect_error - Signal a failed connection
@@ -914,7 +907,7 @@ static int fetch_description(char *line, void *data)
     desc = strchr(line, '\0');
   }
 
-  struct NntpMboxData *mdata = mutt_hash_find(adata->groups_hash, line);
+  struct NntpMboxData *mdata = g_hash_table_lookup(adata->groups_hash, line);
   if (mdata && !mutt_str_equal(desc, mdata->desc))
   {
     mutt_str_replace(&mdata->desc, desc);
@@ -2078,7 +2071,7 @@ int nntp_active_fetch(struct NntpAccountData *adata, bool mark_new)
     if (mdata && mdata->deleted && !mdata->newsrc_ent)
     {
       nntp_delete_group_cache(mdata);
-      mutt_hash_delete(adata->groups_hash, mdata->group, NULL);
+      g_hash_table_remove(adata->groups_hash, mdata->group);
       adata->groups_list[i] = NULL;
     }
   }
@@ -2434,7 +2427,7 @@ static enum MxOpenReturns nntp_mbox_open(struct Mailbox *m)
     group++;
 
   /* find news group data structure */
-  struct NntpMboxData *mdata = mutt_hash_find(adata->groups_hash, group);
+  struct NntpMboxData *mdata = g_hash_table_lookup(adata->groups_hash, group);
   if (!mdata)
   {
     nntp_newsrc_close(adata);
@@ -2634,9 +2627,9 @@ static enum MxStatus nntp_mbox_close(struct Mailbox *m)
   if (!mdata->adata || !mdata->adata->groups_hash || !mdata->group)
     return MX_STATUS_OK;
 
-  tmp_mdata = mutt_hash_find(mdata->adata->groups_hash, mdata->group);
+  tmp_mdata = g_hash_table_lookup(mdata->adata->groups_hash, mdata->group);
   if (!tmp_mdata || (tmp_mdata != mdata))
-    nntp_mdata_free((void **) &mdata);
+    nntp_mdata_free(mdata);
   return MX_STATUS_OK;
 }
 

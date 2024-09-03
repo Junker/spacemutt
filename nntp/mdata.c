@@ -35,13 +35,11 @@
 /**
  * nntp_mdata_free - Free the private Mailbox data - Implements Mailbox::mdata_free() - @ingroup mailbox_mdata_free
  */
-void nntp_mdata_free(void **ptr)
+void nntp_mdata_free(struct NntpMboxData *mdata)
 {
-  struct NntpMboxData *mdata = *ptr;
-
   nntp_acache_free(mdata);
   mutt_bcache_close(&mdata->bcache);
   FREE(&mdata->newsrc_ent);
   FREE(&mdata->desc);
-  FREE(ptr);
+  free(mdata);
 }

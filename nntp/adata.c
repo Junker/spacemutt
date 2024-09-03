@@ -30,6 +30,8 @@
 #include "private.h"
 #include "mutt/lib.h"
 #include "adata.h"
+#include "mdata.h"
+
 
 struct Connection;
 
@@ -53,7 +55,7 @@ void nntp_adata_free(void **ptr)
   FREE(&adata->overview_fmt);
   FREE(&adata->conn);
   FREE(&adata->groups_list);
-  mutt_hash_free(&adata->groups_hash);
+  g_hash_table_destroy(adata->groups_hash);
   FREE(ptr);
 }
 
@@ -66,8 +68,7 @@ struct NntpAccountData *nntp_adata_new(struct Connection *conn)
 {
   struct NntpAccountData *adata = mutt_mem_calloc(1, sizeof(struct NntpAccountData));
   adata->conn = conn;
-  adata->groups_hash = mutt_hash_new(1009, MUTT_HASH_NO_FLAGS);
-  mutt_hash_set_destructor(adata->groups_hash, nntp_hashelem_free, 0);
+  adata->groups_hash = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify)nntp_mdata_free);
   adata->groups_max = 16;
   adata->groups_list = mutt_mem_malloc(adata->groups_max * sizeof(struct NntpMboxData *));
   return adata;

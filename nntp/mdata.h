@@ -51,6 +51,6 @@ struct NntpMboxData
   struct timespec mtime; ///< Time Mailbox was last changed
 };
 
-void nntp_mdata_free(void **ptr);
+void nntp_mdata_free(struct NntpMboxData *mdata);
 
 #endif /* MUTT_NNTP_MDATA_H */

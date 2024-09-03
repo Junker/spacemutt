@@ -55,7 +55,6 @@ int                     nntp_check_new_groups  (struct Mailbox *m, struct NntpAc
 void                    nntp_delete_group_cache(struct NntpMboxData *mdata);
 void                    nntp_group_unread_stat (struct NntpMboxData *mdata);
 void                    nntp_hash_destructor_t (int type, void *obj, intptr_t data);
-void                    nntp_hashelem_free     (int type, void *obj, intptr_t data);
 struct HeaderCache *    nntp_hcache_open       (struct NntpMboxData *mdata);
 void                    nntp_hcache_update     (struct NntpMboxData *mdata, struct HeaderCache *hc);
 void                    nntp_newsrc_gen_entries(struct Mailbox *m);

@@ -75,7 +75,7 @@ const struct ExpandoRenderData NntpRenderData[];
  */
 static struct NntpMboxData *mdata_find(struct NntpAccountData *adata, const char *group)
 {
-  struct NntpMboxData *mdata = mutt_hash_find(adata->groups_hash, group);
+  struct NntpMboxData *mdata = g_hash_table_lookup(adata->groups_hash, group);
   if (mdata)
     return mdata;
 
@@ -86,7 +86,7 @@ static struct NntpMboxData *mdata_find(struct NntpAccountData *adata, const char
   mutt_str_copy(mdata->group, group, len);
   mdata->adata = adata;
   mdata->deleted = true;
-  mutt_hash_insert(adata->groups_hash, mdata->group, mdata);
+  g_hash_table_insert(adata->groups_hash, mdata->group, mdata);
 
   /* add NntpMboxData to list */
   if (adata->groups_num >= adata->groups_max)
@@ -883,7 +883,7 @@ void nntp_clear_cache(struct NntpAccountData *adata)
       continue;
 
     struct NntpMboxData tmp_mdata = { 0 };
-    struct NntpMboxData *mdata = mutt_hash_find(adata->groups_hash, group);
+    struct NntpMboxData *mdata = g_hash_table_lookup(adata->groups_hash, group);
     if (!mdata)
     {
       mdata = &tmp_mdata;
@@ -1186,7 +1186,7 @@ struct NntpAccountData *nntp_select_server(struct Mailbox *m, const char *server
         if ((strlen(group) < 8) || !mutt_str_equal(p, ".hcache"))
           continue;
         *p = '\0';
-        struct NntpMboxData *mdata = mutt_hash_find(adata->groups_hash, group);
+        struct NntpMboxData *mdata = g_hash_table_lookup(adata->groups_hash, group);
         if (!mdata)
           continue;
 
@@ -1227,7 +1227,7 @@ struct NntpAccountData *nntp_select_server(struct Mailbox *m, const char *server
 
   if (rc < 0)
   {
-    mutt_hash_free(&adata->groups_hash);
+    g_hash_table_destroy(adata->groups_hash);
     FREE(&adata->groups_list);
     FREE(&adata->newsrc_file);
     FREE(&adata->authenticators);
@@ -1257,7 +1257,7 @@ void nntp_article_status(struct Mailbox *m, struct Email *e, char *group, anum_t
   struct NntpMboxData *mdata = m->mdata;
 
   if (group)
-    mdata = mutt_hash_find(mdata->adata->groups_hash, group);
+    mdata = g_hash_table_lookup(mdata->adata->groups_hash, group);
 
   if (!mdata)
     return;
@@ -1318,7 +1318,7 @@ struct NntpMboxData *mutt_newsgroup_unsubscribe(struct NntpAccountData *adata, c
   if (!adata || !adata->groups_hash || !group || (*group == '\0'))
     return NULL;
 
-  struct NntpMboxData *mdata = mutt_hash_find(adata->groups_hash, group);
+  struct NntpMboxData *mdata = g_hash_table_lookup(adata->groups_hash, group);
   if (!mdata)
     return NULL;
 
@@ -1346,7 +1346,7 @@ struct NntpMboxData *mutt_newsgroup_catchup(struct Mailbox *m,
   if (!adata || !adata->groups_hash || !group || (*group == '\0'))
     return NULL;
 
-  struct NntpMboxData *mdata = mutt_hash_find(adata->groups_hash, group);
+  struct NntpMboxData *mdata = g_hash_table_lookup(adata->groups_hash, group);
   if (!mdata)
     return NULL;
 
@@ -1385,7 +1385,7 @@ struct NntpMboxData *mutt_newsgroup_uncatchup(struct Mailbox *m,
   if (!adata || !adata->groups_hash || !group || (*group == '\0'))
     return NULL;
 
-  struct NntpMboxData *mdata = mutt_hash_find(adata->groups_hash, group);
+  struct NntpMboxData *mdata = g_hash_table_lookup(adata->groups_hash, group);
   if (!mdata)
     return NULL;
 
