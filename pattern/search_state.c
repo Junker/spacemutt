@@ -54,7 +54,7 @@ void search_state_free(struct SearchState **ptr)
     return;
 
   struct SearchState *s = *ptr;
-  mutt_pattern_free(&s->pattern);
+  mutt_patternlist_free_full(s->pattern);
   buf_pool_release(&s->string);
   buf_pool_release(&s->string_expn);
 

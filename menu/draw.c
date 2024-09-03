@@ -88,7 +88,7 @@ static const struct AttrColor *get_color(int index, unsigned char *s)
   for (GSList *np = rcl->head; np != NULL; np = np->next)
   {
     struct RegexColor *rc = np->data;
-    if (mutt_pattern_exec(SLIST_FIRST(rc->color_pattern),
+    if (mutt_pattern_exec(rc->color_pattern->data,
                           MUTT_MATCH_FULL_ADDRESS, m_cur, e, NULL))
     {
       ac_merge = merged_color_overlay(ac_merge, &rc->attr_color);

@@ -437,7 +437,7 @@ int dlg_pager(struct PagerView *pview)
         if ((check == MX_STATUS_NEW_MAIL) || (check == MX_STATUS_REOPENED))
         {
           pager_queue_redraw(priv, PAGER_REDRAW_PAGER);
-          mutt_pattern_free(&shared->search_state->pattern);
+          mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
         }
       }
 

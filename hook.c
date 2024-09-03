@@ -70,7 +70,7 @@ struct Hook
   struct Regex regex;          ///< Regular expression
   char *command;               ///< Filename, command or pattern to execute
   char *source_file;           ///< Used for relative-directory source
-  struct PatternList *pattern; ///< Used for fcc,save,send-hook
+  PatternList *pattern;        ///< Used for fcc,save,send-hook
   struct Expando *expando;     ///< Used for format hooks
 };
 typedef GSList HookList;
@@ -103,7 +103,7 @@ static void hook_free(struct Hook **ptr)
     regfree(h->regex.regex);
     FREE(&h->regex.regex);
   }
-  mutt_pattern_free(&h->pattern);
+  mutt_patternlist_free_full(h->pattern);
   expando_free(&h->expando);
   FREE(ptr);
 }
@@ -170,7 +170,7 @@ enum CommandResult mutt_parse_hook(struct Buffer *buf, struct Buffer *s,
   bool pat_not = false;
   bool use_regex = true;
   regex_t *rx = NULL;
-  struct PatternList *pat = NULL;
+  PatternList *pat = NULL;
   const bool folder_or_mbox = (data & (MUTT_FOLDER_HOOK | MUTT_MBOX_HOOK));
 
   struct Buffer *cmd = buf_pool_get();
@@ -504,7 +504,7 @@ static enum CommandResult mutt_parse_idxfmt_hook(struct Buffer *buf, struct Buff
    * the hook compilation time.  */
   struct MailboxView *mv_cur = get_current_mailbox_view();
   struct Menu *menu = get_current_menu();
-  struct PatternList *pat = mutt_pattern_comp(mv_cur, menu, buf_string(pattern),
+  PatternList *pat = mutt_pattern_comp(mv_cur, menu, buf_string(pattern),
                                               MUTT_PC_FULL_MSG | MUTT_PC_PATTERN_DYNAMIC,
                                               err);
   if (!pat)
@@ -693,7 +693,7 @@ void mutt_message_hook(struct Mailbox *m, struct Email *e, HookFlags type)
 
     if (hook->type & type)
     {
-      if ((mutt_pattern_exec(SLIST_FIRST(hook->pattern), 0, m, e, &cache) > 0) ^
+      if ((mutt_pattern_exec(hook->pattern->data, 0, m, e, &cache) > 0) ^
           hook->regex.pat_not)
       {
         if (parse_rc_line_cwd(hook->command, hook->source_file, err) == MUTT_CMD_ERROR)
@@ -737,7 +737,7 @@ static int addr_hook(struct Buffer *path, HookFlags type, struct Mailbox *m, str
 
     if (hook->type & type)
     {
-      if ((mutt_pattern_exec(SLIST_FIRST(hook->pattern), 0, m, e, &cache) > 0) ^
+      if ((mutt_pattern_exec(hook->pattern->data, 0, m, e, &cache) > 0) ^
           hook->regex.pat_not)
       {
         buf_alloc(path, PATH_MAX);
@@ -986,7 +986,7 @@ const struct Expando *mutt_idxfmt_hook(const char *name, struct Mailbox *m, stru
   for (GSList *np = hl; np != NULL; np = np->next)
   {
     struct Hook *hook = np->data;
-    struct Pattern *pat = SLIST_FIRST(hook->pattern);
+    struct Pattern *pat = hook->pattern->data;
     if ((mutt_pattern_exec(pat, 0, m, e, &cache) > 0) ^ hook->regex.pat_not)
     {
       exp = hook->expando;

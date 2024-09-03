@@ -71,6 +71,7 @@ typedef uint8_t PatternCompFlags;           ///< Flags for mutt_pattern_comp(), 
 #define MUTT_PC_PATTERN_DYNAMIC   (1 << 1)  ///< Enable runtime date range evaluation
 #define MUTT_PC_SEND_MODE_SEARCH  (1 << 2)  ///< Allow send-mode body searching
 
+typedef GSList PatternList;
 /**
  * struct Pattern - A simple (non-regex) pattern
  */
@@ -88,7 +89,7 @@ struct Pattern
   bool is_multi     : 1;         ///< Multiple case (only for ~I pattern now)
   long min;                      ///< Minimum for range checks
   long max;                      ///< Maximum for range checks
-  struct PatternList *child;     ///< Arguments to logical operation
+  PatternList *child;            ///< Arguments to logical operation
   union {
     regex_t *regex;              ///< Compiled regex, for non-pattern matching
     struct Group *group;         ///< Address group if group_match is set
@@ -98,9 +99,8 @@ struct Pattern
 #ifdef USE_DEBUG_GRAPHVIZ
   const char *raw_pattern;
 #endif
-  SLIST_ENTRY(Pattern) entries;  ///< Linked list
 };
-SLIST_HEAD(PatternList, Pattern);
+
 
 typedef uint8_t PatternExecFlags;         ///< Flags for mutt_pattern_exec(), e.g. #MUTT_MATCH_FULL_ADDRESS
 #define MUTT_PAT_EXEC_NO_FLAGS         0  ///< No flags are set
@@ -186,9 +186,9 @@ bool mutt_pattern_exec(struct Pattern *pat, PatternExecFlags flags, struct Mailb
 bool mutt_pattern_alias_exec(struct Pattern *pat, PatternExecFlags flags,
                              struct AliasView *av, struct PatternCache *cache);
 
-struct PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu, const char *s, PatternCompFlags flags, struct Buffer *err);
+PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu, const char *s, PatternCompFlags flags, struct Buffer *err);
 void mutt_check_simple(struct Buffer *s, const char *simple);
-void mutt_pattern_free(struct PatternList **pat);
+void mutt_patternlist_free_full(PatternList *pat);
 bool dlg_pattern(char *buf, size_t buflen);
 
 bool mutt_is_list_recipient(bool all_addr, struct Envelope *env);

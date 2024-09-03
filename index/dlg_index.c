@@ -440,7 +440,7 @@ static void update_index_threaded(struct MailboxView *mv, enum MxStatus check, i
       struct Email *e = m->emails[i];
 
       if ((e->limit_visited && e->visible) ||
-          mutt_pattern_exec(SLIST_FIRST(mv->limit_pattern),
+          mutt_pattern_exec(mv->limit_pattern->data,
                             MUTT_MATCH_FULL_ADDRESS, m, e, NULL))
       {
         /* vnum will get properly set by mutt_set_vnum(), which
@@ -507,7 +507,7 @@ static void update_index_unthreaded(struct MailboxView *mv, enum MxStatus check)
         break;
 
       if ((e->limit_visited && e->visible) ||
-          mutt_pattern_exec(SLIST_FIRST(mv->limit_pattern),
+          mutt_pattern_exec(mv->limit_pattern->data,
                             MUTT_MATCH_FULL_ADDRESS, mv->mailbox, e, NULL))
       {
         ASSERT(mv->mailbox->vcount < mv->mailbox->msg_count);
@@ -653,7 +653,7 @@ void change_folder_mailbox(struct Menu *menu, struct Mailbox *m, int *oldcount,
         update_index(menu, shared->mailbox_view, check, *oldcount, shared);
 
       FREE(&new_last_folder);
-      mutt_pattern_free(&shared->search_state->pattern);
+      mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
       menu_queue_redraw(menu, MENU_REDRAW_INDEX);
       return;
     }
@@ -716,7 +716,7 @@ void change_folder_mailbox(struct Menu *menu, struct Mailbox *m, int *oldcount,
   struct EventMailbox ev_m = { shared->mailbox };
   mutt_mailbox_check(ev_m.mailbox, MUTT_MAILBOX_CHECK_POSTPONED);
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
-  mutt_pattern_free(&shared->search_state->pattern);
+  mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
 }
 
 #ifdef USE_NOTMUCH
@@ -1155,7 +1155,7 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
           menu_queue_redraw(priv->menu, MENU_REDRAW_FULL);
         }
 
-        mutt_pattern_free(&shared->search_state->pattern);
+        mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
       }
       else if ((check == MX_STATUS_NEW_MAIL) || (check == MX_STATUS_REOPENED) ||
                (check == MX_STATUS_FLAGS))
@@ -1204,7 +1204,7 @@ struct Mailbox *dlg_index(struct MuttWindow *dlg, struct Mailbox *m_init)
         shared->mailbox->verbose = verbose;
         priv->menu->max = shared->mailbox->vcount;
         menu_queue_redraw(priv->menu, MENU_REDRAW_FULL);
-        mutt_pattern_free(&shared->search_state->pattern);
+        mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
       }
 
       index_shared_data_set_email(shared, mutt_get_virt_email(shared->mailbox,
@@ -1381,7 +1381,7 @@ void mutt_set_header_color(struct Mailbox *m, struct Email *e)
   for (GSList *np = regex_colors_get_list(MT_COLOR_INDEX)->head; np != NULL; np = np->next)
   {
     struct RegexColor *color = np->data;
-    if (mutt_pattern_exec(SLIST_FIRST(color->color_pattern),
+    if (mutt_pattern_exec(color->color_pattern->data,
                           MUTT_MATCH_FULL_ADDRESS, m, e, &cache))
     {
       ac_merge = merged_color_overlay(ac_merge, &color->attr_color);

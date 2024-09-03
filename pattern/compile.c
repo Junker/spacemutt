@@ -773,48 +773,43 @@ static /* const */ char *find_matching_paren(/* const */ char *s)
 }
 
 /**
- * mutt_pattern_free - Free a Pattern
+ * mutt_patternlist_free_full - Free a Pattern
  * @param[out] pat Pattern to free
  */
-void mutt_pattern_free(struct PatternList **pat)
+void mutt_patternlist_free_full(PatternList *pat)
 {
-  if (!pat || !*pat)
+  if (!pat)
     return;
 
-  struct Pattern *np = SLIST_FIRST(*pat), *next = NULL;
-
-  while (np)
+  for (GSList *np = pat; np != NULL; np = np->next)
   {
-    next = SLIST_NEXT(np, entries);
+    struct Pattern *p = np->data;
 
-    if (np->is_multi)
+    if (p->is_multi)
     {
-      g_slist_free_full(g_steal_pointer(&np->p.multi_cases), g_free);
+      g_slist_free_full(g_steal_pointer(&p->p.multi_cases), g_free);
     }
-    else if (np->string_match || np->dynamic)
+    else if (p->string_match || p->dynamic)
     {
-      FREE(&np->p.str);
+      FREE(&p->p.str);
     }
-    else if (np->group_match)
+    else if (p->group_match)
     {
-      np->p.group = NULL;
+      p->p.group = NULL;
     }
-    else if (np->p.regex)
+    else if (p->p.regex)
     {
-      regfree(np->p.regex);
-      FREE(&np->p.regex);
+      regfree(p->p.regex);
+      FREE(&p->p.regex);
     }
 
 #ifdef USE_DEBUG_GRAPHVIZ
-    FREE(&np->raw_pattern);
+    FREE(&p->raw_pattern);
 #endif
-    mutt_pattern_free(&np->child);
-    FREE(&np);
-
-    np = next;
+    mutt_patternlist_free_full(g_steal_pointer(&p->child));
+    FREE(&p);
   }
-
-  FREE(pat);
+  g_slist_free(pat);
 }
 
 /**
@@ -830,12 +825,11 @@ static struct Pattern *mutt_pattern_new(void)
  * mutt_pattern_list_new - Create a new list containing a Pattern
  * @retval ptr Newly created list containing a single node with a Pattern
  */
-static struct PatternList *mutt_pattern_list_new(void)
+static PatternList *mutt_pattern_list_new(void)
 {
-  struct PatternList *h = mutt_mem_calloc(1, sizeof(struct PatternList));
-  SLIST_INIT(h);
+  PatternList *h = NULL;
   struct Pattern *p = mutt_pattern_new();
-  SLIST_INSERT_HEAD(h, p, entries);
+  h = g_slist_append(h, p);
   return h;
 }
 
@@ -845,18 +839,9 @@ static struct PatternList *mutt_pattern_list_new(void)
  * @param leaf Pattern to attach
  * @retval ptr Attached leaf
  */
-static struct Pattern *attach_leaf(struct PatternList *list, struct Pattern *leaf)
+static struct Pattern *attach_leaf(PatternList **list, struct Pattern *leaf)
 {
-  struct Pattern *last = NULL;
-  SLIST_FOREACH(last, list, entries)
-  {
-    // TODO - or we could use a doubly-linked list
-    if (!SLIST_NEXT(last, entries))
-    {
-      SLIST_NEXT(last, entries) = leaf;
-      break;
-    }
-  }
+  *list = g_slist_append(*list, leaf);
   return leaf;
 }
 
@@ -867,10 +852,10 @@ static struct Pattern *attach_leaf(struct PatternList *list, struct Pattern *lea
  *
  * @note curlist will be altered to the new root Pattern
  */
-static struct Pattern *attach_new_root(struct PatternList **curlist)
+static struct Pattern *attach_new_root(PatternList **curlist)
 {
-  struct PatternList *root = mutt_pattern_list_new();
-  struct Pattern *leaf = SLIST_FIRST(root);
+  PatternList *root = mutt_pattern_list_new();
+  struct Pattern *leaf = root->data;
   leaf->child = *curlist;
   *curlist = root;
   return leaf;
@@ -883,11 +868,11 @@ static struct Pattern *attach_new_root(struct PatternList **curlist)
  *
  * @note curlist may be altered
  */
-static struct Pattern *attach_new_leaf(struct PatternList **curlist)
+static struct Pattern *attach_new_leaf(PatternList **curlist)
 {
   if (*curlist)
   {
-    return attach_leaf(*curlist, mutt_pattern_new());
+    return attach_leaf(curlist, mutt_pattern_new());
   }
   else
   {
@@ -904,13 +889,13 @@ static struct Pattern *attach_new_leaf(struct PatternList **curlist)
  * @param err   Buffer for error messages
  * @retval ptr Newly allocated Pattern
  */
-struct PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu,
-                                      const char *s, PatternCompFlags flags,
-                                      struct Buffer *err)
+PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu,
+                               const char *s, PatternCompFlags flags,
+                               struct Buffer *err)
 {
   /* curlist when assigned will always point to a list containing at least one node
    * with a Pattern value.  */
-  struct PatternList *curlist = NULL;
+  PatternList *curlist = NULL;
   bool pat_not = false;
   bool all_addr = false;
   bool pat_or = false;
@@ -958,8 +943,8 @@ struct PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu,
             return NULL;
           }
 
-          struct Pattern *pat = SLIST_FIRST(curlist);
-          if (SLIST_NEXT(pat, entries))
+          struct Pattern *pat = curlist->data;
+          if (curlist->next)
           {
             /* A & B | C == (A & B) | C */
             struct Pattern *root = attach_new_root(&curlist);
@@ -1103,14 +1088,14 @@ struct PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu,
         }
         /* compile the sub-expression */
         buf = g_strndup(ps->dptr + 1, p - (ps->dptr + 1));
-        struct PatternList *sub = mutt_pattern_comp(mv, menu, buf, flags, err);
+        PatternList *sub = mutt_pattern_comp(mv, menu, buf, flags, err);
         FREE(&buf);
         if (!sub)
           goto cleanup;
-        struct Pattern *leaf = SLIST_FIRST(sub);
+        struct Pattern *leaf = sub->data;
         if (curlist)
         {
-          attach_leaf(curlist, leaf);
+          attach_leaf(&curlist, leaf);
           FREE(&sub);
         }
         else
@@ -1141,7 +1126,7 @@ struct PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu,
     return NULL;
   }
 
-  if (SLIST_NEXT(SLIST_FIRST(curlist), entries))
+  if (curlist->next)
   {
     struct Pattern *root = attach_new_root(&curlist);
     root->op = pat_or ? MUTT_PAT_OR : MUTT_PAT_AND;
@@ -1150,7 +1135,7 @@ struct PatternList *mutt_pattern_comp(struct MailboxView *mv, struct Menu *menu,
   return curlist;
 
 cleanup:
-  mutt_pattern_free(&curlist);
+  mutt_patternlist_free_full(curlist);
   buf_pool_release(&ps);
   return NULL;
 }

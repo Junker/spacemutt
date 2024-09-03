@@ -61,13 +61,13 @@
 #include <sys/types.h>
 #include "core/lib.h"
 #include "external.h"
+#include "pattern/lib.h"
 
 struct BrowserState;
 struct Buffer;
 struct ConnAccount;
 struct Email;
 struct EmailArray;
-struct PatternList;
 struct stat;
 
 /* imap.c */
@@ -111,6 +111,6 @@ void imap_get_parent_path(const char *path, char *buf, size_t buflen);
 void imap_clean_path(char *path, size_t plen);
 
 /* search.c */
-bool imap_search(struct Mailbox *m, const struct PatternList *pat);
+bool imap_search(struct Mailbox *m, const PatternList *pat);
 
 #endif /* MUTT_IMAP_LIB_H */

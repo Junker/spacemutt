@@ -76,7 +76,7 @@ void mview_free(struct MailboxView **ptr)
   mutt_thread_ctx_free(&mv->threads);
   notify_free(&mv->notify);
   FREE(&mv->pattern);
-  mutt_pattern_free(&mv->limit_pattern);
+  mutt_patternlist_free_full(g_steal_pointer(&mv->limit_pattern));
 
   *ptr = NULL;
   FREE(&mv);
@@ -119,7 +119,7 @@ struct MailboxView *mview_new(struct Mailbox *m, struct Notify *parent)
 static void mview_clean(struct MailboxView *mv)
 {
   FREE(&mv->pattern);
-  mutt_pattern_free(&mv->limit_pattern);
+  mutt_patternlist_free_full(g_steal_pointer(&mv->limit_pattern));
   if (mv->mailbox)
     notify_observer_remove(mv->mailbox->notify, mview_mailbox_observer, mv);
 

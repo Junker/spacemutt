@@ -77,7 +77,7 @@
 
 void dot_email(FILE *fp, struct Email *e, GSList **links);
 void dot_envelope(FILE *fp, struct Envelope *env, GSList **links);
-void dot_patternlist(FILE *fp, struct PatternList *pl, GSList **links);
+void dot_patternlist(FILE *fp, PatternList *pl, GSList **links);
 void dot_expando_node(FILE *fp, struct ExpandoNode *node, GSList **links);
 
 void dot_type_bool(FILE *fp, const char *name, bool val)
@@ -1671,13 +1671,13 @@ void dot_pattern(FILE *fp, struct Pattern *pat, GSList **links)
   if (pat->child)
   {
     dot_patternlist(fp, pat->child, links);
-    struct Pattern *first = SLIST_FIRST(pat->child);
+    struct Pattern *first = pat->child->data;
     dot_add_link(links, pat, first, "Pattern->child", NULL, false, "#00ff00");
   }
   buf_pool_release(&buf);
 }
 
-void dot_patternlist(FILE *fp, struct PatternList *pl, GSList **links)
+void dot_patternlist(FILE *fp, PatternList *pl, GSList **links)
 {
   struct Buffer *buf = buf_pool_get();
 
@@ -1685,15 +1685,15 @@ void dot_patternlist(FILE *fp, struct PatternList *pl, GSList **links)
   buf_addstr(buf, "{ rank=same ");
 
   struct Pattern *prev = NULL;
-  struct Pattern *np = NULL;
-  SLIST_FOREACH(np, pl, entries)
+  for (GSList *np = pl; np != NULL; np = np->next)
   {
-    dot_pattern(fp, np, links);
+    struct Pattern *pat = np->data;
+    dot_pattern(fp, pat, links);
     if (prev)
-      dot_add_link(links, prev, np, "PatternList->next", NULL, false, "#ff0000");
-    prev = np;
+      dot_add_link(links, prev, pat, "PatternList->next", NULL, false, "#ff0000");
+    prev = pat;
 
-    dot_ptr_name(name, sizeof(name), np);
+    dot_ptr_name(name, sizeof(name), pat);
     buf_add_printf(buf, "%s ", name);
   }
 
@@ -1703,7 +1703,7 @@ void dot_patternlist(FILE *fp, struct PatternList *pl, GSList **links)
   buf_pool_release(&buf);
 }
 
-void dump_graphviz_patternlist(struct PatternList *pl)
+void dump_graphviz_patternlist(PatternList *pl)
 {
   char name[256] = { 0 };
   GSList *links = NULL;

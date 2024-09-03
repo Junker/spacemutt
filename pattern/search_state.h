@@ -27,6 +27,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+typedef GSList PatternList;
+
 /**
  * struct SearchState - Holds state of a search
  *
@@ -34,7 +36,7 @@
  */
 struct SearchState
 {
-  struct PatternList *pattern;     ///< compiled search pattern
+  PatternList        *pattern;     ///< compiled search pattern
   struct Buffer      *string;      ///< search string
   struct Buffer      *string_expn; ///< expanded search string
   bool                reverse;     ///< search backwards

@@ -301,14 +301,14 @@ static bool msg_search(struct Pattern *pat, struct Email *e, struct Message *msg
  * @param cache Cached Patterns
  * @retval true ALL of the Patterns evaluates to true
  */
-static bool perform_and(struct PatternList *pat, PatternExecFlags flags,
+static bool perform_and(PatternList *pat, PatternExecFlags flags,
                         struct Mailbox *m, struct Email *e, struct Message *msg,
                         struct PatternCache *cache)
 {
-  struct Pattern *p = NULL;
 
-  SLIST_FOREACH(p, pat, entries)
+  for (GSList *np = pat; np != NULL; np = np->next)
   {
+    struct Pattern *p = np->data;
     if (!pattern_exec(p, flags, m, e, msg, cache))
     {
       return false;
@@ -325,13 +325,13 @@ static bool perform_and(struct PatternList *pat, PatternExecFlags flags,
  * @param cache Cached Patterns
  * @retval true ALL of the Patterns evaluate to true
  */
-static bool perform_alias_and(struct PatternList *pat, PatternExecFlags flags,
+static bool perform_alias_and(PatternList *pat, PatternExecFlags flags,
                               struct AliasView *av, struct PatternCache *cache)
 {
-  struct Pattern *p = NULL;
 
-  SLIST_FOREACH(p, pat, entries)
+  for (GSList *np = pat; np != NULL; np = np->next)
   {
+    struct Pattern *p = np->data;
     if (!mutt_pattern_alias_exec(p, flags, av, cache))
     {
       return false;
@@ -350,14 +350,13 @@ static bool perform_alias_and(struct PatternList *pat, PatternExecFlags flags,
  * @param cache Cached Patterns
  * @retval true ONE (or more) of the Patterns evaluates to true
  */
-static int perform_or(struct PatternList *pat, PatternExecFlags flags,
+static int perform_or(PatternList *pat, PatternExecFlags flags,
                       struct Mailbox *m, struct Email *e, struct Message *msg,
                       struct PatternCache *cache)
 {
-  struct Pattern *p = NULL;
-
-  SLIST_FOREACH(p, pat, entries)
+  for (GSList *np = pat; np != NULL; np = np->next)
   {
+    struct Pattern *p = np->data;
     if (pattern_exec(p, flags, m, e, msg, cache))
     {
       return true;
@@ -374,13 +373,12 @@ static int perform_or(struct PatternList *pat, PatternExecFlags flags,
  * @param cache Cached Patterns
  * @retval true ONE (or more) of the Patterns evaluates to true
  */
-static int perform_alias_or(struct PatternList *pat, PatternExecFlags flags,
+static int perform_alias_or(PatternList *pat, PatternExecFlags flags,
                             struct AliasView *av, struct PatternCache *cache)
 {
-  struct Pattern *p = NULL;
-
-  SLIST_FOREACH(p, pat, entries)
+  for (GSList *np = pat; np != NULL; np = np->next)
   {
+    struct Pattern *p = np->data;
     if (mutt_pattern_alias_exec(p, flags, av, cache))
     {
       return true;
@@ -537,7 +535,7 @@ static int match_user(bool all_addr, int n, ...)
  * @retval 1  Success, match found
  * @retval 0  No match
  */
-static int match_threadcomplete(struct PatternList *pat, PatternExecFlags flags,
+static int match_threadcomplete(PatternList *pat, PatternExecFlags flags,
                                 struct Mailbox *m, struct MuttThread *t,
                                 int left, int up, int right, int down)
 {
@@ -547,7 +545,7 @@ static int match_threadcomplete(struct PatternList *pat, PatternExecFlags flags,
   int a;
   struct Email *e = t->message;
   if (e)
-    if (mutt_pattern_exec(SLIST_FIRST(pat), flags, m, e, NULL))
+    if (mutt_pattern_exec(pat->data, flags, m, e, NULL))
       return 1;
 
   if (up && (a = match_threadcomplete(pat, flags, m, t->parent, 1, 1, 1, 0)))
@@ -575,13 +573,13 @@ static int match_threadcomplete(struct PatternList *pat, PatternExecFlags flags,
  * @retval  0 Pattern did not match
  * @retval -1 Error
  */
-static int match_threadparent(struct PatternList *pat, PatternExecFlags flags,
+static int match_threadparent(PatternList *pat, PatternExecFlags flags,
                               struct Mailbox *m, struct MuttThread *t)
 {
   if (!t || !t->parent || !t->parent->message)
     return 0;
 
-  return mutt_pattern_exec(SLIST_FIRST(pat), flags, m, t->parent->message, NULL);
+  return mutt_pattern_exec(pat->data, flags, m, t->parent->message, NULL);
 }
 
 /**
@@ -594,14 +592,14 @@ static int match_threadparent(struct PatternList *pat, PatternExecFlags flags,
  * @retval  0 Pattern did not match
  * @retval -1 Error
  */
-static int match_threadchildren(struct PatternList *pat, PatternExecFlags flags,
+static int match_threadchildren(PatternList *pat, PatternExecFlags flags,
                                 struct Mailbox *m, struct MuttThread *t)
 {
   if (!t || !t->child)
     return 0;
 
   for (t = t->child; t; t = t->next)
-    if (t->message && mutt_pattern_exec(SLIST_FIRST(pat), flags, m, t->message, NULL))
+    if (t->message && mutt_pattern_exec(pat->data, flags, m, t->message, NULL))
       return 1;
 
   return 0;
@@ -791,9 +789,9 @@ static bool pattern_needs_msg(const struct Mailbox *m, const struct Pattern *pat
 
   if ((pat->op == MUTT_PAT_AND) || (pat->op == MUTT_PAT_OR))
   {
-    struct Pattern *p = NULL;
-    SLIST_FOREACH(p, pat->child, entries)
+    for (GSList *np = pat->child; np != NULL; np = np->next)
     {
+      struct Pattern *p = np->data;
       if (pattern_needs_msg(m, p))
       {
         return true;

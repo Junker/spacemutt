@@ -125,7 +125,7 @@ void regex_color_clear(struct RegexColor *rcol)
   attr_color_clear(&rcol->attr_color);
   FREE(&rcol->pattern);
   regfree(&rcol->regex);
-  mutt_pattern_free(&rcol->color_pattern);
+  mutt_patternlist_free_full(g_steal_pointer(&rcol->color_pattern));
 }
 
 /**

@@ -40,7 +40,7 @@
 #include "mdata.h"
 
 // fwd decl, mutually recursive: check_pattern_list, check_pattern
-static int check_pattern_list(const struct PatternList *patterns);
+static int check_pattern_list(const PatternList *patterns);
 
 // fwd-decl, mutually recursive: compile_search, compile_search_children
 static bool compile_search(const struct ImapAccountData *adata,
@@ -78,13 +78,13 @@ static bool check_pattern(const struct Pattern *pat)
  * @param patterns List of patterns to match
  * @retval num Number of patterns search that can be searched server-side
  */
-static int check_pattern_list(const struct PatternList *patterns)
+static int check_pattern_list(const PatternList *patterns)
 {
   int positives = 0;
 
-  const struct Pattern *pat = NULL;
-  SLIST_FOREACH(pat, patterns, entries)
+  for (GSList *np = patterns; np != NULL; np = np->next)
   {
+    const struct Pattern *pat = np->data;
     positives += check_pattern(pat);
   }
 
@@ -108,9 +108,9 @@ static bool compile_search_children(const struct ImapAccountData *adata,
 
   buf_addch(buf, '(');
 
-  struct Pattern *c;
-  SLIST_FOREACH(c, pat->child, entries)
+  for (GSList *np = pat->child; np != NULL; np = np->next)
   {
+    struct Pattern *c = np->data;
     if (!check_pattern(c))
       continue;
 
@@ -224,7 +224,7 @@ static bool compile_search(const struct ImapAccountData *adata,
  * @retval true  Success
  * @retval false Failure
  */
-bool imap_search(struct Mailbox *m, const struct PatternList *pat)
+bool imap_search(struct Mailbox *m, const PatternList *pat)
 {
   for (int i = 0; i < m->msg_count; i++)
   {
@@ -241,7 +241,7 @@ bool imap_search(struct Mailbox *m, const struct PatternList *pat)
   buf_addstr(buf, "UID SEARCH ");
 
   struct ImapAccountData *adata = imap_adata_get(m);
-  const bool ok = compile_search(adata, SLIST_FIRST(pat), buf) &&
+  const bool ok = compile_search(adata, pat->data, buf) &&
                   (imap_exec(adata, buf_string(buf), IMAP_CMD_NO_FLAGS) == IMAP_EXEC_SUCCESS);
 
   buf_pool_release(&buf);

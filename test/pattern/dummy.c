@@ -106,7 +106,6 @@ const struct MenuFuncOp OpQuery = { 0 };
 const struct MenuFuncOp OpSmime = { 0 };
 
 typedef uint8_t MuttFormatFlags;
-typedef uint16_t CompletionFlags;
 typedef uint16_t PagerFlags;
 typedef uint8_t SelectFileFlags;
 
@@ -282,7 +281,7 @@ int global_function_dispatcher(struct MuttWindow *win, int op)
   return 0;
 }
 
-int mutt_complete(char *buf, size_t buflen)
+int mutt_complete(struct CompletionData *cd, struct Buffer *buf)
 {
   return 0;
 }

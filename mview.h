@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 #include <sys/types.h>
+#include "pattern/lib.h"
 
 struct Email;
 struct EmailArray;
@@ -40,7 +41,7 @@ struct MailboxView
 {
   off_t vsize;                       ///< Size (in bytes) of the messages shown
   char *pattern;                     ///< Limit pattern string
-  struct PatternList *limit_pattern; ///< Compiled limit pattern
+  PatternList *limit_pattern;        ///< Compiled limit pattern
   struct ThreadsContext *threads;    ///< Threads context
   int msg_in_pager;                  ///< Message currently shown in the pager
 

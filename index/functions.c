@@ -1888,7 +1888,7 @@ static int op_main_sync_folder(struct IndexSharedData *shared,
         }
       }
     }
-    mutt_pattern_free(&shared->search_state->pattern);
+    mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
   }
   else if ((check == MX_STATUS_NEW_MAIL) || (check == MX_STATUS_REOPENED))
   {
@@ -2132,7 +2132,7 @@ static int op_quit(struct IndexSharedData *shared, struct IndexPrivateData *priv
     }
 
     menu_queue_redraw(priv->menu, MENU_REDRAW_FULL); /* new mail arrived? */
-    mutt_pattern_free(&shared->search_state->pattern);
+    mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
   }
 
   return FR_NO_ACTION;
@@ -2299,7 +2299,7 @@ static int op_sort(struct IndexSharedData *shared, struct IndexPrivateData *priv
   if (shared->mailbox && (shared->mailbox->msg_count != 0))
   {
     resort_index(shared->mailbox_view, priv->menu);
-    mutt_pattern_free(&shared->search_state->pattern);
+    mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
   }
 
   return FR_SUCCESS;
@@ -2547,14 +2547,14 @@ static int op_main_imap_logout_all(struct IndexSharedData *shared,
       {
         update_index(priv->menu, shared->mailbox_view, check, priv->oldcount, shared);
       }
-      mutt_pattern_free(&shared->search_state->pattern);
+      mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
       menu_queue_redraw(priv->menu, MENU_REDRAW_FULL);
       return FR_ERROR;
     }
   }
   imap_logout_all();
   log_message(_("Logged out of IMAP servers"));
-  mutt_pattern_free(&shared->search_state->pattern);
+  mutt_patternlist_free_full(g_steal_pointer(&shared->search_state->pattern));
   menu_queue_redraw(priv->menu, MENU_REDRAW_FULL);
 
   return FR_SUCCESS;

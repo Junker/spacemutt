@@ -207,7 +207,7 @@ int mutt_pattern_alias_func(char *prompt, struct AliasMenuData *mdata, struct Me
   log_message(_("Compiling search pattern..."));
 
   bool match_all = false;
-  struct PatternList *pat = NULL;
+  PatternList *pat = NULL;
   char *simple = buf_strdup(buf);
   if (simple)
   {
@@ -223,7 +223,10 @@ int mutt_pattern_alias_func(char *prompt, struct AliasMenuData *mdata, struct Me
     {
       log_fault("%s", buf_string(err));
       buf_pool_release(&err);
-      goto bail;
+      buf_pool_release(&buf);
+      FREE(&simple);
+      mutt_patternlist_free_full(pat);
+      return rc;
     }
   }
   else
@@ -241,7 +244,7 @@ int mutt_pattern_alias_func(char *prompt, struct AliasMenuData *mdata, struct Me
     progress_update(progress, ARRAY_FOREACH_IDX, -1);
 
     if (match_all ||
-        mutt_pattern_alias_exec(SLIST_FIRST(pat), MUTT_MATCH_FULL_ADDRESS, avp, NULL))
+        mutt_pattern_alias_exec(pat->data, MUTT_MATCH_FULL_ADDRESS, avp, NULL))
     {
       avp->is_visible = true;
       vcounter++;
@@ -269,13 +272,6 @@ int mutt_pattern_alias_func(char *prompt, struct AliasMenuData *mdata, struct Me
   mutt_clear_error();
 
   rc = 0;
-
-bail:
-  buf_pool_release(&buf);
-  FREE(&simple);
-  mutt_pattern_free(&pat);
-
-  return rc;
 }
 
 /**
@@ -321,7 +317,7 @@ int mutt_pattern_func(struct MailboxView *mv, int op, char *prompt)
   const bool match_all = mutt_str_equal(pbuf, "~A");
 
   err = buf_pool_get();
-  struct PatternList *pat = mutt_pattern_comp(mv, mv->menu, buf->data, MUTT_PC_FULL_MSG, err);
+  PatternList *pat = mutt_pattern_comp(mv, mv->menu, buf->data, MUTT_PC_FULL_MSG, err);
   if (!pat)
   {
     log_fault("%s", buf_string(err));
@@ -362,7 +358,7 @@ int mutt_pattern_func(struct MailboxView *mv, int op, char *prompt)
       e->num_hidden = 0;
 
       if (match_all ||
-          mutt_pattern_exec(SLIST_FIRST(pat), MUTT_MATCH_FULL_ADDRESS, m, e, NULL))
+          mutt_pattern_exec(pat->data, MUTT_MATCH_FULL_ADDRESS, m, e, NULL))
       {
         e->vnum = m->vcount;
         e->visible = true;
@@ -388,7 +384,7 @@ int mutt_pattern_func(struct MailboxView *mv, int op, char *prompt)
         break;
       }
       progress_update(progress, i, -1);
-      if (mutt_pattern_exec(SLIST_FIRST(pat), MUTT_MATCH_FULL_ADDRESS, m, e, NULL))
+      if (mutt_pattern_exec(pat->data, MUTT_MATCH_FULL_ADDRESS, m, e, NULL))
       {
         switch (op)
         {
@@ -415,7 +411,7 @@ int mutt_pattern_func(struct MailboxView *mv, int op, char *prompt)
   {
     /* drop previous limit pattern */
     FREE(&mv->pattern);
-    mutt_pattern_free(&mv->limit_pattern);
+    mutt_patternlist_free_full(g_steal_pointer(&mv->limit_pattern));
 
     if (m->msg_count && !m->vcount)
       log_fault(_("No messages matched criteria"));
@@ -438,7 +434,7 @@ bail:
   buf_pool_release(&buf);
   buf_pool_release(&err);
   FREE(&simple);
-  mutt_pattern_free(&pat);
+  mutt_patternlist_free_full(pat);
 
   return rc;
 }
@@ -481,7 +477,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
     mutt_check_simple(tmp, NONULL(c_simple_search));
     if (!buf_str_equal(tmp, state->string_expn))
     {
-      mutt_pattern_free(&state->pattern);
+      mutt_patternlist_free_full(g_steal_pointer(&state->pattern));
       buf_copy(state->string_expn, tmp);
       buf_pool_release(&tmp);
     }
@@ -490,7 +486,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
   if (!state->pattern)
   {
     log_message(_("Compiling search pattern..."));
-    mutt_pattern_free(&state->pattern);
+    mutt_patternlist_free_full(g_steal_pointer(&state->pattern));
     struct Buffer *err = buf_pool_get();
     state->pattern = mutt_pattern_comp(mv, menu, state->string_expn->data,
                                        MUTT_PC_FULL_MSG, err);
@@ -574,7 +570,7 @@ int mutt_search_command(struct MailboxView *mv, struct Menu *menu, int cur,
     {
       /* remember that we've already searched this message */
       e->searched = true;
-      e->matched = mutt_pattern_exec(SLIST_FIRST(state->pattern),
+      e->matched = mutt_pattern_exec(state->pattern->data,
                                      MUTT_MATCH_FULL_ADDRESS, m, e, NULL);
       if (e->matched)
       {
@@ -637,7 +633,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
     mutt_check_simple(tmp, MUTT_ALIAS_SIMPLESEARCH);
     if (!buf_str_equal(tmp, state->string_expn))
     {
-      mutt_pattern_free(&state->pattern);
+      mutt_patternlist_free_full(g_steal_pointer(&state->pattern));
       buf_copy(state->string_expn, tmp);
       buf_pool_release(&tmp);
     }
@@ -727,7 +723,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
     {
       /* remember that we've already searched this message */
       av->is_searched = true;
-      av->is_matched = mutt_pattern_alias_exec(SLIST_FIRST(state->pattern),
+      av->is_matched = mutt_pattern_alias_exec(state->pattern->data,
                                                MUTT_MATCH_FULL_ADDRESS, av, NULL);
       if (av->is_matched)
       {
