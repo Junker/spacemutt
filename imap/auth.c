@@ -76,10 +76,6 @@ static const struct ImapAuth ImapAuthenticators[] = {
 #ifdef USE_GSS
   { imap_auth_gss, "gssapi" },
 #endif
-/* SASL includes CRAM-MD5 (and GSSAPI, but that's not enabled by default) */
-#ifndef HAVE_SASL
-  { imap_auth_cram_md5, "cram-md5" },
-#endif
   { imap_auth_login, "login" },
   // clang-format on
 };

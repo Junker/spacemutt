@@ -123,7 +123,6 @@ typedef uint32_t ImapCapFlags;              ///< Flags, e.g. #IMAP_CAP_IMAP4
 #define IMAP_CAP_STATUS           (1 <<  2) ///< Server supports STATUS command
 #define IMAP_CAP_ACL              (1 <<  3) ///< RFC2086: IMAP4 ACL extension
 #define IMAP_CAP_NAMESPACE        (1 <<  4) ///< RFC2342: IMAP4 Namespace
-#define IMAP_CAP_AUTH_CRAM_MD5    (1 <<  5) ///< RFC2195: CRAM-MD5 authentication
 #define IMAP_CAP_AUTH_GSSAPI      (1 <<  6) ///< RFC1731: GSSAPI authentication
 #define IMAP_CAP_AUTH_ANONYMOUS   (1 <<  7) ///< AUTH=ANONYMOUS
 #define IMAP_CAP_AUTH_OAUTHBEARER (1 <<  8) ///< RFC7628: AUTH=OAUTHBEARER

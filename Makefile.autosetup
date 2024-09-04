@@ -519,7 +519,7 @@ LIBIMAPOBJS+=	imap/auth_sasl.o
 LIBIMAPOBJS+=	imap/auth_gsasl.o
 @endif
 @if !HAVE_SASL
-LIBIMAPOBJS+=	imap/auth_anon.o imap/auth_cram.o
+LIBIMAPOBJS+=	imap/auth_anon.o
 @endif
 CLEANFILES+=	$(LIBIMAP) $(LIBIMAPOBJS)
 ALLOBJS+=	$(LIBIMAPOBJS)
