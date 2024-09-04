@@ -8,7 +8,7 @@
 
 ## What is SpaceMutt?
 
-* SpaceMutt is a fork of [NeoMutt](https://neomutt.org/).
+* SpaceMutt is TUI Email Client, a fork of [NeoMutt](https://neomutt.org/).
 
 ## Purpose of This Fork
 
