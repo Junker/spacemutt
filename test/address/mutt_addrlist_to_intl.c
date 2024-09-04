@@ -66,12 +66,12 @@ void test_mutt_addrlist_to_intl(void)
                          .intl = "test@xn--nixierhre-57a.nixieclock-tube.com" },
                        { .local = "test@வலைப்பூ.com", .intl = "test@xn--xlcawl2e7azb.com" } };
 
-    TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
+    TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, Vars));
 
-    cs_subset_str_string_set(NeoMutt->sub, "charset", "utf-8", NULL);
+    cs_subset_str_string_set(SpaceMutt->sub, "charset", "utf-8", NULL);
 #ifdef HAVE_LIBIDN
-    cs_subset_str_native_set(NeoMutt->sub, "idn_encode", true, NULL);
-    cs_subset_str_native_set(NeoMutt->sub, "idn_decode", true, NULL);
+    cs_subset_str_native_set(SpaceMutt->sub, "idn_encode", true, NULL);
+    cs_subset_str_native_set(SpaceMutt->sub, "idn_decode", true, NULL);
 #endif
 
     for (size_t i = 0; i < mutt_array_size(local2intl); ++i)

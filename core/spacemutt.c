@@ -36,23 +36,23 @@
 #include <sys/stat.h>
 #include "mutt/lib.h"
 #include "config/lib.h"
-#include "neomutt.h"
+#include "spacemutt.h"
 #include "account.h"
 #include "mailbox.h"
 
-struct NeoMutt *NeoMutt = NULL; ///< Global NeoMutt object
+struct SpaceMutt *SpaceMutt = NULL; ///< Global NeoMutt object
 
 /**
- * neomutt_new - Create the main NeoMutt object
+ * spacemutt_new - Create the main SpaceMutt object
  * @param cs Config Set
  * @retval ptr New NeoMutt
  */
-struct NeoMutt *neomutt_new(struct ConfigSet *cs)
+struct SpaceMutt *spacemutt_new(struct ConfigSet *cs)
 {
   if (!cs)
     return NULL;
 
-  struct NeoMutt *n = mutt_mem_calloc(1, sizeof(*NeoMutt));
+  struct SpaceMutt *n = mutt_mem_calloc(1, sizeof(*SpaceMutt));
 
   n->accounts = g_queue_new();
   n->notify = notify_new();
@@ -80,17 +80,17 @@ struct NeoMutt *neomutt_new(struct ConfigSet *cs)
 }
 
 /**
- * neomutt_free - Free a NeoMutt
+ * spacemutt_free - Free a NeoMutt
  * @param[out] ptr NeoMutt to free
  */
-void neomutt_free(struct NeoMutt **ptr)
+void spacemutt_free(struct SpaceMutt **ptr)
 {
   if (!ptr || !*ptr)
     return;
 
-  struct NeoMutt *n = *ptr;
+  struct SpaceMutt *n = *ptr;
 
-  neomutt_account_remove(n, NULL);
+  spacemutt_account_remove(n, NULL);
   if (n->accounts)
     g_queue_free(n->accounts);
   cs_subset_free(&n->sub);
@@ -104,12 +104,12 @@ void neomutt_free(struct NeoMutt **ptr)
 }
 
 /**
- * neomutt_account_add - Add an Account to the global list
+ * spacemutt_account_add - Add an Account to the global list
  * @param n NeoMutt
  * @param a Account to add
  * @retval true Account was added
  */
-bool neomutt_account_add(struct NeoMutt *n, struct Account *a)
+bool spacemutt_account_add(struct SpaceMutt *n, struct Account *a)
 {
   if (!n || !a)
     return false;
@@ -125,14 +125,14 @@ bool neomutt_account_add(struct NeoMutt *n, struct Account *a)
 }
 
 /**
- * neomutt_account_remove - Remove an Account from the global list
+ * spacemutt_account_remove - Remove an Account from the global list
  * @param n NeoMutt
  * @param a Account to remove
  * @retval true Account was removed
  *
  * @note If a is NULL, all the Accounts will be removed
  */
-bool neomutt_account_remove(struct NeoMutt *n, const struct Account *a)
+bool spacemutt_account_remove(struct SpaceMutt *n, const struct Account *a)
 {
   if (!n || !n->accounts || g_queue_is_empty(n->accounts))
     return false;
@@ -161,12 +161,12 @@ bool neomutt_account_remove(struct NeoMutt *n, const struct Account *a)
 }
 
 /**
- * neomutt_mailboxlist_free - Free a Mailbox List
+ * spacemutt_mailboxlist_free - Free a Mailbox List
  * @param ml Mailbox List to free
  *
  * @note The Mailboxes aren't freed
  */
-void neomutt_mailboxlist_free(MailboxList *ml)
+void spacemutt_mailboxlist_free(MailboxList *ml)
 {
   if (!ml)
     return;
@@ -175,7 +175,7 @@ void neomutt_mailboxlist_free(MailboxList *ml)
 }
 
 /**
- * neomutt_mailboxlist_get_all - Get a List of all Mailboxes
+ * spacemutt_mailboxlist_get_all - Get a List of all Mailboxes
  * @param head List to store the Mailboxes
  * @param n    NeoMutt
  * @param type Type of Account to match, see #MailboxType
@@ -183,7 +183,7 @@ void neomutt_mailboxlist_free(MailboxList *ml)
  *
  * @note If type is #MUTT_MAILBOX_ANY then all Mailbox types will be matched
  */
-size_t neomutt_mailboxlist_get_all(MailboxList **head, struct NeoMutt *n,
+size_t spacemutt_mailboxlist_get_all(MailboxList **head, struct SpaceMutt *n,
                                    enum MailboxType type)
 {
   if (!n)
@@ -220,8 +220,8 @@ FILE *mutt_file_fopen_masked_full(const char *path, const char *mode,
                                   const char *file, int line, const char *func)
 {
   // Set the user's umask (saved on startup)
-  mode_t old_umask = umask(NeoMutt->user_default_umask);
-  log_debug3("umask set to %03o", NeoMutt->user_default_umask);
+  mode_t old_umask = umask(SpaceMutt->user_default_umask);
+  log_debug3("umask set to %03o", SpaceMutt->user_default_umask);
 
   // The permissions will be limited by the umask
   FILE *fp = mutt_file_fopen_full(path, mode, 0666, file, line, func);

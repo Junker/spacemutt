@@ -80,6 +80,6 @@ jobs:
     - name: Run Tests
       run: |
         cd build-${{ matrix.cfg.name }}
-        export NEOMUTT_TEST_DIR=$GITHUB_WORKSPACE/test-files
+        export SPACEMUTT_TEST_DIR=$GITHUB_WORKSPACE/test-files
         make test
 

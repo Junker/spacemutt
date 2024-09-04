@@ -771,7 +771,7 @@ void rfc2047_encode_addrlist(AddressList *al, const char *tag)
 
   int col = tag ? strlen(tag) + 2 : 32;
   char *data = NULL;
-  const struct Slist *const c_send_charset = cs_subset_slist(NeoMutt->sub, "send_charset");
+  const struct Slist *const c_send_charset = cs_subset_slist(SpaceMutt->sub, "send_charset");
   for (GList *np = al->head; np != NULL; np = np->next)
   {
     struct Address *a = np->data;
@@ -866,7 +866,7 @@ void rfc2047_encode_envelope(struct Envelope *env)
   rfc2047_encode_addrlist(env->reply_to, "Reply-To");
   rfc2047_encode_addrlist(env->mail_followup_to, "Mail-Followup-To");
   rfc2047_encode_addrlist(env->sender, "Sender");
-  const struct Slist *const c_send_charset = cs_subset_slist(NeoMutt->sub, "send_charset");
+  const struct Slist *const c_send_charset = cs_subset_slist(SpaceMutt->sub, "send_charset");
   rfc2047_encode(&env->x_label, NULL, sizeof("X-Label:"), c_send_charset);
 
   char *subj = env->subject;

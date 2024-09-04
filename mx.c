@@ -140,7 +140,7 @@ const struct MxOps *mx_get_ops(enum MailboxType type)
  */
 static bool mutt_is_spool(const char *str)
 {
-  const char *const c_spool_file = cs_subset_string(NeoMutt->sub, "spool_file");
+  const char *const c_spool_file = cs_subset_string(SpaceMutt->sub, "spool_file");
   if (mutt_str_equal(str, c_spool_file))
     return true;
 
@@ -216,7 +216,7 @@ static bool mx_open_mailbox_append(struct Mailbox *m, OpenMailboxFlags flags)
           if (mutt_comp_can_append(m))
             m->type = MUTT_COMPRESSED;
           else
-            m->type = cs_subset_enum(NeoMutt->sub, "mbox_type");
+            m->type = cs_subset_enum(SpaceMutt->sub, "mbox_type");
           flags |= MUTT_APPENDNEW;
         }
         else
@@ -260,7 +260,7 @@ bool mx_mbox_ac_link(struct Mailbox *m)
   const bool new_account = !a;
   if (new_account)
   {
-    a = account_new(NULL, NeoMutt->sub);
+    a = account_new(NULL, SpaceMutt->sub);
     a->type = m->type;
   }
   if (!mx_ac_add(a, m))
@@ -273,7 +273,7 @@ bool mx_mbox_ac_link(struct Mailbox *m)
   }
   if (new_account)
   {
-    neomutt_account_add(NeoMutt, a);
+    spacemutt_account_add(SpaceMutt, a);
   }
   return true;
 }
@@ -292,7 +292,7 @@ bool mx_mbox_open(struct Mailbox *m, OpenMailboxFlags flags)
 
   if ((m->type == MUTT_UNKNOWN) && (flags & (MUTT_NEWFOLDER | MUTT_APPEND)))
   {
-    m->type = cs_subset_enum(NeoMutt->sub, "mbox_type");
+    m->type = cs_subset_enum(SpaceMutt->sub, "mbox_type");
     m->mx_ops = mx_get_ops(m->type);
   }
 
@@ -493,8 +493,8 @@ static int trash_append(struct Mailbox *m)
   struct stat stc = { 0 };
   int rc;
 
-  const bool c_maildir_trash = cs_subset_bool(NeoMutt->sub, "maildir_trash");
-  const char *const c_trash = cs_subset_string(NeoMutt->sub, "trash");
+  const bool c_maildir_trash = cs_subset_bool(SpaceMutt->sub, "maildir_trash");
+  const char *const c_trash = cs_subset_string(SpaceMutt->sub, "trash");
   if (!c_trash || (m->msg_deleted == 0) || ((m->type == MUTT_MAILDIR) && c_maildir_trash))
   {
     return 0;
@@ -520,10 +520,10 @@ static int trash_append(struct Mailbox *m)
     return 0; /* nothing to be done */
 
   /* avoid the "append messages" prompt */
-  const bool c_confirm_append = cs_subset_bool(NeoMutt->sub, "confirm_append");
-  cs_subset_str_native_set(NeoMutt->sub, "confirm_append", false, NULL);
+  const bool c_confirm_append = cs_subset_bool(SpaceMutt->sub, "confirm_append");
+  cs_subset_str_native_set(SpaceMutt->sub, "confirm_append", false, NULL);
   rc = mutt_save_confirm(c_trash, &st);
-  cs_subset_str_native_set(NeoMutt->sub, "confirm_append", c_confirm_append, NULL);
+  cs_subset_str_native_set(SpaceMutt->sub, "confirm_append", c_confirm_append, NULL);
   if (rc != 0)
   {
     /* L10N: Although we know the precise number of messages, we do not show it to the user.
@@ -600,7 +600,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
   if (!m)
     return MX_STATUS_ERROR;
 
-  const bool c_mail_check_recent = cs_subset_bool(NeoMutt->sub, "mail_check_recent");
+  const bool c_mail_check_recent = cs_subset_bool(SpaceMutt->sub, "mail_check_recent");
   if (c_mail_check_recent && !m->peekonly)
     m->has_new = false;
 
@@ -624,7 +624,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
     if (mdata && mdata->adata && mdata->group)
     {
       enum QuadOption ans = query_quadoption(_("Mark all articles read?"),
-                                             NeoMutt->sub, "catchup_newsgroup");
+                                             SpaceMutt->sub, "catchup_newsgroup");
       if (ans == MUTT_ABORT)
         goto cleanup;
       if (ans == MUTT_YES)
@@ -632,7 +632,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
     }
   }
 
-  const bool c_keep_flagged = cs_subset_bool(NeoMutt->sub, "keep_flagged");
+  const bool c_keep_flagged = cs_subset_bool(SpaceMutt->sub, "keep_flagged");
   for (i = 0; i < m->msg_count; i++)
   {
     struct Email *e = m->emails[i];
@@ -647,7 +647,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
   if (m->type == MUTT_NNTP)
     read_msgs = 0;
 
-  const enum QuadOption c_move = cs_subset_quad(NeoMutt->sub, "move");
+  const enum QuadOption c_move = cs_subset_quad(SpaceMutt->sub, "move");
   if ((read_msgs != 0) && (c_move != MUTT_NO))
   {
     bool is_spool;
@@ -661,7 +661,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
     }
     else
     {
-      const char *const c_mbox = cs_subset_string(NeoMutt->sub, "mbox");
+      const char *const c_mbox = cs_subset_string(SpaceMutt->sub, "mbox");
       buf_strcpy(mbox, c_mbox);
       is_spool = mutt_is_spool(mailbox_path(m)) && !mutt_is_spool(buf_string(mbox));
     }
@@ -674,7 +674,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
                             moved, the second argument is the target mailbox. */
                  ngettext("Move %d read message to %s?", "Move %d read messages to %s?", read_msgs),
                  read_msgs, buf_string(mbox));
-      move_messages = query_quadoption(buf_string(buf), NeoMutt->sub, "move");
+      move_messages = query_quadoption(buf_string(buf), SpaceMutt->sub, "move");
       if (move_messages == MUTT_ABORT)
         goto cleanup;
     }
@@ -682,17 +682,17 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
 
   /* There is no point in asking whether or not to purge if we are
    * just marking messages as "trash".  */
-  const bool c_maildir_trash = cs_subset_bool(NeoMutt->sub, "maildir_trash");
+  const bool c_maildir_trash = cs_subset_bool(SpaceMutt->sub, "maildir_trash");
   if ((m->msg_deleted != 0) && !((m->type == MUTT_MAILDIR) && c_maildir_trash))
   {
     buf_printf(buf, ngettext("Purge %d deleted message?", "Purge %d deleted messages?", m->msg_deleted),
                m->msg_deleted);
-    purge = query_quadoption(buf_string(buf), NeoMutt->sub, "delete");
+    purge = query_quadoption(buf_string(buf), SpaceMutt->sub, "delete");
     if (purge == MUTT_ABORT)
       goto cleanup;
   }
 
-  const bool c_mark_old = cs_subset_bool(NeoMutt->sub, "mark_old");
+  const bool c_mark_old = cs_subset_bool(SpaceMutt->sub, "mark_old");
   if (c_mark_old && !m->peekonly)
   {
     for (i = 0; i < m->msg_count; i++)
@@ -737,7 +737,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
       i = imap_copy_messages(m, &ea, buf_string(mbox), SAVE_MOVE);
       if (i == 0)
       {
-        const bool c_delete_untag = cs_subset_bool(NeoMutt->sub, "delete_untag");
+        const bool c_delete_untag = cs_subset_bool(SpaceMutt->sub, "delete_untag");
         if (c_delete_untag)
         {
           struct Email **ep = NULL;
@@ -802,7 +802,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
   }
 
   /* copy mails to the trash before expunging */
-  const char *const c_trash = cs_subset_string(NeoMutt->sub, "trash");
+  const char *const c_trash = cs_subset_string(SpaceMutt->sub, "trash");
   const struct Mailbox *m_trash = mx_mbox_find(m->account, c_trash);
   if (purge && (m->msg_deleted != 0) && (m != m_trash))
   {
@@ -860,7 +860,7 @@ enum MxStatus mx_mbox_close(struct Mailbox *m)
     }
   }
 
-  const bool c_save_empty = cs_subset_bool(NeoMutt->sub, "save_empty");
+  const bool c_save_empty = cs_subset_bool(SpaceMutt->sub, "save_empty");
   if ((m->msg_count == m->msg_deleted) &&
       ((m->type == MUTT_MMDF) || (m->type == MUTT_MBOX)) &&
       !mutt_is_spool(mailbox_path(m)) && !c_save_empty)
@@ -944,7 +944,7 @@ enum MxStatus mx_mbox_sync(struct Mailbox *m)
     snprintf(buf, sizeof(buf),
              ngettext("Purge %d deleted message?", "Purge %d deleted messages?", m->msg_deleted),
              m->msg_deleted);
-    purge = query_quadoption(buf, NeoMutt->sub, "delete");
+    purge = query_quadoption(buf, SpaceMutt->sub, "delete");
     if (purge == MUTT_ABORT)
       return MX_STATUS_ERROR;
     if (purge == MUTT_NO)
@@ -973,7 +973,7 @@ enum MxStatus mx_mbox_sync(struct Mailbox *m)
   msgcount = m->msg_count;
   deleted = m->msg_deleted;
 
-  const char *const c_trash = cs_subset_string(NeoMutt->sub, "trash");
+  const char *const c_trash = cs_subset_string(SpaceMutt->sub, "trash");
   const struct Mailbox *m_trash = mx_mbox_find(m->account, c_trash);
   if (purge && (m->msg_deleted != 0) && (m != m_trash))
   {
@@ -1000,7 +1000,7 @@ enum MxStatus mx_mbox_sync(struct Mailbox *m)
 
     mutt_sleep(0);
 
-    const bool c_save_empty = cs_subset_bool(NeoMutt->sub, "save_empty");
+    const bool c_save_empty = cs_subset_bool(SpaceMutt->sub, "save_empty");
     if ((m->msg_count == m->msg_deleted) &&
         ((m->type == MUTT_MBOX) || (m->type == MUTT_MMDF)) &&
         !mutt_is_spool(mailbox_path(m)) && !c_save_empty)
@@ -1085,7 +1085,7 @@ struct Message *mx_msg_open_new(struct Mailbox *m, const struct Email *e, MsgOpe
       // Use C locale for the date, so that day/month names are in English
       char buf[64] = { 0 };
       mutt_date_localtime_format_locale(buf, sizeof(buf), "%a %b %e %H:%M:%S %Y",
-                                        msg->received, NeoMutt->time_c_locale);
+                                        msg->received, SpaceMutt->time_c_locale);
       fprintf(msg->fp, "From %s %s\n", p ? buf_string(p->mailbox) : NONULL(Username), buf);
     }
   }
@@ -1107,7 +1107,7 @@ enum MxStatus mx_mbox_check(struct Mailbox *m)
   if (!m || !m->mx_ops)
     return MX_STATUS_ERROR;
 
-  const short c_mail_check = cs_subset_number(NeoMutt->sub, "mail_check");
+  const short c_mail_check = cs_subset_number(SpaceMutt->sub, "mail_check");
 
   time_t t = mutt_date_now();
   if ((t - m->last_checked) < c_mail_check)
@@ -1396,7 +1396,7 @@ int mx_path_canon(struct Buffer *path, const char *folder, enum MailboxType *typ
     {
       if (buf_at(path, 0) == '!')
       {
-        const char *const c_spool_file = cs_subset_string(NeoMutt->sub, "spool_file");
+        const char *const c_spool_file = cs_subset_string(SpaceMutt->sub, "spool_file");
         buf_inline_replace(path, 0, 1, c_spool_file);
       }
       else if (buf_at(path, 0) == '-')
@@ -1405,12 +1405,12 @@ int mx_path_canon(struct Buffer *path, const char *folder, enum MailboxType *typ
       }
       else if (buf_at(path, 0) == '<')
       {
-        const char *const c_record = cs_subset_string(NeoMutt->sub, "record");
+        const char *const c_record = cs_subset_string(SpaceMutt->sub, "record");
         buf_inline_replace(path, 0, 1, c_record);
       }
       else if (buf_at(path, 0) == '>')
       {
-        const char *const c_mbox = cs_subset_string(NeoMutt->sub, "mbox");
+        const char *const c_mbox = cs_subset_string(SpaceMutt->sub, "mbox");
         buf_inline_replace(path, 0, 1, c_mbox);
       }
       else if (buf_at(path, 0) == '^')
@@ -1521,7 +1521,7 @@ struct Account *mx_ac_find(struct Mailbox *m)
   if (!m || !m->mx_ops || !m->realpath)
     return NULL;
 
-  for (GList *np = NeoMutt->accounts->head; np != NULL; np = np->next)
+  for (GList *np = SpaceMutt->accounts->head; np != NULL; np = np->next)
   {
     struct Account *acc = np->data;
     if (acc->type != m->type)
@@ -1609,10 +1609,10 @@ struct Mailbox *mx_mbox_find2(const char *path)
     return NULL;
 
   struct Buffer *buf = buf_new(path);
-  const char *const c_folder = cs_subset_string(NeoMutt->sub, "folder");
+  const char *const c_folder = cs_subset_string(SpaceMutt->sub, "folder");
   mx_path_canon(buf, c_folder, NULL);
 
-  for (GList *np = NeoMutt->accounts->head; np != NULL; np = np->next)
+  for (GList *np = SpaceMutt->accounts->head; np != NULL; np = np->next)
   {
     struct Account *acc = np->data;
     struct Mailbox *m = mx_mbox_find(acc, buf_string(buf));
@@ -1645,7 +1645,7 @@ struct Mailbox *mx_path_resolve(const char *path)
 
   m = mailbox_new();
   buf_strcpy(&m->pathbuf, path);
-  const char *const c_folder = cs_subset_string(NeoMutt->sub, "folder");
+  const char *const c_folder = cs_subset_string(SpaceMutt->sub, "folder");
   mx_path_canon2(m, c_folder);
 
   return m;
@@ -1682,7 +1682,7 @@ static struct Mailbox *mx_mbox_find_by_name(const char *name)
   if (!name)
     return NULL;
 
-  for (GList *np = NeoMutt->accounts->head; np != NULL; np = np->next)
+  for (GList *np = SpaceMutt->accounts->head; np != NULL; np = np->next)
   {
     struct Account *acc = np->data;
     struct Mailbox *m = mx_mbox_find_by_name_ac(acc, name);
@@ -1746,7 +1746,7 @@ int mx_ac_remove(struct Mailbox *m, bool keep_account)
   account_mailbox_remove(m->account, m);
   if (!keep_account && !a->mailboxes)
   {
-    neomutt_account_remove(NeoMutt, a);
+    spacemutt_account_remove(SpaceMutt, a);
   }
   return 0;
 }

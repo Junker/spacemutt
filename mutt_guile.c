@@ -137,7 +137,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
   log_debug2(" * mutt_set(%s)", param);
 
   struct Buffer *err = buf_pool_get();
-  struct HashElem *he = cs_subset_lookup(NeoMutt->sub, param);
+  struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, param);
   if (!he)
   {
     // In case it is a my_var, we have to create it
@@ -146,7 +146,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
       struct ConfigDef my_cdef = { 0 };
       my_cdef.name = param;
       my_cdef.type = DT_MYVAR;
-      he = cs_create_variable(NeoMutt->sub->cs, &my_cdef, err);
+      he = cs_create_variable(SpaceMutt->sub->cs, &my_cdef, err);
       if (!he)
         return SCM_BOOL_F;
     }
@@ -181,7 +181,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
       if (DTYPE(he->type) == DT_PATH)
         buf_expand_path(value_buf);
 
-      int rv = cs_subset_he_string_set(NeoMutt->sub, he, buf_string(value_buf), err);
+      int rv = cs_subset_he_string_set(SpaceMutt->sub, he, buf_string(value_buf), err);
       buf_pool_release(&value_buf);
       if (CSR_RESULT(rv) != CSR_SUCCESS)
         rc = SCM_UNDEFINED;
@@ -189,7 +189,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
     }
     case DT_NUMBER:
       const int value = scm_to_int(scm_value);
-      int rv = cs_subset_he_native_set(NeoMutt->sub, he, value, err);
+      int rv = cs_subset_he_native_set(SpaceMutt->sub, he, value, err);
       if (CSR_RESULT(rv) != CSR_SUCCESS)
         rc = SCM_UNDEFINED;
       break;
@@ -211,7 +211,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
         }
       }
 
-      int rv = cs_subset_he_native_set(NeoMutt->sub, he, value, err);
+      int rv = cs_subset_he_native_set(SpaceMutt->sub, he, value, err);
       if (CSR_RESULT(rv) != CSR_SUCCESS)
         rc = SCM_UNDEFINED;
       break;
@@ -219,7 +219,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
     case DT_BOOL:
     {
       const bool value = scm_to_bool(scm_value);
-      int rv = cs_subset_he_native_set(NeoMutt->sub, he, value, err);
+      int rv = cs_subset_he_native_set(SpaceMutt->sub, he, value, err);
       if (CSR_RESULT(rv) != CSR_SUCCESS)
         rc = SCM_UNDEFINED;
       break;
@@ -245,7 +245,7 @@ static SCM guile_mutt_get(SCM scm_param)
   char *param = scm_to_locale_string(scm_param);
   log_debug2(" * mutt_get(%s)", param);
 
-  struct HashElem *he = cs_subset_lookup(NeoMutt->sub, param);
+  struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, param);
   if (!he)
   {
     log_debug2(" * error");
@@ -267,7 +267,7 @@ static SCM guile_mutt_get(SCM scm_param)
     case DT_STRING:
     {
       struct Buffer *value = buf_pool_get();
-      int rc = cs_subset_he_string_get(NeoMutt->sub, he, value);
+      int rc = cs_subset_he_string_get(SpaceMutt->sub, he, value);
       if (CSR_RESULT(rc) != CSR_SUCCESS)
       {
         buf_pool_release(&value);

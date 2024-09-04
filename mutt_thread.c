@@ -83,8 +83,8 @@ const struct EnumDef UseThreadsTypeDef = {
  */
 enum UseThreads mutt_thread_style(void)
 {
-  const unsigned char c_use_threads = cs_subset_enum(NeoMutt->sub, "use_threads");
-  const enum SortType c_sort = cs_subset_sort(NeoMutt->sub, "sort");
+  const unsigned char c_use_threads = cs_subset_enum(SpaceMutt->sub, "use_threads");
+  const enum SortType c_sort = cs_subset_sort(SpaceMutt->sub, "sort");
   if (c_use_threads > UT_FLAT)
     return c_use_threads;
   if ((c_sort & SORT_MASK) != SORT_THREADS)
@@ -139,7 +139,7 @@ static bool need_display_subject(struct Email *e)
   struct MuttThread *tree = e->thread;
 
   /* if the user disabled subject hiding, display it */
-  const bool c_hide_thread_subject = cs_subset_bool(NeoMutt->sub, "hide_thread_subject");
+  const bool c_hide_thread_subject = cs_subset_bool(SpaceMutt->sub, "hide_thread_subject");
   if (!c_hide_thread_subject)
     return true;
 
@@ -242,11 +242,11 @@ static void calculate_visibility(struct MuttThread *tree, int *max_depth)
 
   struct MuttThread *tmp = NULL;
   struct MuttThread *orig_tree = tree;
-  const bool c_hide_top_missing = cs_subset_bool(NeoMutt->sub, "hide_top_missing");
-  const bool c_hide_missing = cs_subset_bool(NeoMutt->sub, "hide_missing");
+  const bool c_hide_top_missing = cs_subset_bool(SpaceMutt->sub, "hide_top_missing");
+  const bool c_hide_missing = cs_subset_bool(SpaceMutt->sub, "hide_missing");
   int hide_top_missing = c_hide_top_missing && !c_hide_missing;
-  const bool c_hide_top_limited = cs_subset_bool(NeoMutt->sub, "hide_top_limited");
-  const bool c_hide_limited = cs_subset_bool(NeoMutt->sub, "hide_limited");
+  const bool c_hide_top_limited = cs_subset_bool(SpaceMutt->sub, "hide_top_limited");
+  const bool c_hide_limited = cs_subset_bool(SpaceMutt->sub, "hide_limited");
   int hide_top_limited = c_hide_top_limited && !c_hide_limited;
   int depth = 0;
 
@@ -399,7 +399,7 @@ void mutt_draw_tree(struct ThreadsContext *tctx)
   const bool reverse = (mutt_thread_style() == UT_REVERSE);
   enum TreeChar corner = reverse ? MUTT_TREE_ULCORNER : MUTT_TREE_LLCORNER;
   enum TreeChar vtee = reverse ? MUTT_TREE_BTEE : MUTT_TREE_TTEE;
-  const bool c_narrow_tree = cs_subset_bool(NeoMutt->sub, "narrow_tree");
+  const bool c_narrow_tree = cs_subset_bool(SpaceMutt->sub, "narrow_tree");
   int depth = 0, start_depth = 0, max_depth = 0, width = c_narrow_tree ? 1 : 2;
   struct MuttThread *nextdisp = NULL, *pseudo = NULL, *parent = NULL;
 
@@ -410,8 +410,8 @@ void mutt_draw_tree(struct ThreadsContext *tctx)
   calculate_visibility(tree, &max_depth);
   pfx = mutt_mem_malloc((width * max_depth) + 2);
   arrow = mutt_mem_malloc((width * max_depth) + 2);
-  const bool c_hide_limited = cs_subset_bool(NeoMutt->sub, "hide_limited");
-  const bool c_hide_missing = cs_subset_bool(NeoMutt->sub, "hide_missing");
+  const bool c_hide_limited = cs_subset_bool(SpaceMutt->sub, "hide_limited");
+  const bool c_hide_missing = cs_subset_bool(SpaceMutt->sub, "hide_missing");
   while (tree)
   {
     if (depth != 0)
@@ -530,8 +530,8 @@ static void make_subject_list(GSList **subjects, struct MuttThread *cur, time_t 
   time_t thisdate;
   int rc = 0;
 
-  const bool c_thread_received = cs_subset_bool(NeoMutt->sub, "thread_received");
-  const bool c_sort_re = cs_subset_bool(NeoMutt->sub, "sort_re");
+  const bool c_thread_received = cs_subset_bool(SpaceMutt->sub, "thread_received");
+  const bool c_sort_re = cs_subset_bool(SpaceMutt->sub, "sort_re");
   while (true)
   {
     while (!cur->message)
@@ -594,7 +594,7 @@ static struct MuttThread *find_subject(struct Mailbox *m, struct MuttThread *cur
 
   make_subject_list(&subjects, cur, &date);
 
-  const bool c_thread_received = cs_subset_bool(NeoMutt->sub, "thread_received");
+  const bool c_thread_received = cs_subset_bool(SpaceMutt->sub, "thread_received");
   for (GSList *np = subjects; np != NULL; np = np->next)
   {
     for (he = mutt_hash_find_bucket(m->subj_hash, np->data); he; he = he->next)
@@ -796,12 +796,12 @@ static void mutt_sort_subthreads(struct ThreadsContext *tctx, bool init)
    * resorting, so we sort backwards and then put them back
    * in reverse order so they're forwards */
   const bool reverse = (mutt_thread_style() == UT_REVERSE);
-  enum SortType c_sort = cs_subset_sort(NeoMutt->sub, "sort");
-  enum SortType c_sort_aux = cs_subset_sort(NeoMutt->sub, "sort_aux");
+  enum SortType c_sort = cs_subset_sort(SpaceMutt->sub, "sort");
+  enum SortType c_sort_aux = cs_subset_sort(SpaceMutt->sub, "sort_aux");
   if ((c_sort & SORT_MASK) == SORT_THREADS)
   {
     ASSERT(!(c_sort & SORT_REVERSE) != reverse);
-    ASSERT(cs_subset_enum(NeoMutt->sub, "use_threads") == UT_UNSET);
+    ASSERT(cs_subset_enum(SpaceMutt->sub, "use_threads") == UT_UNSET);
     c_sort = c_sort_aux;
   }
   c_sort ^= SORT_REVERSE;
@@ -1071,7 +1071,7 @@ void mutt_sort_threads(struct ThreadsContext *tctx, bool init)
    * exists.  otherwise, if there is a MuttThread that already has a message, thread
    * new message as an identical child.  if we didn't attach the message to a
    * MuttThread, make a new one for it. */
-  const bool c_duplicate_threads = cs_subset_bool(NeoMutt->sub, "duplicate_threads");
+  const bool c_duplicate_threads = cs_subset_bool(SpaceMutt->sub, "duplicate_threads");
   for (i = 0; i < m->msg_count; i++)
   {
     e = m->emails[i];
@@ -1261,7 +1261,7 @@ void mutt_sort_threads(struct ThreadsContext *tctx, bool init)
 
   check_subjects(mv, init);
 
-  const bool c_strict_threads = cs_subset_bool(NeoMutt->sub, "strict_threads");
+  const bool c_strict_threads = cs_subset_bool(SpaceMutt->sub, "strict_threads");
   if (!c_strict_threads)
     pseudo_threads(tctx);
 
@@ -1820,8 +1820,8 @@ void mutt_thread_collapse(struct ThreadsContext *tctx, bool collapse)
  */
 bool mutt_thread_can_collapse(struct Email *e)
 {
-  const bool c_collapse_flagged = cs_subset_bool(NeoMutt->sub, "collapse_flagged");
-  const bool c_collapse_unread = cs_subset_bool(NeoMutt->sub, "collapse_unread");
+  const bool c_collapse_flagged = cs_subset_bool(SpaceMutt->sub, "collapse_flagged");
+  const bool c_collapse_unread = cs_subset_bool(SpaceMutt->sub, "collapse_unread");
   return (c_collapse_unread || !mutt_thread_contains_unread(e)) &&
          (c_collapse_flagged || !mutt_thread_contains_flagged(e));
 }

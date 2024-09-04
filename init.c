@@ -180,7 +180,7 @@ static bool get_hostname(struct ConfigSet *cs)
   const char *short_host = NULL;
   struct utsname utsname = { 0 };
 
-  const char *const c_hostname = cs_subset_string(NeoMutt->sub, "hostname");
+  const char *const c_hostname = cs_subset_string(SpaceMutt->sub, "hostname");
   if (c_hostname)
   {
     short_host = c_hostname;
@@ -334,7 +334,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   nm_init();
 #endif
 
-#ifdef NEOMUTT_DIRECT_COLORS
+#ifdef SPACEMUTT_DIRECT_COLORS
   /* Test if we run in a terminal which supports direct colours.
    *
    * The user/terminal can indicate their capability independent of the
@@ -417,7 +417,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
     env_ed = "vi";
   cs_str_initial_set(cs, "editor", env_ed, NULL);
 
-  const char *const c_editor = cs_subset_string(NeoMutt->sub, "editor");
+  const char *const c_editor = cs_subset_string(SpaceMutt->sub, "editor");
   if (!c_editor)
     cs_str_reset(cs, "editor", NULL);
 
@@ -526,7 +526,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
     goto done;
 
   char name[256] = { 0 };
-  const char *c_real_name = cs_subset_string(NeoMutt->sub, "real_name");
+  const char *c_real_name = cs_subset_string(SpaceMutt->sub, "real_name");
   if (!c_real_name)
   {
     struct passwd *pw = getpwuid(getuid());
@@ -557,7 +557,7 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
       goto done; // TEST14: neomutt -e broken (press 'q')
   }
 
-  const char *const c_tmp_dir = cs_subset_path(NeoMutt->sub, "tmp_dir");
+  const char *const c_tmp_dir = cs_subset_path(SpaceMutt->sub, "tmp_dir");
   if (mutt_file_mkdir(c_tmp_dir, S_IRWXU) < 0)
   {
     log_fault(_("Can't create %s: %s"), c_tmp_dir, strerror(errno));
@@ -568,15 +568,15 @@ int mutt_init(struct ConfigSet *cs, const char *dlevel, const char *dfile,
   mutt_hist_read_file();
 
 #ifdef USE_NOTMUCH
-  const bool c_virtual_spool_file = cs_subset_bool(NeoMutt->sub, "virtual_spool_file");
+  const bool c_virtual_spool_file = cs_subset_bool(SpaceMutt->sub, "virtual_spool_file");
   if (c_virtual_spool_file)
   {
     /* Find the first virtual folder and open it */
     MailboxList *ml = NULL;
-    neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_NOTMUCH);
+    spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_NOTMUCH);
     if (ml)
       cs_str_string_set(cs, "spool_file", mailbox_path(ml->data), NULL);
-    neomutt_mailboxlist_free(ml);
+    spacemutt_mailboxlist_free(ml);
   }
 #endif
   rc = 0;
@@ -604,7 +604,7 @@ int mutt_query_variables(GSList *queries, bool show_docs)
   {
     buf_reset(value);
 
-    struct HashElem *he = cs_subset_lookup(NeoMutt->sub, np->data);
+    struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, np->data);
     if (he)
     {
       if (he->type & D_INTERNAL_DEPRECATED)
@@ -614,7 +614,7 @@ int mutt_query_variables(GSList *queries, bool show_docs)
         continue;
       }
 
-      int rv = cs_subset_he_string_get(NeoMutt->sub, he, value);
+      int rv = cs_subset_he_string_get(SpaceMutt->sub, he, value);
       if (CSR_RESULT(rv) != CSR_SUCCESS)
       {
         rc = 1;
@@ -632,7 +632,7 @@ int mutt_query_variables(GSList *queries, bool show_docs)
         buf_copy(value, tmp);
       }
 
-      dump_config_neo(NeoMutt->sub->cs, he, value, NULL,
+      dump_config_neo(SpaceMutt->sub->cs, he, value, NULL,
                       show_docs ? CS_DUMP_SHOW_DOCS : CS_DUMP_NO_FLAGS, stdout);
       continue;
     }

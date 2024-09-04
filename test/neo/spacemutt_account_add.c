@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for neomutt_account_add()
+ * Test code for spacemutt_account_add()
  *
  * @authors
  * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
@@ -27,11 +27,11 @@
 #include <stddef.h>
 #include "core/lib.h"
 
-void test_neomutt_account_add(void)
+void test_spacemutt_account_add(void)
 {
-  // bool neomutt_account_add(struct NeoMutt *n, struct Account *a);
+  // bool spacemutt_account_add(struct SpaceMutt *n, struct Account *a);
 
   {
-    TEST_CHECK(neomutt_account_add(NULL, NULL) == false);
+    TEST_CHECK(spacemutt_account_add(NULL, NULL) == false);
   }
 }

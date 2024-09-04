@@ -565,12 +565,12 @@ static int reopen_mailbox(struct Mailbox *m)
   m->verbose = false;
 
   /* our heuristics require the old mailbox to be unsorted */
-  const enum SortType c_sort = cs_subset_sort(NeoMutt->sub, "sort");
+  const enum SortType c_sort = cs_subset_sort(SpaceMutt->sub, "sort");
   if (c_sort != SORT_ORDER)
   {
-    cs_subset_str_native_set(NeoMutt->sub, "sort", SORT_ORDER, NULL);
+    cs_subset_str_native_set(SpaceMutt->sub, "sort", SORT_ORDER, NULL);
     mailbox_changed(m, NT_MAILBOX_RESORT);
-    cs_subset_str_native_set(NeoMutt->sub, "sort", c_sort, NULL);
+    cs_subset_str_native_set(SpaceMutt->sub, "sort", c_sort, NULL);
   }
 
   e_old = NULL;
@@ -760,7 +760,7 @@ void mbox_reset_atime(struct Mailbox *m, struct stat *st)
 
   /* When $mbox_check_recent is set, existing new mail is ignored, so do not
    * reset the atime to mtime-1 to signal new mail.  */
-  const bool c_mail_check_recent = cs_subset_bool(NeoMutt->sub, "mail_check_recent");
+  const bool c_mail_check_recent = cs_subset_bool(SpaceMutt->sub, "mail_check_recent");
   if (!c_mail_check_recent && (utimebuf.actime >= utimebuf.modtime) && mbox_has_new(m))
   {
     utimebuf.actime = utimebuf.modtime - 1;
@@ -1080,7 +1080,7 @@ static enum MxStatus mbox_mbox_sync(struct Mailbox *m)
   enum MxStatus rc = MX_STATUS_ERROR;
 
   /* sort message by their position in the mailbox on disk */
-  const enum SortType c_sort = cs_subset_sort(NeoMutt->sub, "sort");
+  const enum SortType c_sort = cs_subset_sort(SpaceMutt->sub, "sort");
   if (c_sort != SORT_ORDER)
   {
     mutt_sort_order(m);
@@ -1315,7 +1315,7 @@ static enum MxStatus mbox_mbox_sync(struct Mailbox *m)
 
     struct Buffer *savefile = buf_pool_get();
 
-    const char *const c_tmp_dir = cs_subset_path(NeoMutt->sub, "tmp_dir");
+    const char *const c_tmp_dir = cs_subset_path(SpaceMutt->sub, "tmp_dir");
     buf_printf(savefile, "%s/neomutt.%s-%s-%u", NONULL(c_tmp_dir),
                NONULL(Username), NONULL(ShortHostname), (unsigned int) getpid());
     rename(buf_string(tempfile), buf_string(savefile));
@@ -1366,7 +1366,7 @@ static enum MxStatus mbox_mbox_sync(struct Mailbox *m)
   buf_pool_release(&tempfile);
   mutt_sig_unblock();
 
-  const bool c_check_mbox_size = cs_subset_bool(NeoMutt->sub, "check_mbox_size");
+  const bool c_check_mbox_size = cs_subset_bool(SpaceMutt->sub, "check_mbox_size");
   if (c_check_mbox_size)
   {
     struct Mailbox *m_tmp = mailbox_find(mailbox_path(m));
@@ -1577,7 +1577,7 @@ enum MailboxType mbox_path_probe(const char *path, const struct stat *st)
   }
   mutt_file_fclose(&fp);
 
-  const bool c_check_mbox_size = cs_subset_bool(NeoMutt->sub, "check_mbox_size");
+  const bool c_check_mbox_size = cs_subset_bool(SpaceMutt->sub, "check_mbox_size");
   if (!c_check_mbox_size)
   {
     /* need to restore the times here, the file was not really accessed,
@@ -1654,7 +1654,7 @@ static enum MxStatus mbox_mbox_check_stats(struct Mailbox *m, uint8_t flags)
 
   bool new_or_changed;
 
-  const bool c_check_mbox_size = cs_subset_bool(NeoMutt->sub, "check_mbox_size");
+  const bool c_check_mbox_size = cs_subset_bool(SpaceMutt->sub, "check_mbox_size");
   if (c_check_mbox_size)
   {
     new_or_changed = (st.st_size > m->size);
@@ -1670,7 +1670,7 @@ static enum MxStatus mbox_mbox_check_stats(struct Mailbox *m, uint8_t flags)
 
   if (new_or_changed)
   {
-    const bool c_mail_check_recent = cs_subset_bool(NeoMutt->sub, "mail_check_recent");
+    const bool c_mail_check_recent = cs_subset_bool(SpaceMutt->sub, "mail_check_recent");
     if (!c_mail_check_recent ||
         (mutt_file_stat_timespec_compare(&st, MUTT_STAT_MTIME, &m->last_visited) > 0))
     {

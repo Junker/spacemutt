@@ -102,7 +102,7 @@ static enum CommandResult command_set_set(struct Buffer *name,
 {
   ASSERT(name);
   ASSERT(value);
-  struct HashElem *he = cs_subset_lookup(NeoMutt->sub, name->data);
+  struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, name->data);
   if (!he)
   {
     // In case it is a my_var, we have to create it
@@ -111,7 +111,7 @@ static enum CommandResult command_set_set(struct Buffer *name,
       struct ConfigDef my_cdef = { 0 };
       my_cdef.name = name->data;
       my_cdef.type = DT_MYVAR;
-      he = cs_create_variable(NeoMutt->sub->cs, &my_cdef, err);
+      he = cs_create_variable(SpaceMutt->sub->cs, &my_cdef, err);
       if (!he)
         return MUTT_CMD_ERROR;
     }
@@ -127,12 +127,12 @@ static enum CommandResult command_set_set(struct Buffer *name,
   if (DTYPE(he->type) == DT_MYVAR)
   {
     // my variables do not expand their value
-    rc = cs_subset_he_string_set(NeoMutt->sub, he, value->data, err);
+    rc = cs_subset_he_string_set(SpaceMutt->sub, he, value->data, err);
   }
   else
   {
     command_set_expand_value(he->type, value);
-    rc = cs_subset_he_string_set(NeoMutt->sub, he, value->data, err);
+    rc = cs_subset_he_string_set(SpaceMutt->sub, he, value->data, err);
   }
   if (CSR_RESULT(rc) != CSR_SUCCESS)
     return MUTT_CMD_ERROR;
@@ -157,7 +157,7 @@ static enum CommandResult command_set_increment(struct Buffer *name,
 {
   ASSERT(name);
   ASSERT(value);
-  struct HashElem *he = cs_subset_lookup(NeoMutt->sub, name->data);
+  struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, name->data);
   if (!he)
   {
     // In case it is a my_var, we have to create it
@@ -166,7 +166,7 @@ static enum CommandResult command_set_increment(struct Buffer *name,
       struct ConfigDef my_cdef = { 0 };
       my_cdef.name = name->data;
       my_cdef.type = DT_MYVAR;
-      he = cs_create_variable(NeoMutt->sub->cs, &my_cdef, err);
+      he = cs_create_variable(SpaceMutt->sub->cs, &my_cdef, err);
       if (!he)
         return MUTT_CMD_ERROR;
     }
@@ -182,12 +182,12 @@ static enum CommandResult command_set_increment(struct Buffer *name,
   if (DTYPE(he->type) == DT_MYVAR)
   {
     // my variables do not expand their value
-    rc = cs_subset_he_string_plus_equals(NeoMutt->sub, he, value->data, err);
+    rc = cs_subset_he_string_plus_equals(SpaceMutt->sub, he, value->data, err);
   }
   else
   {
     command_set_expand_value(he->type, value);
-    rc = cs_subset_he_string_plus_equals(NeoMutt->sub, he, value->data, err);
+    rc = cs_subset_he_string_plus_equals(SpaceMutt->sub, he, value->data, err);
   }
   if (CSR_RESULT(rc) != CSR_SUCCESS)
     return MUTT_CMD_ERROR;
@@ -212,7 +212,7 @@ static enum CommandResult command_set_decrement(struct Buffer *name,
 {
   ASSERT(name);
   ASSERT(value);
-  struct HashElem *he = cs_subset_lookup(NeoMutt->sub, name->data);
+  struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, name->data);
   if (!he)
   {
     buf_printf(err, _("Unknown option %s"), name->data);
@@ -220,7 +220,7 @@ static enum CommandResult command_set_decrement(struct Buffer *name,
   }
 
   command_set_expand_value(he->type, value);
-  int rc = cs_subset_he_string_minus_equals(NeoMutt->sub, he, value->data, err);
+  int rc = cs_subset_he_string_minus_equals(SpaceMutt->sub, he, value->data, err);
   if (CSR_RESULT(rc) != CSR_SUCCESS)
     return MUTT_CMD_ERROR;
 
@@ -240,7 +240,7 @@ static enum CommandResult command_set_decrement(struct Buffer *name,
 static enum CommandResult command_set_unset(struct Buffer *name, struct Buffer *err)
 {
   ASSERT(name);
-  struct HashElem *he = cs_subset_lookup(NeoMutt->sub, name->data);
+  struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, name->data);
   if (!he)
   {
     buf_printf(err, _("Unknown option %s"), name->data);
@@ -250,15 +250,15 @@ static enum CommandResult command_set_unset(struct Buffer *name, struct Buffer *
   int rc = CSR_ERR_CODE;
   if (DTYPE(he->type) == DT_MYVAR)
   {
-    rc = cs_subset_he_delete(NeoMutt->sub, he, err);
+    rc = cs_subset_he_delete(SpaceMutt->sub, he, err);
   }
   else if ((DTYPE(he->type) == DT_BOOL) || (DTYPE(he->type) == DT_QUAD))
   {
-    rc = cs_subset_he_native_set(NeoMutt->sub, he, false, err);
+    rc = cs_subset_he_native_set(SpaceMutt->sub, he, false, err);
   }
   else
   {
-    rc = cs_subset_he_string_set(NeoMutt->sub, he, NULL, err);
+    rc = cs_subset_he_string_set(SpaceMutt->sub, he, NULL, err);
   }
   if (CSR_RESULT(rc) != CSR_SUCCESS)
     return MUTT_CMD_ERROR;
@@ -282,23 +282,23 @@ static enum CommandResult command_set_reset(struct Buffer *name, struct Buffer *
   // Handle special "reset all" syntax
   if (mutt_str_equal(name->data, "all"))
   {
-    struct HashElem **he_list = get_elem_list(NeoMutt->sub->cs);
+    struct HashElem **he_list = get_elem_list(SpaceMutt->sub->cs);
     if (!he_list)
       return MUTT_CMD_ERROR;
 
     for (size_t i = 0; he_list[i]; i++)
     {
       if (DTYPE(he_list[i]->type) == DT_MYVAR)
-        cs_subset_he_delete(NeoMutt->sub, he_list[i], err);
+        cs_subset_he_delete(SpaceMutt->sub, he_list[i], err);
       else
-        cs_subset_he_reset(NeoMutt->sub, he_list[i], NULL);
+        cs_subset_he_reset(SpaceMutt->sub, he_list[i], NULL);
     }
 
     FREE(&he_list);
     return MUTT_CMD_SUCCESS;
   }
 
-  struct HashElem *he = cs_subset_lookup(NeoMutt->sub, name->data);
+  struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, name->data);
   if (!he)
   {
     buf_printf(err, _("Unknown option %s"), name->data);
@@ -308,11 +308,11 @@ static enum CommandResult command_set_reset(struct Buffer *name, struct Buffer *
   int rc = CSR_ERR_CODE;
   if (DTYPE(he->type) == DT_MYVAR)
   {
-    rc = cs_subset_he_delete(NeoMutt->sub, he, err);
+    rc = cs_subset_he_delete(SpaceMutt->sub, he, err);
   }
   else
   {
-    rc = cs_subset_he_reset(NeoMutt->sub, he, err);
+    rc = cs_subset_he_reset(SpaceMutt->sub, he, err);
   }
   if (CSR_RESULT(rc) != CSR_SUCCESS)
     return MUTT_CMD_ERROR;
@@ -333,7 +333,7 @@ static enum CommandResult command_set_reset(struct Buffer *name, struct Buffer *
 static enum CommandResult command_set_toggle(struct Buffer *name, struct Buffer *err)
 {
   ASSERT(name);
-  struct HashElem *he = cs_subset_lookup(NeoMutt->sub, name->data);
+  struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, name->data);
   if (!he)
   {
     buf_printf(err, _("Unknown option %s"), name->data);
@@ -342,11 +342,11 @@ static enum CommandResult command_set_toggle(struct Buffer *name, struct Buffer 
 
   if (DTYPE(he->type) == DT_BOOL)
   {
-    bool_he_toggle(NeoMutt->sub, he, err);
+    bool_he_toggle(SpaceMutt->sub, he, err);
   }
   else if (DTYPE(he->type) == DT_QUAD)
   {
-    quad_he_toggle(NeoMutt->sub, he, err);
+    quad_he_toggle(SpaceMutt->sub, he, err);
   }
   else
   {
@@ -390,7 +390,7 @@ static enum CommandResult command_set_query(struct Buffer *name, struct Buffer *
       return MUTT_CMD_SUCCESS;
   }
 
-  struct HashElem *he = cs_subset_lookup(NeoMutt->sub, name->data);
+  struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, name->data);
   if (!he)
   {
     buf_printf(err, _("Unknown option %s"), name->data);
@@ -400,7 +400,7 @@ static enum CommandResult command_set_query(struct Buffer *name, struct Buffer *
   buf_addstr(err, name->data);
   buf_addch(err, '=');
   struct Buffer *value = buf_pool_get();
-  int rc = cs_subset_he_string_get(NeoMutt->sub, he, value);
+  int rc = cs_subset_he_string_get(SpaceMutt->sub, he, value);
   if (CSR_RESULT(rc) != CSR_SUCCESS)
   {
     buf_reset(err);
@@ -481,7 +481,7 @@ enum CommandResult parse_set(struct Buffer *buf, struct Buffer *s,
     bool increment = false;
     bool decrement = false;
 
-    struct HashElem *he = cs_subset_lookup(NeoMutt->sub, buf->data);
+    struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, buf->data);
     if (he)
     {
       // Use the correct name if a synonym is used

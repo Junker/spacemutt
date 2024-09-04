@@ -249,7 +249,7 @@ static const struct CompileOptions CompOpts[] = {
 #else
   { "sqlite", 0 },
 #endif
-#ifdef NEOMUTT_DIRECT_COLORS
+#ifdef SPACEMUTT_DIRECT_COLORS
   { "truecolor", 1 },
 #else
   { "truecolor", 0 },

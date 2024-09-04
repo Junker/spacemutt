@@ -116,7 +116,7 @@ void maildir_parse_flags(struct Email *e, const char *path)
 
         case 'T': // Trashed
         {
-          const bool c_flag_safe = cs_subset_bool(NeoMutt->sub, "flag_safe");
+          const bool c_flag_safe = cs_subset_bool(SpaceMutt->sub, "flag_safe");
           if (!e->flagged || !c_flag_safe)
           {
             e->trash = true;
@@ -396,7 +396,7 @@ static void maildir_check_dir(struct Mailbox *m, const char *dir_name,
 
   /* when $mail_check_recent is set, if the new/ directory hasn't been modified since
    * the user last exited the mailbox, then we know there is no recent mail.  */
-  const bool c_mail_check_recent = cs_subset_bool(NeoMutt->sub, "mail_check_recent");
+  const bool c_mail_check_recent = cs_subset_bool(SpaceMutt->sub, "mail_check_recent");
   if (check_new && c_mail_check_recent)
   {
     if ((stat(buf_string(path), &st) == 0) &&
@@ -547,7 +547,7 @@ static enum MxStatus maildir_check(struct Mailbox *m)
   struct HashTable *hash_names = NULL; // Hash Table: "base-filename" -> MdEmail
   struct MaildirMboxData *mdata = maildir_mdata_get(m);
 
-  const bool c_check_new = cs_subset_bool(NeoMutt->sub, "check_new");
+  const bool c_check_new = cs_subset_bool(SpaceMutt->sub, "check_new");
   if (!c_check_new)
     return MX_STATUS_OK;
 
@@ -821,7 +821,7 @@ enum MxStatus maildir_mbox_check_stats(struct Mailbox *m, uint8_t flags)
 
   maildir_check_dir(m, "new", check_new, check_stats);
 
-  const bool c_maildir_check_cur = cs_subset_bool(NeoMutt->sub, "maildir_check_cur");
+  const bool c_maildir_check_cur = cs_subset_bool(SpaceMutt->sub, "maildir_check_cur");
   check_new = !m->has_new && c_maildir_check_cur;
   if (check_new || check_stats)
     maildir_check_dir(m, "cur", check_new, check_stats);
@@ -872,7 +872,7 @@ enum MxStatus maildir_mbox_sync(struct Mailbox *m)
 
   if (m->msg_deleted)
   {
-    const bool c_maildir_trash = cs_subset_bool(NeoMutt->sub, "maildir_trash");
+    const bool c_maildir_trash = cs_subset_bool(SpaceMutt->sub, "maildir_trash");
     for (int i = 0, j = 0; i < m->msg_count; i++)
     {
       struct Email *e = m->emails[i];

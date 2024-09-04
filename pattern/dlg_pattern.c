@@ -144,7 +144,7 @@ static int pattern_make_entry(struct Menu *menu, int line, int max_cols, struct 
     max_cols -= (mutt_strwidth(c_arrow_string) + 1);
   }
 
-  const struct Expando *c_pattern_format = cs_subset_expando(NeoMutt->sub, "pattern_format");
+  const struct Expando *c_pattern_format = cs_subset_expando(SpaceMutt->sub, "pattern_format");
   return expando_filter(c_pattern_format, PatternRenderData, entry,
                         MUTT_FORMAT_ARROWCURSOR, max_cols, buf);
 }
@@ -323,7 +323,7 @@ static int pattern_window_observer(struct NotifyCallback *nc)
 
   struct Menu *menu = win_menu->wdata;
 
-  notify_observer_remove(NeoMutt->sub->notify, pattern_config_observer, menu);
+  notify_observer_remove(SpaceMutt->sub->notify, pattern_config_observer, menu);
   notify_observer_remove(win_menu->notify, pattern_window_observer, win_menu);
 
   log_debug5("window delete done");
@@ -348,7 +348,7 @@ bool dlg_pattern(char *buf, size_t buflen)
   dlg->wdata = &pd;
 
   // NT_COLOR is handled by the SimpleDialog
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, pattern_config_observer, menu);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, pattern_config_observer, menu);
   notify_observer_add(menu->win->notify, NT_WINDOW, pattern_window_observer, menu->win);
 
   struct MuttWindow *old_focus = window_set_focus(menu->win);

@@ -1,9 +1,9 @@
 /**
  * @file
- * Test code for neomutt_new()
+ * Test code for spacemutt_account_remove()
  *
  * @authors
- * Copyright (C) 2020-2023 Richard Russon <rich@flatcap.org>
+ * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -23,36 +23,8 @@
 #define TEST_NO_MAIN
 #include "config.h"
 #include "acutest.h"
-#include <stddef.h>
-#include "config/common.h" // IWYU pragma: keep
-#include "config/lib.h"
-#include "core/lib.h"
 
-// clang-format off
-static struct ConfigDef Vars[] = {
-  { "Apple", DT_NUMBER, 42, 0, NULL },
-  { NULL },
-};
-// clang-format on
-
-void test_neomutt_new(void)
+void test_spacemutt_account_remove(void)
 {
-  // struct NeoMutt *neomutt_new(struct ConfigSet *cs);
-
-  {
-    struct NeoMutt *n = neomutt_new(NULL);
-    TEST_CHECK(n == NULL);
-  }
-
-  {
-    struct ConfigSet *cs = cs_new(30);
-    cs_register_type(cs, &CstNumber);
-    TEST_CHECK(cs_register_variables(cs, Vars));
-
-    struct NeoMutt *n = neomutt_new(cs);
-    TEST_CHECK(n != NULL);
-
-    neomutt_free(&n);
-    cs_free(&cs);
-  }
+  // bool spacemutt_account_remove(struct SpaceMutt *n, struct Account *a);
 }

@@ -53,11 +53,11 @@ static size_t choose_increment(enum ProgressType type)
   switch (type)
   {
     case MUTT_PROGRESS_NET:
-      return cs_subset_number(NeoMutt->sub, "net_inc");
+      return cs_subset_number(SpaceMutt->sub, "net_inc");
     case MUTT_PROGRESS_READ:
-      return cs_subset_number(NeoMutt->sub, "read_inc");
+      return cs_subset_number(SpaceMutt->sub, "read_inc");
     case MUTT_PROGRESS_WRITE:
-      return cs_subset_number(NeoMutt->sub, "write_inc");
+      return cs_subset_number(SpaceMutt->sub, "write_inc");
     default:
       return 0;
   }
@@ -89,7 +89,7 @@ bool progress_update(struct Progress *progress, size_t pos, int percent)
   if (SigWinch)
   {
     SigWinch = false;
-    notify_send(NeoMutt->notify_resize, NT_RESIZE, 0, NULL);
+    notify_send(SpaceMutt->notify_resize, NT_RESIZE, 0, NULL);
     window_redraw(NULL);
   }
   else
@@ -145,7 +145,7 @@ struct Progress *progress_new(enum ProgressType type, size_t size)
   if (size_inc == 0) // The user has disabled the progress bar
     return NULL;
 
-  const short c_time_inc = cs_subset_number(NeoMutt->sub, "time_inc");
+  const short c_time_inc = cs_subset_number(SpaceMutt->sub, "time_inc");
   const bool is_bytes = (type == MUTT_PROGRESS_NET);
 
   struct MuttWindow *win = progress_window_new(size, size_inc, c_time_inc, is_bytes);

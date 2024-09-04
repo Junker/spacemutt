@@ -36,7 +36,7 @@ void test_mutt_str_getenv(void)
   }
 
   {
-    const char *name = "NEOMUTT_TEST1";
+    const char *name = "SPACEMUTT_TEST1";
     const char *value = "hello";
     setenv(name, value, 1);
     TEST_CASE(name);
@@ -47,7 +47,7 @@ void test_mutt_str_getenv(void)
   }
 
   {
-    const char *name = "NEOMUTT_TEST2";
+    const char *name = "SPACEMUTT_TEST2";
     const char *value = "";
     setenv(name, value, 1);
     TEST_CASE(name);
@@ -58,7 +58,7 @@ void test_mutt_str_getenv(void)
   }
 
   {
-    const char *name = "NEOMUTT_TEST3";
+    const char *name = "SPACEMUTT_TEST3";
     TEST_CASE(name);
 
     const char *result = mutt_str_getenv(name);

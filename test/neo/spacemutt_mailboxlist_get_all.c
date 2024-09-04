@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for neomutt_account_remove()
+ * Test code for spacemutt_mailboxlist_get_all()
  *
  * @authors
  * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
@@ -23,8 +23,19 @@
 #define TEST_NO_MAIN
 #include "config.h"
 #include "acutest.h"
+#include <stdbool.h>
+#include <stddef.h>
+#include "mutt/lib.h"
+#include "core/lib.h"
 
-void test_neomutt_account_remove(void)
+void test_spacemutt_mailboxlist_get_all(void)
 {
-  // bool neomutt_account_remove(struct NeoMutt *n, struct Account *a);
+  // size_t spacemutt_mailboxlist_get_all(MailboxList *head, struct SpaceMutt *n, enum MailboxType magic);
+
+  {
+    MailboxList *ml = NULL;
+    size_t count = spacemutt_mailboxlist_get_all(&ml, NULL, MUTT_MAILDIR);
+    TEST_CHECK(count == 0);
+    TEST_CHECK(ml == NULL);
+  }
 }

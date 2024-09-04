@@ -54,7 +54,7 @@ enum FunctionRetval complete_alias_complete(struct EnterWindowData *wdata, int o
     ; // do nothing
 
   buf_mb_wcstombs(wdata->buffer, wdata->state->wbuf + i, wdata->state->curpos - i);
-  int rc = alias_complete(wdata->buffer, NeoMutt->sub);
+  int rc = alias_complete(wdata->buffer, SpaceMutt->sub);
   replace_part(wdata->state, i, buf_string(wdata->buffer));
   if (rc != 1)
   {
@@ -83,7 +83,7 @@ enum FunctionRetval complete_alias_query(struct EnterWindowData *wdata, int op)
   }
 
   buf_mb_wcstombs(wdata->buffer, wdata->state->wbuf + i, wdata->state->curpos - i);
-  query_complete(wdata->buffer, NeoMutt->sub);
+  query_complete(wdata->buffer, SpaceMutt->sub);
   replace_part(wdata->state, i, buf_string(wdata->buffer));
 
   return FR_CONTINUE;

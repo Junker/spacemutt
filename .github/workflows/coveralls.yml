@@ -52,7 +52,7 @@ jobs:
 
     - name: Make Coverage
       run: |
-        export NEOMUTT_TEST_DIR=$GITHUB_WORKSPACE/test-files
+        export SPACEMUTT_TEST_DIR=$GITHUB_WORKSPACE/test-files
         make coverage
         ls -l coverage.info
 

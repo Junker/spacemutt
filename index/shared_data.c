@@ -207,7 +207,7 @@ void index_shared_data_set_mview(struct IndexSharedData *shared, struct MailboxV
       notify_observer_add(a->notify, NT_ACCOUNT, index_shared_account_observer, shared);
   }
 
-  struct ConfigSubset *sub = NeoMutt->sub;
+  struct ConfigSubset *sub = SpaceMutt->sub;
 #if 0
   if (m)
     sub = m->sub;
@@ -309,7 +309,7 @@ struct IndexSharedData *index_shared_data_new(void)
   struct IndexSharedData *shared = mutt_mem_calloc(1, sizeof(struct IndexSharedData));
 
   shared->notify = notify_new();
-  shared->sub = NeoMutt->sub;
+  shared->sub = SpaceMutt->sub;
   shared->search_state = search_state_new();
 
   log_notify("NT_INDEX_ADD: %p", (void *) shared);

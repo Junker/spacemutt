@@ -334,7 +334,7 @@ void pgp_entry_gpgme_date(const struct ExpandoNode *node, void *data,
 
   if (use_c_locale)
   {
-    strftime_l(tmp, sizeof(tmp), datestr, &tm, NeoMutt->time_c_locale);
+    strftime_l(tmp, sizeof(tmp), datestr, &tm, SpaceMutt->time_c_locale);
   }
   else
   {
@@ -552,7 +552,7 @@ static int crypt_make_entry(struct Menu *menu, int line, int max_cols, struct Bu
     max_cols -= (mutt_strwidth(c_arrow_string) + 1);
   }
 
-  const struct Expando *c_pgp_entry_format = cs_subset_expando(NeoMutt->sub, "pgp_entry_format");
+  const struct Expando *c_pgp_entry_format = cs_subset_expando(SpaceMutt->sub, "pgp_entry_format");
   return expando_filter(c_pgp_entry_format, PgpEntryGpgmeRenderData, &entry,
                         MUTT_FORMAT_ARROWCURSOR, max_cols, buf);
 }
@@ -615,7 +615,7 @@ static int gpgme_key_window_observer(struct NotifyCallback *nc)
 
   struct Menu *menu = win_menu->wdata;
 
-  notify_observer_remove(NeoMutt->sub->notify, gpgme_key_config_observer, menu);
+  notify_observer_remove(SpaceMutt->sub->notify, gpgme_key_config_observer, menu);
   notify_observer_remove(win_menu->notify, gpgme_key_window_observer, win_menu);
 
   log_debug5("window delete done");
@@ -646,7 +646,7 @@ struct CryptKeyInfo *dlg_gpgme(struct CryptKeyInfo *keys, struct Address *p,
   keymax = 0;
   i = 0;
   struct CryptKeyInfo **key_table = NULL;
-  const bool c_pgp_show_unusable = cs_subset_bool(NeoMutt->sub, "pgp_show_unusable");
+  const bool c_pgp_show_unusable = cs_subset_bool(SpaceMutt->sub, "pgp_show_unusable");
   for (struct CryptKeyInfo *k = keys; k; k = k->next)
   {
     if (!c_pgp_show_unusable && (k->flags & KEYFLAG_CANTUSE))
@@ -670,7 +670,7 @@ struct CryptKeyInfo *dlg_gpgme(struct CryptKeyInfo *keys, struct Address *p,
     return NULL;
   }
 
-  const short c_pgp_sort_keys = cs_subset_sort(NeoMutt->sub, "pgp_sort_keys");
+  const short c_pgp_sort_keys = cs_subset_sort(SpaceMutt->sub, "pgp_sort_keys");
   switch (c_pgp_sort_keys & SORT_MASK)
   {
     case SORT_ADDRESS:
@@ -711,7 +711,7 @@ struct CryptKeyInfo *dlg_gpgme(struct CryptKeyInfo *keys, struct Address *p,
   dlg->wdata = &gd;
 
   // NT_COLOR is handled by the SimpleDialog
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, gpgme_key_config_observer, menu);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, gpgme_key_config_observer, menu);
   notify_observer_add(menu->win->notify, NT_WINDOW, gpgme_key_window_observer, menu->win);
 
   const char *ts = NULL;

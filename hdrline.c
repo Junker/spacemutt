@@ -108,7 +108,7 @@ static const char *make_from_prefix(enum FieldType disp)
     [DISP_FROM] = "",  [DISP_PLAIN] = "",
   };
 
-  const struct MbTable *c_from_chars = cs_subset_mbtable(NeoMutt->sub, "from_chars");
+  const struct MbTable *c_from_chars = cs_subset_mbtable(SpaceMutt->sub, "from_chars");
 
   if (!c_from_chars || !c_from_chars->chars || (c_from_chars->len == 0))
     return long_prefixes[disp];
@@ -370,7 +370,7 @@ static void index_email_date(const struct ExpandoNode *node, const struct Email 
   char out[128] = { 0 };
   if (use_c_locale)
   {
-    strftime_l(out, sizeof(out), fmt + 1, &tm, NeoMutt->time_c_locale);
+    strftime_l(out, sizeof(out), fmt + 1, &tm, SpaceMutt->time_c_locale);
   }
   else
   {
@@ -685,7 +685,7 @@ void index_d(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e)
     return;
 
-  const char *c_date_format = cs_subset_string(NeoMutt->sub, "date_format");
+  const char *c_date_format = cs_subset_string(SpaceMutt->sub, "date_format");
   const char *cp = NONULL(c_date_format);
 
   index_email_date(node, e, SENT_SENDER, flags, buf, cp, strlen(cp));
@@ -702,7 +702,7 @@ void index_D(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e)
     return;
 
-  const char *c_date_format = cs_subset_string(NeoMutt->sub, "date_format");
+  const char *c_date_format = cs_subset_string(SpaceMutt->sub, "date_format");
   const char *cp = NONULL(c_date_format);
 
   index_email_date(node, e, SENT_LOCAL, flags, buf, cp, strlen(cp));
@@ -1116,7 +1116,7 @@ void index_O(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   char *p = NULL;
 
   make_from_addr(e->env, tmp, sizeof(tmp), true);
-  const bool c_save_address = cs_subset_bool(NeoMutt->sub, "save_address");
+  const bool c_save_address = cs_subset_bool(SpaceMutt->sub, "save_address");
   if (!c_save_address && (p = strpbrk(tmp, "%@")))
   {
     *p = '\0';
@@ -1216,7 +1216,7 @@ void index_S(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e)
     return;
 
-  const struct MbTable *c_flag_chars = cs_subset_mbtable(NeoMutt->sub, "flag_chars");
+  const struct MbTable *c_flag_chars = cs_subset_mbtable(SpaceMutt->sub, "flag_chars");
   const int msg_in_pager = hfi->msg_in_pager;
 
   const char *wch = NULL;
@@ -1286,7 +1286,7 @@ void index_T(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e)
     return;
 
-  const struct MbTable *c_to_chars = cs_subset_mbtable(NeoMutt->sub, "to_chars");
+  const struct MbTable *c_to_chars = cs_subset_mbtable(SpaceMutt->sub, "to_chars");
 
   int i;
   const char *s = (c_to_chars && ((i = user_is_recipient(e))) < c_to_chars->len) ?
@@ -1514,7 +1514,7 @@ void index_zc(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e)
     return;
 
-  const struct MbTable *c_crypt_chars = cs_subset_mbtable(NeoMutt->sub, "crypt_chars");
+  const struct MbTable *c_crypt_chars = cs_subset_mbtable(SpaceMutt->sub, "crypt_chars");
 
   const char *ch = NULL;
   if ((WithCrypto != 0) && (e->security & SEC_GOODSIGN))
@@ -1555,7 +1555,7 @@ void index_zs(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
     return;
 
   const bool threads = mutt_using_threads();
-  const struct MbTable *c_flag_chars = cs_subset_mbtable(NeoMutt->sub, "flag_chars");
+  const struct MbTable *c_flag_chars = cs_subset_mbtable(SpaceMutt->sub, "flag_chars");
   const int msg_in_pager = hfi->msg_in_pager;
 
   const char *ch = NULL;
@@ -1614,8 +1614,8 @@ void index_zt(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (!e)
     return;
 
-  const struct MbTable *c_flag_chars = cs_subset_mbtable(NeoMutt->sub, "flag_chars");
-  const struct MbTable *c_to_chars = cs_subset_mbtable(NeoMutt->sub, "to_chars");
+  const struct MbTable *c_flag_chars = cs_subset_mbtable(SpaceMutt->sub, "flag_chars");
+  const struct MbTable *c_to_chars = cs_subset_mbtable(SpaceMutt->sub, "to_chars");
 
   const char *ch = NULL;
   if (e->tagged)
@@ -1649,9 +1649,9 @@ void index_Z(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 
   const int msg_in_pager = hfi->msg_in_pager;
 
-  const struct MbTable *c_crypt_chars = cs_subset_mbtable(NeoMutt->sub, "crypt_chars");
-  const struct MbTable *c_flag_chars = cs_subset_mbtable(NeoMutt->sub, "flag_chars");
-  const struct MbTable *c_to_chars = cs_subset_mbtable(NeoMutt->sub, "to_chars");
+  const struct MbTable *c_crypt_chars = cs_subset_mbtable(SpaceMutt->sub, "crypt_chars");
+  const struct MbTable *c_flag_chars = cs_subset_mbtable(SpaceMutt->sub, "flag_chars");
+  const struct MbTable *c_to_chars = cs_subset_mbtable(SpaceMutt->sub, "to_chars");
   const bool threads = mutt_using_threads();
 
   const char *first = NULL;

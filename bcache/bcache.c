@@ -62,7 +62,7 @@ struct BodyCache
  */
 static int bcache_path(struct ConnAccount *account, const char *mailbox, struct BodyCache *bcache)
 {
-  const char *const c_message_cache_dir = cs_subset_path(NeoMutt->sub, "message_cache_dir");
+  const char *const c_message_cache_dir = cs_subset_path(SpaceMutt->sub, "message_cache_dir");
   if (!account || !c_message_cache_dir || !bcache)
     return -1;
 

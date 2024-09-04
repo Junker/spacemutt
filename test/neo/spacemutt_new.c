@@ -1,9 +1,9 @@
 /**
  * @file
- * Test code for neomutt_mailboxlist_free()
+ * Test code for spacemutt_new()
  *
  * @authors
- * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
+ * Copyright (C) 2020-2023 Richard Russon <rich@flatcap.org>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -24,14 +24,35 @@
 #include "config.h"
 #include "acutest.h"
 #include <stddef.h>
+#include "config/common.h" // IWYU pragma: keep
+#include "config/lib.h"
 #include "core/lib.h"
 
-void test_neomutt_mailboxlist_free(void)
+// clang-format off
+static struct ConfigDef Vars[] = {
+  { "Apple", DT_NUMBER, 42, 0, NULL },
+  { NULL },
+};
+// clang-format on
+
+void test_spacemutt_new(void)
 {
-  // void neomutt_mailboxlist_free(MailboxList *ml);
+  // struct SpaceMutt *spacemutt_new(struct ConfigSet *cs);
 
   {
-    neomutt_mailboxlist_free(NULL);
-    TEST_CHECK_(1, "neomutt_mailboxlist_free(NULL)");
+    struct SpaceMutt *n = spacemutt_new(NULL);
+    TEST_CHECK(n == NULL);
+  }
+
+  {
+    struct ConfigSet *cs = cs_new(30);
+    cs_register_type(cs, &CstNumber);
+    TEST_CHECK(cs_register_variables(cs, Vars));
+
+    struct SpaceMutt *n = spacemutt_new(cs);
+    TEST_CHECK(n != NULL);
+
+    spacemutt_free(&n);
+    cs_free(&cs);
   }
 }

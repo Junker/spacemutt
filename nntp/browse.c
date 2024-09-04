@@ -73,7 +73,7 @@ void group_index_d(const struct ExpandoNode *node, void *data,
     return;
 
   char *desc = mutt_str_dup(folder->ff->nd->desc);
-  const char *const c_newsgroups_charset = cs_subset_string(NeoMutt->sub, "newsgroups_charset");
+  const char *const c_newsgroups_charset = cs_subset_string(SpaceMutt->sub, "newsgroups_charset");
   if (c_newsgroups_charset)
   {
     mutt_ch_convert_string(&desc, c_newsgroups_charset, cc_charset(), MUTT_ICONV_HOOK_FROM);
@@ -127,7 +127,7 @@ long group_index_n_num(const struct ExpandoNode *node, void *data, MuttFormatFla
   const struct Folder *folder = data;
   const struct NntpMboxData *nd = folder->ff->nd;
 
-  const bool c_mark_old = cs_subset_bool(NeoMutt->sub, "mark_old");
+  const bool c_mark_old = cs_subset_bool(SpaceMutt->sub, "mark_old");
 
   if (c_mark_old && (nd->last_cached >= nd->first_message) &&
       (nd->last_cached <= nd->last_message))

@@ -128,7 +128,7 @@ static bool ssl_load_certificates(SSL_CTX *ctx)
     SSL_CTX_set_cert_store(ctx, store);
   }
 
-  const char *const c_certificate_file = cs_subset_path(NeoMutt->sub, "certificate_file");
+  const char *const c_certificate_file = cs_subset_path(SpaceMutt->sub, "certificate_file");
   FILE *fp = mutt_file_fopen(c_certificate_file, "rt");
   if (!fp)
     return 0;
@@ -171,7 +171,7 @@ static bool ssl_set_verify_partial(SSL_CTX *ctx)
 #ifdef HAVE_SSL_PARTIAL_CHAIN
   X509_VERIFY_PARAM *param = NULL;
 
-  const bool c_ssl_verify_partial_chains = cs_subset_bool(NeoMutt->sub, "ssl_verify_partial_chains");
+  const bool c_ssl_verify_partial_chains = cs_subset_bool(SpaceMutt->sub, "ssl_verify_partial_chains");
   if (c_ssl_verify_partial_chains)
   {
     param = X509_VERIFY_PARAM_new();
@@ -470,7 +470,7 @@ static bool certificates_equal(X509 *cert, X509 *peercert,
  */
 static bool check_certificate_expiration(X509 *peercert, bool silent)
 {
-  const bool c_ssl_verify_dates = cs_subset_bool(NeoMutt->sub, "ssl_verify_dates");
+  const bool c_ssl_verify_dates = cs_subset_bool(SpaceMutt->sub, "ssl_verify_dates");
   if (c_ssl_verify_dates == MUTT_NO)
     return true;
 
@@ -560,7 +560,7 @@ static int ssl_init(void)
   {
     /* load entropy from files */
     struct Buffer *path = buf_pool_get();
-    const char *const c_entropy_file = cs_subset_path(NeoMutt->sub, "entropy_file");
+    const char *const c_entropy_file = cs_subset_path(SpaceMutt->sub, "entropy_file");
     add_entropy(c_entropy_file);
     add_entropy(RAND_file_name(path->data, path->dsize));
 
@@ -604,7 +604,7 @@ static int ssl_init(void)
  */
 static void ssl_get_client_cert(struct SslSockData *ssldata, struct Connection *conn)
 {
-  const char *const c_ssl_client_cert = cs_subset_path(NeoMutt->sub, "ssl_client_cert");
+  const char *const c_ssl_client_cert = cs_subset_path(SpaceMutt->sub, "ssl_client_cert");
   if (!c_ssl_client_cert)
     return;
 
@@ -671,7 +671,7 @@ static bool check_certificate_file(X509 *peercert)
   int pass = false;
   FILE *fp = NULL;
 
-  const char *const c_certificate_file = cs_subset_path(NeoMutt->sub, "certificate_file");
+  const char *const c_certificate_file = cs_subset_path(SpaceMutt->sub, "certificate_file");
   fp = mutt_file_fopen(c_certificate_file, "rt");
   if (!fp)
     return false;
@@ -927,7 +927,7 @@ static bool interactive_check_cert(X509 *cert, int idx, size_t len, SSL *ssl, bo
   bool allow_skip = false;
 /* The leaf/host certificate can't be skipped. */
 #ifdef HAVE_SSL_PARTIAL_CHAIN
-  const bool c_ssl_verify_partial_chains = cs_subset_bool(NeoMutt->sub, "ssl_verify_partial_chains");
+  const bool c_ssl_verify_partial_chains = cs_subset_bool(SpaceMutt->sub, "ssl_verify_partial_chains");
   if ((idx != 0) && c_ssl_verify_partial_chains)
     allow_skip = true;
 #endif
@@ -940,7 +940,7 @@ static bool interactive_check_cert(X509 *cert, int idx, size_t len, SSL *ssl, bo
    * check_certificate_by_digest().  This means if check_certificate_expiration() is
    * true, then check_certificate_file() must be false.  Therefore we don't need
    * to also scan the certificate file here.  */
-  const char *const c_certificate_file = cs_subset_path(NeoMutt->sub, "certificate_file");
+  const char *const c_certificate_file = cs_subset_path(SpaceMutt->sub, "certificate_file");
   allow_always = allow_always && c_certificate_file &&
                  check_certificate_expiration(cert, true);
 
@@ -1034,7 +1034,7 @@ static int ssl_verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
   /* Sometimes, when a certificate is (s)kipped, OpenSSL will pass it
    * a second time with preverify_ok = 1.  Don't show it or the user
    * will think their "s" key is broken.  */
-  const bool c_ssl_verify_partial_chains = cs_subset_bool(NeoMutt->sub, "ssl_verify_partial_chains");
+  const bool c_ssl_verify_partial_chains = cs_subset_bool(SpaceMutt->sub, "ssl_verify_partial_chains");
   if (c_ssl_verify_partial_chains)
   {
     static int last_pos = 0;
@@ -1068,7 +1068,7 @@ static int ssl_verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
 
   /* check hostname only for the leaf certificate */
   buf[0] = '\0';
-  const bool c_ssl_verify_host = cs_subset_bool(NeoMutt->sub, "ssl_verify_host");
+  const bool c_ssl_verify_host = cs_subset_bool(SpaceMutt->sub, "ssl_verify_host");
   if ((pos == 0) && (c_ssl_verify_host != MUTT_NO))
   {
     if (check_host(cert, host, buf, sizeof(buf)) == 0)
@@ -1084,7 +1084,7 @@ static int ssl_verify_callback(int preverify_ok, X509_STORE_CTX *ctx)
   if (!preverify_ok || skip_mode)
   {
     /* automatic check from user's database */
-    const char *const c_certificate_file = cs_subset_path(NeoMutt->sub, "certificate_file");
+    const char *const c_certificate_file = cs_subset_path(SpaceMutt->sub, "certificate_file");
     if (c_certificate_file && check_certificate_by_digest(cert))
     {
       log_debug2("digest check passed");
@@ -1221,38 +1221,38 @@ static int ssl_setup(struct Connection *conn)
 
   /* disable SSL protocols as needed */
 #ifdef SSL_OP_NO_TLSv1_3
-  const bool c_ssl_use_tlsv1_3 = cs_subset_bool(NeoMutt->sub, "ssl_use_tlsv1_3");
+  const bool c_ssl_use_tlsv1_3 = cs_subset_bool(SpaceMutt->sub, "ssl_use_tlsv1_3");
   if (!c_ssl_use_tlsv1_3)
     SSL_CTX_set_options(sockdata(conn)->sctx, SSL_OP_NO_TLSv1_3);
 #endif
 
 #ifdef SSL_OP_NO_TLSv1_2
-  const bool c_ssl_use_tlsv1_2 = cs_subset_bool(NeoMutt->sub, "ssl_use_tlsv1_2");
+  const bool c_ssl_use_tlsv1_2 = cs_subset_bool(SpaceMutt->sub, "ssl_use_tlsv1_2");
   if (!c_ssl_use_tlsv1_2)
     SSL_CTX_set_options(sockdata(conn)->sctx, SSL_OP_NO_TLSv1_2);
 #endif
 
 #ifdef SSL_OP_NO_TLSv1_1
-  const bool c_ssl_use_tlsv1_1 = cs_subset_bool(NeoMutt->sub, "ssl_use_tlsv1_1");
+  const bool c_ssl_use_tlsv1_1 = cs_subset_bool(SpaceMutt->sub, "ssl_use_tlsv1_1");
   if (!c_ssl_use_tlsv1_1)
     SSL_CTX_set_options(sockdata(conn)->sctx, SSL_OP_NO_TLSv1_1);
 #endif
 
 #ifdef SSL_OP_NO_TLSv1
-  const bool c_ssl_use_tlsv1 = cs_subset_bool(NeoMutt->sub, "ssl_use_tlsv1");
+  const bool c_ssl_use_tlsv1 = cs_subset_bool(SpaceMutt->sub, "ssl_use_tlsv1");
   if (!c_ssl_use_tlsv1)
     SSL_CTX_set_options(sockdata(conn)->sctx, SSL_OP_NO_TLSv1);
 #endif
 
-  const bool c_ssl_use_sslv3 = cs_subset_bool(NeoMutt->sub, "ssl_use_sslv3");
+  const bool c_ssl_use_sslv3 = cs_subset_bool(SpaceMutt->sub, "ssl_use_sslv3");
   if (!c_ssl_use_sslv3)
     SSL_CTX_set_options(sockdata(conn)->sctx, SSL_OP_NO_SSLv3);
 
-  const bool c_ssl_use_sslv2 = cs_subset_bool(NeoMutt->sub, "ssl_use_sslv2");
+  const bool c_ssl_use_sslv2 = cs_subset_bool(SpaceMutt->sub, "ssl_use_sslv2");
   if (!c_ssl_use_sslv2)
     SSL_CTX_set_options(sockdata(conn)->sctx, SSL_OP_NO_SSLv2);
 
-  const bool c_ssl_use_system_certs = cs_subset_bool(NeoMutt->sub, "ssl_use_system_certs");
+  const bool c_ssl_use_system_certs = cs_subset_bool(SpaceMutt->sub, "ssl_use_system_certs");
   if (c_ssl_use_system_certs)
   {
     if (!SSL_CTX_set_default_verify_paths(sockdata(conn)->sctx))
@@ -1262,13 +1262,13 @@ static int ssl_setup(struct Connection *conn)
     }
   }
 
-  const char *const c_certificate_file = cs_subset_path(NeoMutt->sub, "certificate_file");
+  const char *const c_certificate_file = cs_subset_path(SpaceMutt->sub, "certificate_file");
   if (c_certificate_file && !ssl_load_certificates(sockdata(conn)->sctx))
     log_debug1("Error loading trusted certificates");
 
   ssl_get_client_cert(sockdata(conn), conn);
 
-  const char *const c_ssl_ciphers = cs_subset_string(NeoMutt->sub, "ssl_ciphers");
+  const char *const c_ssl_ciphers = cs_subset_string(SpaceMutt->sub, "ssl_ciphers");
   if (c_ssl_ciphers)
   {
     SSL_CTX_set_cipher_list(sockdata(conn)->sctx, c_ssl_ciphers);

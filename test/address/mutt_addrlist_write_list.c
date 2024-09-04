@@ -41,7 +41,7 @@ static struct ConfigDef Vars[] = {
 void test_mutt_addrlist_write_list(void)
 {
   {
-    TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
+    TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, Vars));
     AddressList *al = mutt_addrlist_new();
     const char in[] = "some-group: first@example.com,second@example.com; John Doe <john@doe.org>, \"Foo J. Bar\" <foo-j-bar@baz.com>";
     mutt_addrlist_parse(al, in);

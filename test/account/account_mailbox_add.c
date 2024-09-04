@@ -44,7 +44,7 @@ void test_account_mailbox_add(void)
     TEST_CHECK(account_mailbox_add(NULL, NULL) == false);
   }
 
-  TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
+  TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, Vars));
 
   {
     struct ConfigSubset *sub = cs_subset_new("account", NULL, NULL);

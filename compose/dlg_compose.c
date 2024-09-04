@@ -135,7 +135,7 @@ static int compose_config_observer(struct NotifyCallback *nc)
   if (!mutt_str_equal(ev_c->name, "status_on_top"))
     return 0;
 
-  window_status_on_top(dlg, NeoMutt->sub);
+  window_status_on_top(dlg, SpaceMutt->sub);
   log_debug5("config done, request WA_REFLOW");
   return 0;
 }
@@ -176,7 +176,7 @@ static int compose_window_observer(struct NotifyCallback *nc)
   if (ev_w->win != dlg)
     return 0;
 
-  notify_observer_remove(NeoMutt->sub->notify, compose_config_observer, dlg);
+  notify_observer_remove(SpaceMutt->sub->notify, compose_config_observer, dlg);
   notify_observer_remove(dlg->notify, compose_window_observer, dlg);
   log_debug5("window delete done");
 
@@ -314,7 +314,7 @@ int dlg_compose(struct Email *e, struct Buffer *fcc, uint8_t flags, struct Confi
   shared->flags = flags;
   shared->rc = -1;
 
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, compose_config_observer, dlg);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, compose_config_observer, dlg);
   notify_observer_add(e->notify, NT_ALL, compose_email_observer, shared);
   notify_observer_add(dlg->notify, NT_WINDOW, compose_window_observer, dlg);
 

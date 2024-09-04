@@ -645,7 +645,7 @@ static int op_display_message(struct IndexSharedData *shared,
   const int index = menu_get_index(priv->menu);
   index_shared_data_set_email(shared, mutt_get_virt_email(shared->mailbox, index));
 
-  const char *const c_pager = pager_get_pager(NeoMutt->sub);
+  const char *const c_pager = pager_get_pager(SpaceMutt->sub);
   if (c_pager)
   {
     op = external_pager(shared->mailbox_view, shared->email, c_pager);
@@ -2116,7 +2116,7 @@ static int op_quit(struct IndexSharedData *shared, struct IndexPrivateData *priv
 
     mutt_startup_shutdown_hook(MUTT_SHUTDOWN_HOOK);
     log_notify("NT_GLOBAL_SHUTDOWN");
-    notify_send(NeoMutt->notify, NT_GLOBAL, NT_GLOBAL_SHUTDOWN, NULL);
+    notify_send(SpaceMutt->notify, NT_GLOBAL, NT_GLOBAL_SHUTDOWN, NULL);
 
     enum MxStatus check = MX_STATUS_OK;
     if (!shared->mailbox_view || ((check = mx_mbox_close(shared->mailbox)) == MX_STATUS_OK))
@@ -2488,7 +2488,7 @@ static int op_view_attachments(struct IndexSharedData *shared,
   struct Message *msg = mx_msg_open(shared->mailbox, shared->email);
   if (msg)
   {
-    dlg_attachment(NeoMutt->sub, shared->mailbox_view, shared->email, msg->fp,
+    dlg_attachment(SpaceMutt->sub, shared->mailbox_view, shared->email, msg->fp,
                    shared->attach_msg);
     if (shared->email->attach_del)
     {

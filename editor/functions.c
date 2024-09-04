@@ -246,7 +246,7 @@ static int op_editor_backspace(struct EnterWindowData *wdata, int op)
 
   if ((rc == FR_ERROR) && editor_buffer_is_empty(wdata->state))
   {
-    const bool c_abort_backspace = cs_subset_bool(NeoMutt->sub, "abort_backspace");
+    const bool c_abort_backspace = cs_subset_bool(SpaceMutt->sub, "abort_backspace");
     if (c_abort_backspace)
     {
       buf_reset(wdata->buffer);

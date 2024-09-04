@@ -205,7 +205,7 @@ static int autocrypt_make_entry(struct Menu *menu, int line, int max_cols, struc
     max_cols -= (mutt_strwidth(c_arrow_string) + 1);
   }
 
-  const struct Expando *c_autocrypt_acct_format = cs_subset_expando(NeoMutt->sub, "autocrypt_acct_format");
+  const struct Expando *c_autocrypt_acct_format = cs_subset_expando(SpaceMutt->sub, "autocrypt_acct_format");
   return expando_filter(c_autocrypt_acct_format, AutocryptRenderData, entry,
                         MUTT_FORMAT_ARROWCURSOR, max_cols, buf);
 }
@@ -313,7 +313,7 @@ static int autocrypt_window_observer(struct NotifyCallback *nc)
 
   struct Menu *menu = win_menu->wdata;
 
-  notify_observer_remove(NeoMutt->sub->notify, autocrypt_config_observer, menu);
+  notify_observer_remove(SpaceMutt->sub->notify, autocrypt_config_observer, menu);
   notify_observer_remove(win_menu->notify, autocrypt_window_observer, win_menu);
 
   log_debug5("window delete done");
@@ -327,7 +327,7 @@ static int autocrypt_window_observer(struct NotifyCallback *nc)
  */
 void dlg_autocrypt(void)
 {
-  const bool c_autocrypt = cs_subset_bool(NeoMutt->sub, "autocrypt");
+  const bool c_autocrypt = cs_subset_bool(SpaceMutt->sub, "autocrypt");
   if (!c_autocrypt)
     return;
 
@@ -349,7 +349,7 @@ void dlg_autocrypt(void)
   sbar_set_title(sbar, _("Autocrypt Accounts"));
 
   // NT_COLOR is handled by the SimpleDialog
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, autocrypt_config_observer, menu);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, autocrypt_config_observer, menu);
   notify_observer_add(menu->win->notify, NT_WINDOW, autocrypt_window_observer, menu->win);
 
   struct MuttWindow *old_focus = window_set_focus(menu->win);

@@ -678,7 +678,7 @@ static void cmd_parse_lsub(struct ImapAccountData *adata, char *s)
     return;
   }
 
-  const bool c_imap_check_subscribed = cs_subset_bool(NeoMutt->sub, "imap_check_subscribed");
+  const bool c_imap_check_subscribed = cs_subset_bool(SpaceMutt->sub, "imap_check_subscribed");
   if (!c_imap_check_subscribed)
     return;
 
@@ -700,7 +700,7 @@ static void cmd_parse_lsub(struct ImapAccountData *adata, char *s)
   mutt_account_tourl(&adata->conn->account, &url);
   url.path = list.name;
 
-  const char *const c_imap_user = cs_subset_string(NeoMutt->sub, "imap_user");
+  const char *const c_imap_user = cs_subset_string(SpaceMutt->sub, "imap_user");
   if (mutt_str_equal(url.user, c_imap_user))
     url.user = NULL;
   url_tobuffer(&url, buf, U_NO_FLAGS);
@@ -916,7 +916,7 @@ static void cmd_parse_status(struct ImapAccountData *adata, char *s)
              mailbox, olduv, oldun, mdata->unseen);
 
   bool new_mail = false;
-  const bool c_mail_check_recent = cs_subset_bool(NeoMutt->sub, "mail_check_recent");
+  const bool c_mail_check_recent = cs_subset_bool(SpaceMutt->sub, "mail_check_recent");
   if (c_mail_check_recent)
   {
     if ((olduv != 0) && (olduv == mdata->uidvalidity))
@@ -1021,7 +1021,7 @@ static int cmd_handle_untagged(struct ImapAccountData *adata)
   char *s = imap_next_word(adata->buf);
   char *pn = imap_next_word(s);
 
-  const bool c_imap_server_noise = cs_subset_bool(NeoMutt->sub, "imap_server_noise");
+  const bool c_imap_server_noise = cs_subset_bool(SpaceMutt->sub, "imap_server_noise");
   if ((adata->state >= IMAP_SELECTED) && isdigit((unsigned char) *s))
   {
     /* pn vs. s: need initial seqno */
@@ -1322,7 +1322,7 @@ int imap_exec(struct ImapAccountData *adata, const char *cmdstr, ImapCmdFlags fl
   if (flags & IMAP_CMD_QUEUE)
     return IMAP_EXEC_SUCCESS;
 
-  const short c_imap_poll_timeout = cs_subset_number(NeoMutt->sub, "imap_poll_timeout");
+  const short c_imap_poll_timeout = cs_subset_number(SpaceMutt->sub, "imap_poll_timeout");
   if ((flags & IMAP_CMD_POLL) && (c_imap_poll_timeout > 0) &&
       ((mutt_socket_poll(adata->conn, c_imap_poll_timeout)) == 0))
   {
@@ -1443,7 +1443,7 @@ int imap_cmd_idle(struct ImapAccountData *adata)
     return -1;
   }
 
-  const short c_imap_poll_timeout = cs_subset_number(NeoMutt->sub, "imap_poll_timeout");
+  const short c_imap_poll_timeout = cs_subset_number(SpaceMutt->sub, "imap_poll_timeout");
   if ((c_imap_poll_timeout > 0) &&
       ((mutt_socket_poll(adata->conn, c_imap_poll_timeout)) == 0))
   {

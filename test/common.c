@@ -56,7 +56,7 @@ char *HomeDir = NULL;
 char *ShortHostname = "example";
 bool MonitorContextChanged = false;
 
-#define TEST_DIR "NEOMUTT_TEST_DIR"
+#define TEST_DIR "SPACEMUTT_TEST_DIR"
 
 const struct CompleteOps CompleteMailboxOps = { 0 };
 
@@ -79,7 +79,7 @@ const char *get_test_dir(void)
   return mutt_str_getenv(TEST_DIR);
 }
 
-static void init_tmp_dir(struct NeoMutt *n)
+static void init_tmp_dir(struct SpaceMutt *n)
 {
   char buf[PATH_MAX] = { 0 };
 
@@ -94,7 +94,7 @@ void test_gen_path(struct Buffer *buf, const char *fmt)
   buf_printf(buf, NONULL(fmt), NONULL(get_test_dir()));
 }
 
-bool test_neomutt_create(void)
+bool test_spacemutt_create(void)
 {
   struct ConfigSet *cs = cs_new(50);
   CONFIG_INIT_TYPE(cs, Address);
@@ -112,23 +112,23 @@ bool test_neomutt_create(void)
   CONFIG_INIT_TYPE(cs, Sort);
   CONFIG_INIT_TYPE(cs, String);
 
-  NeoMutt = neomutt_new(cs);
-  TEST_CHECK(NeoMutt != NULL);
+  SpaceMutt = spacemutt_new(cs);
+  TEST_CHECK(SpaceMutt != NULL);
 
   TEST_CHECK(cs_register_variables(cs, Vars));
 
-  init_tmp_dir(NeoMutt);
+  init_tmp_dir(SpaceMutt);
 
-  return NeoMutt;
+  return SpaceMutt;
 }
 
-void test_neomutt_destroy(void)
+void test_spacemutt_destroy(void)
 {
-  if (!NeoMutt)
+  if (!SpaceMutt)
     return;
 
-  struct ConfigSet *cs = NeoMutt->sub->cs;
-  neomutt_free(&NeoMutt);
+  struct ConfigSet *cs = SpaceMutt->sub->cs;
+  spacemutt_free(&SpaceMutt);
   cs_free(&cs);
 }
 
@@ -176,7 +176,7 @@ void test_init(void)
     goto done;
   }
 
-  test_neomutt_create();
+  test_spacemutt_create();
   success = true;
 done:
   if (!success)
@@ -189,7 +189,7 @@ done:
 void test_fini(void)
 {
   config_cache_cleanup();
-  test_neomutt_destroy();
+  test_spacemutt_destroy();
   buf_pool_cleanup();
 }
 

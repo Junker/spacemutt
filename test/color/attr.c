@@ -58,7 +58,7 @@ void test_attr_colors(void)
 {
   COLOR_PAIRS = 32;
   curses_colors_init();
-  TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
+  TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, Vars));
 
   {
     attr_color_free(NULL);
@@ -212,7 +212,7 @@ void test_attr_colors(void)
     }
   }
 
-#ifdef NEOMUTT_DIRECT_COLORS
+#ifdef SPACEMUTT_DIRECT_COLORS
   {
     color_t Colors[][2] = {
       // clang-format off
@@ -242,7 +242,7 @@ void test_attr_colors(void)
   }
 
   {
-    cs_str_native_set(NeoMutt->sub->cs, "color_directcolor", false, NULL);
+    cs_str_native_set(SpaceMutt->sub->cs, "color_directcolor", false, NULL);
     color_t col = color_xterm256_to_24bit(123);
     TEST_CHECK(col == 123);
   }

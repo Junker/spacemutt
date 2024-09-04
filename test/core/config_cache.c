@@ -33,7 +33,7 @@ void test_config_cache(void)
 {
   log_line(__func__);
 
-  struct ConfigSubset *sub = NeoMutt->sub;
+  struct ConfigSubset *sub = SpaceMutt->sub;
 
   {
     const struct Slist *c_assumed_charset = cc_assumed_charset();

@@ -48,7 +48,7 @@
 #include "mailbox.h"
 #include "message.h"
 #include "mxapi.h"
-#include "neomutt.h"
+#include "spacemutt.h"
 #include "tmp.h"
 // IWYU pragma: end_keep
 

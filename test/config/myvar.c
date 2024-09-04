@@ -579,7 +579,7 @@ static bool test_inherit(struct ConfigSet *cs, struct Buffer *err)
   char child[128];
   snprintf(child, sizeof(child), "%s:%s", account, parent);
 
-  struct ConfigSubset *sub = cs_subset_new(NULL, NULL, NeoMutt->notify);
+  struct ConfigSubset *sub = cs_subset_new(NULL, NULL, SpaceMutt->notify);
   sub->cs = cs;
   struct Account *a = account_new(account, sub);
 
@@ -601,7 +601,7 @@ ti_out:
 
 void test_config_myvar(void)
 {
-  struct ConfigSubset *sub = NeoMutt->sub;
+  struct ConfigSubset *sub = SpaceMutt->sub;
   struct ConfigSet *cs = sub->cs;
 
   dont_fail = true;
@@ -609,7 +609,7 @@ void test_config_myvar(void)
     return;
   dont_fail = false;
 
-  notify_observer_add(NeoMutt->notify, NT_CONFIG, log_observer, 0);
+  notify_observer_add(SpaceMutt->notify, NT_CONFIG, log_observer, 0);
 
   set_list(cs);
 

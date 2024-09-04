@@ -59,7 +59,7 @@ static const int NumOfLogs = 5;  ///< How many log files to rotate
  */
 static void error_pause(void)
 {
-  const short c_sleep_time = cs_subset_number(NeoMutt->sub, "sleep_time");
+  const short c_sleep_time = cs_subset_number(SpaceMutt->sub, "sleep_time");
   const uint64_t elapsed = mutt_date_now_ms() - LastError;
   const uint64_t sleep = c_sleep_time * S_TO_MS;
   if ((LastError == 0) || (elapsed >= sleep))
@@ -88,7 +88,7 @@ void mutt_clear_error(void)
  */
 GLogWriterOutput log_writer_curses(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer from_queue)
 {
-  const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
+  const short c_debug_level = cs_subset_number(SpaceMutt->sub, "debug_level");
 
   if (log_level_to_debug_level(level) > c_debug_level)
     return G_LOG_WRITER_HANDLED;
@@ -190,7 +190,7 @@ void mutt_log_stop(void)
  */
 int mutt_log_set_file(const char *file)
 {
-  const char *const c_debug_file = cs_subset_path(NeoMutt->sub, "debug_file");
+  const char *const c_debug_file = cs_subset_path(SpaceMutt->sub, "debug_file");
   if (!mutt_str_equal(CurrentFile, c_debug_file))
   {
     struct Buffer *expanded = buf_pool_get();
@@ -207,7 +207,7 @@ int mutt_log_set_file(const char *file)
     mutt_str_replace(&CurrentFile, c_debug_file);
   }
 
-  cs_subset_str_string_set(NeoMutt->sub, "debug_file", file, NULL);
+  cs_subset_str_string_set(SpaceMutt->sub, "debug_file", file, NULL);
 
   return 0;
 }
@@ -233,14 +233,14 @@ int mutt_log_set_level(GLogLevelFlags level, bool verbose)
 {
   if (!CurrentFile)
   {
-    const char *const c_debug_file = cs_subset_path(NeoMutt->sub, "debug_file");
+    const char *const c_debug_file = cs_subset_path(SpaceMutt->sub, "debug_file");
     mutt_log_set_file(c_debug_file);
   }
 
   if (log_file_set_level(level, verbose) != 0)
     return -1;
 
-  cs_subset_str_native_set(NeoMutt->sub, "debug_level", log_level_to_debug_level(level), NULL);
+  cs_subset_str_native_set(SpaceMutt->sub, "debug_level", log_level_to_debug_level(level), NULL);
   return 0;
 }
 
@@ -253,14 +253,14 @@ int mutt_log_set_level(GLogLevelFlags level, bool verbose)
  */
 int mutt_log_start(void)
 {
-  const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
+  const short c_debug_level = cs_subset_number(SpaceMutt->sub, "debug_level");
   if (c_debug_level < 1)
     return 0;
 
   if (log_file_running())
     return 0;
 
-  const char *const c_debug_file = cs_subset_path(NeoMutt->sub, "debug_file");
+  const char *const c_debug_file = cs_subset_path(SpaceMutt->sub, "debug_file");
   mutt_log_set_file(c_debug_file);
 
   /* This will trigger the file creation */
@@ -299,12 +299,12 @@ int main_log_observer(struct NotifyCallback *nc)
 
   if (mutt_str_equal(ev_c->name, "debug_file"))
   {
-    const char *const c_debug_file = cs_subset_path(NeoMutt->sub, "debug_file");
+    const char *const c_debug_file = cs_subset_path(SpaceMutt->sub, "debug_file");
     mutt_log_set_file(c_debug_file);
   }
   else if (mutt_str_equal(ev_c->name, "debug_level"))
   {
-    const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
+    const short c_debug_level = cs_subset_number(SpaceMutt->sub, "debug_level");
     mutt_log_set_level(debug_level_to_log_level(c_debug_level), true);
   }
   else

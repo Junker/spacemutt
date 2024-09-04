@@ -67,7 +67,7 @@ enum ImapAuthRes imap_auth_login(struct ImapAccountData *adata, const char *meth
   /* don't print the password unless we're at the ungodly debugging level
    * of 5 or higher */
 
-  const short c_debug_level = cs_subset_number(NeoMutt->sub, "debug_level");
+  const short c_debug_level = cs_subset_number(SpaceMutt->sub, "debug_level");
   if (c_debug_level < log_level_to_debug_level(IMAP_LOG_LEVEL_PASS))
     log_debug2("Sending LOGIN command for %s", adata->conn->account.user);
 

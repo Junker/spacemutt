@@ -20,12 +20,12 @@ task:
   matrix:
     - name: FreeBSD / Test
       env:
-        NEOMUTT_TEST_DIR: ${CIRRUS_WORKING_DIR}/test-files
+        SPACEMUTT_TEST_DIR: ${CIRRUS_WORKING_DIR}/test-files
       install_script:
         - ${PKG_UPDATE}
         - ${PKG_INSTALL} ${PKG_COMMON}
-        - git clone --depth 1 https://github.com/neomutt/neomutt-test-files.git ${NEOMUTT_TEST_DIR}
-        - (cd ${NEOMUTT_TEST_DIR} && ./setup.sh)
+        - git clone --depth 1 https://github.com/neomutt/neomutt-test-files.git ${SPACEMUTT_TEST_DIR}
+        - (cd ${SPACEMUTT_TEST_DIR} && ./setup.sh)
       configure_script: ./configure --autocrypt --disable-doc --disable-idn --idn2 --notmuch --testing
       build_script: make
       version_script: ./neomutt -v

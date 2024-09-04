@@ -33,7 +33,7 @@
 #include "config/lib.h"
 #include "account.h"
 #include "mailbox.h"
-#include "neomutt.h"
+#include "spacemutt.h"
 
 /**
  * account_new - Create a new Account
@@ -117,7 +117,7 @@ bool account_mailbox_remove(struct Account *a, struct Mailbox *m)
     if (m)
     {
       m->account = NULL;
-      notify_set_parent(m->notify, NeoMutt->notify);
+      notify_set_parent(m->notify, SpaceMutt->notify);
     }
     else
     {

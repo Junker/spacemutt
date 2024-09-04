@@ -46,19 +46,19 @@ void test_config_account(void)
   struct Buffer *err = buf_pool_get();
 
   int rc = 0;
-  struct ConfigSet *cs = NeoMutt->sub->cs;
+  struct ConfigSet *cs = SpaceMutt->sub->cs;
 
   if (!TEST_CHECK(cs_register_variables(cs, Vars)))
     return;
 
-  notify_observer_add(NeoMutt->notify, NT_CONFIG, log_observer, 0);
+  notify_observer_add(SpaceMutt->notify, NT_CONFIG, log_observer, 0);
 
   set_list(cs);
 
   const char *account = "damaged";
   const char *parent = "Pineapple";
 
-  struct ConfigSubset *sub = cs_subset_new(NULL, NULL, NeoMutt->notify);
+  struct ConfigSubset *sub = cs_subset_new(NULL, NULL, SpaceMutt->notify);
   sub->cs = cs;
   struct Account *a = account_new(account, sub);
 

@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for neomutt_free()
+ * Test code for spacemutt_mailboxlist_free()
  *
  * @authors
  * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
@@ -24,27 +24,14 @@
 #include "config.h"
 #include "acutest.h"
 #include <stddef.h>
-#include "mutt/lib.h"
 #include "core/lib.h"
 
-void test_neomutt_free(void)
+void test_spacemutt_mailboxlist_free(void)
 {
-  // void neomutt_free(struct NeoMutt **ptr);
+  // void spacemutt_mailboxlist_free(MailboxList *ml);
 
   {
-    neomutt_free(NULL);
-    TEST_CHECK_(1, "neomutt_free(NULL)");
-  }
-
-  {
-    struct NeoMutt *n = NULL;
-    neomutt_free(&n);
-    TEST_CHECK_(1, "neomutt_free(&n)");
-  }
-
-  {
-    struct NeoMutt *n = mutt_mem_calloc(1, sizeof(*n));
-    neomutt_free(&n);
-    TEST_CHECK_(1, "neomutt_free(&n)");
+    spacemutt_mailboxlist_free(NULL);
+    TEST_CHECK_(1, "spacemutt_mailboxlist_free(NULL)");
   }
 }

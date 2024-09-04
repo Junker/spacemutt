@@ -111,7 +111,7 @@ static int OldSize = 0;
  */
 static struct History *get_history(enum HistoryClass hclass)
 {
-  const short c_history = cs_subset_number(NeoMutt->sub, "history");
+  const short c_history = cs_subset_number(SpaceMutt->sub, "history");
   if ((hclass >= HC_MAX) || (c_history == 0))
     return NULL;
 
@@ -137,7 +137,7 @@ static void init_history(struct History *h)
     }
   }
 
-  const short c_history = cs_subset_number(NeoMutt->sub, "history");
+  const short c_history = cs_subset_number(SpaceMutt->sub, "history");
   if (c_history != 0)
     h->hist = mutt_mem_calloc(c_history + 1, sizeof(char *));
 
@@ -212,13 +212,13 @@ static void shrink_histfile(void)
   bool regen_file = false;
   struct HashTable *dup_hashes[HC_MAX] = { 0 };
 
-  const char *const c_history_file = cs_subset_path(NeoMutt->sub, "history_file");
+  const char *const c_history_file = cs_subset_path(SpaceMutt->sub, "history_file");
   FILE *fp = mutt_file_fopen(c_history_file, "r");
   if (!fp)
     return;
 
-  const bool c_history_remove_dups = cs_subset_bool(NeoMutt->sub, "history_remove_dups");
-  const short c_save_history = cs_subset_number(NeoMutt->sub, "save_history");
+  const bool c_history_remove_dups = cs_subset_bool(SpaceMutt->sub, "history_remove_dups");
+  const short c_save_history = cs_subset_number(SpaceMutt->sub, "save_history");
   if (c_history_remove_dups)
   {
     for (hclass = 0; hclass < HC_MAX; hclass++)
@@ -325,7 +325,7 @@ static void save_history(enum HistoryClass hclass, const char *str)
   if (!str || (*str == '\0')) // This shouldn't happen, but it's safer
     return;
 
-  const char *const c_history_file = cs_subset_path(NeoMutt->sub, "history_file");
+  const char *const c_history_file = cs_subset_path(SpaceMutt->sub, "history_file");
   FILE *fp = mutt_file_fopen(c_history_file, "a");
   if (!fp)
     return;
@@ -347,7 +347,7 @@ static void save_history(enum HistoryClass hclass, const char *str)
 
   if (--n < 0)
   {
-    const short c_save_history = cs_subset_number(NeoMutt->sub, "save_history");
+    const short c_save_history = cs_subset_number(SpaceMutt->sub, "save_history");
     n = c_save_history;
     shrink_histfile();
   }
@@ -390,7 +390,7 @@ static void remove_history_dups(enum HistoryClass hclass, const char *str)
     h->hist[source--] = NULL;
 
   /* Remove dups from last+1 .. `$history` compacting down. */
-  const short c_history = cs_subset_number(NeoMutt->sub, "history");
+  const short c_history = cs_subset_number(SpaceMutt->sub, "history");
   source = c_history;
   dest = c_history;
   while (source > old_last)
@@ -424,7 +424,7 @@ int mutt_hist_search(const char *search_buf, enum HistoryClass hclass, char **ma
 
   int match_count = 0;
   int cur = h->last;
-  const short c_history = cs_subset_number(NeoMutt->sub, "history");
+  const short c_history = cs_subset_number(SpaceMutt->sub, "history");
   do
   {
     cur--;
@@ -444,10 +444,10 @@ int mutt_hist_search(const char *search_buf, enum HistoryClass hclass, char **ma
  */
 void mutt_hist_cleanup(void)
 {
-  if (!NeoMutt)
+  if (!SpaceMutt)
     return;
 
-  const short c_history = cs_subset_number(NeoMutt->sub, "history");
+  const short c_history = cs_subset_number(SpaceMutt->sub, "history");
   for (enum HistoryClass hclass = HC_FIRST; hclass < HC_MAX; hclass++)
   {
     struct History *h = &Histories[hclass];
@@ -471,7 +471,7 @@ void mutt_hist_cleanup(void)
  */
 void mutt_hist_init(void)
 {
-  const short c_history = cs_subset_number(NeoMutt->sub, "history");
+  const short c_history = cs_subset_number(SpaceMutt->sub, "history");
   if (c_history == OldSize)
     return;
 
@@ -496,7 +496,7 @@ void mutt_hist_add(enum HistoryClass hclass, const char *str, bool save)
   if (*str)
   {
     int prev = h->last - 1;
-    const short c_history = cs_subset_number(NeoMutt->sub, "history");
+    const short c_history = cs_subset_number(SpaceMutt->sub, "history");
     if (prev < 0)
       prev = c_history;
 
@@ -505,11 +505,11 @@ void mutt_hist_add(enum HistoryClass hclass, const char *str, bool save)
      *  - repeated lines */
     if ((*str != ' ') && (!h->hist[prev] || !mutt_str_equal(h->hist[prev], str)))
     {
-      const bool c_history_remove_dups = cs_subset_bool(NeoMutt->sub, "history_remove_dups");
+      const bool c_history_remove_dups = cs_subset_bool(SpaceMutt->sub, "history_remove_dups");
       if (c_history_remove_dups)
         remove_history_dups(hclass, str);
-      const short c_save_history = cs_subset_number(NeoMutt->sub, "save_history");
-      const char *const c_history_file = cs_subset_path(NeoMutt->sub, "history_file");
+      const short c_save_history = cs_subset_number(SpaceMutt->sub, "save_history");
+      const char *const c_history_file = cs_subset_path(SpaceMutt->sub, "history_file");
       if (save && (c_save_history != 0) && c_history_file)
         save_history(hclass, str);
       mutt_str_replace(&h->hist[h->last++], str);
@@ -534,7 +534,7 @@ char *mutt_hist_next(enum HistoryClass hclass)
     return ""; /* disabled */
 
   int next = h->cur;
-  const short c_history = cs_subset_number(NeoMutt->sub, "history");
+  const short c_history = cs_subset_number(SpaceMutt->sub, "history");
   do
   {
     next++;
@@ -562,7 +562,7 @@ char *mutt_hist_prev(enum HistoryClass hclass)
     return ""; /* disabled */
 
   int prev = h->cur;
-  const short c_history = cs_subset_number(NeoMutt->sub, "history");
+  const short c_history = cs_subset_number(SpaceMutt->sub, "history");
   do
   {
     prev--;
@@ -599,7 +599,7 @@ void mutt_hist_reset_state(enum HistoryClass hclass)
  */
 void mutt_hist_read_file(void)
 {
-  const char *const c_history_file = cs_subset_path(NeoMutt->sub, "history_file");
+  const char *const c_history_file = cs_subset_path(SpaceMutt->sub, "history_file");
   if (!c_history_file)
     return;
 
@@ -685,7 +685,7 @@ void mutt_hist_save_scratch(enum HistoryClass hclass, const char *str)
  */
 void mutt_hist_complete(char *buf, size_t buflen, enum HistoryClass hclass)
 {
-  const short c_history = cs_subset_number(NeoMutt->sub, "history");
+  const short c_history = cs_subset_number(SpaceMutt->sub, "history");
   char **matches = mutt_mem_calloc(c_history, sizeof(char *));
   int match_count = mutt_hist_search(buf, hclass, matches);
   if (match_count)

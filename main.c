@@ -286,22 +286,22 @@ static bool usage(void)
   // clang-format off
   /* L10N: Try to limit to 80 columns */
   puts(_("usage:"));
-  puts(_("  neomutt [-CEnx] [-e <command>] [-F <config>] [-H <draft>] [-i <include>]\n"
+  puts(_("  spacemutt [-CEnx] [-e <command>] [-F <config>] [-H <draft>] [-i <include>]\n"
          "          [-b <address>] [-c <address>] [-s <subject>] [-a <file> [...] --]\n"
          "          <address> [...]"));
-  puts(_("  neomutt [-Cnx] [-e <command>] [-F <config>] [-b <address>] [-c <address>]\n"
+  puts(_("  spacemutt [-Cnx] [-e <command>] [-F <config>] [-b <address>] [-c <address>]\n"
          "          [-s <subject>] [-a <file> [...] --] <address> [...] < message"));
-  puts(_("  neomutt [-nRy] [-e <command>] [-F <config>] [-f <mailbox>] [-m <type>]"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -A <alias>"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -B"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -D [-S] [-O]"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -d <level> -l <file>"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -G"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -g <server>"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -p"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -Q <variable> [-O]"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -Z"));
-  puts(_("  neomutt [-n] [-e <command>] [-F <config>] -z [-f <mailbox>]"));
+  puts(_("  spacemutt [-nRy] [-e <command>] [-F <config>] [-f <mailbox>] [-m <type>]"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -A <alias>"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -B"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -D [-S] [-O]"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -d <level> -l <file>"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -G"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -g <server>"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -p"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -Q <variable> [-O]"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -Z"));
+  puts(_("  spacemutt [-n] [-e <command>] [-F <config>] -z [-f <mailbox>]"));
   puts(_("  neomutt -v[v]\n"));
 
   /* L10N: Try to limit to 80 columns.  If more space is needed add an indented line */
@@ -489,7 +489,7 @@ static void log_gui(void)
   const char *term = mutt_str_getenv("TERM");
   const char *color_term = mutt_str_getenv("COLORTERM");
   bool true_color = false;
-#ifdef NEOMUTT_DIRECT_COLORS
+#ifdef SPACEMUTT_DIRECT_COLORS
   true_color = true;
 #endif
 
@@ -514,7 +514,7 @@ int main_timeout_observer(struct NotifyCallback *nc)
   if (nc->event_type != NT_TIMEOUT)
     return 0;
 
-  const short c_timeout = cs_subset_number(NeoMutt->sub, "timeout");
+  const short c_timeout = cs_subset_number(SpaceMutt->sub, "timeout");
   if (c_timeout <= 0)
     goto done;
 
@@ -752,17 +752,17 @@ main
   if (!cs)
     goto main_curses;
 
-  NeoMutt = neomutt_new(cs);
+  SpaceMutt = spacemutt_new(cs);
   init_config(cs);
 
   // Change the current umask, and save the original one
-  NeoMutt->user_default_umask = umask(077);
+  SpaceMutt->user_default_umask = umask(077);
   subjrx_init();
   attach_init();
   alternates_init();
 
 #ifdef USE_DEBUG_NOTIFY
-  notify_observer_add(NeoMutt->notify, NT_ALL, debug_all_observer, NULL);
+  notify_observer_add(SpaceMutt->notify, NT_ALL, debug_all_observer, NULL);
 #endif
 
   if (!get_user_info(cs))
@@ -794,7 +794,7 @@ main
   mutt_log_prep();
   MuttLogWriter = log_writer_queue;
   log_translation();
-  log_debug1("user's umask %03o", NeoMutt->user_default_umask);
+  log_debug1("user's umask %03o", SpaceMutt->user_default_umask);
   log_debug3("umask set to 077");
 
   if (cc_list || bcc_list)
@@ -860,7 +860,7 @@ main
 
   /* "$news_server" precedence: command line, config file, environment, system file */
   if (!cli_nntp)
-    cli_nntp = cs_subset_string(NeoMutt->sub, "news_server");
+    cli_nntp = cs_subset_string(SpaceMutt->sub, "news_server");
 
   if (!cli_nntp)
     cli_nntp = mutt_str_getenv("NNTPSERVER");
@@ -949,13 +949,13 @@ main
 #ifdef USE_AUTOCRYPT
   /* Initialize autocrypt after curses messages are working,
    * because of the initial account setup screens. */
-  const bool c_autocrypt = cs_subset_bool(NeoMutt->sub, "autocrypt");
+  const bool c_autocrypt = cs_subset_bool(SpaceMutt->sub, "autocrypt");
   if (c_autocrypt)
     mutt_autocrypt_init(!(sendflags & SEND_BATCH));
 #endif
 
   /* Create the `$folder` directory if it doesn't exist. */
-  const char *const c_folder = cs_subset_string(NeoMutt->sub, "folder");
+  const char *const c_folder = cs_subset_string(SpaceMutt->sub, "folder");
   if (!OptNoCurses && c_folder)
   {
     struct stat st = { 0 };
@@ -987,16 +987,16 @@ main
   }
   StartupComplete = true;
 
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, main_hist_observer, NULL);
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, main_log_observer, NULL);
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, main_config_observer, NULL);
-  notify_observer_add(NeoMutt->notify, NT_TIMEOUT, main_timeout_observer, NULL);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, main_hist_observer, NULL);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, main_log_observer, NULL);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, main_config_observer, NULL);
+  notify_observer_add(SpaceMutt->notify, NT_TIMEOUT, main_timeout_observer, NULL);
 
   if (sendflags & SEND_POSTPONED)
   {
     if (!OptNoCurses)
       mutt_flushinp();
-    if (mutt_send_message(SEND_POSTPONED, NULL, NULL, NULL, NULL, NeoMutt->sub) == 0)
+    if (mutt_send_message(SEND_POSTPONED, NULL, NULL, NULL, NULL, SpaceMutt->sub) == 0)
       rc = 0;
     // TEST23: neomutt -p (postponed message, cancel)
     // TEST24: neomutt -p (no postponed message)
@@ -1038,7 +1038,7 @@ main
       }
     }
 
-    const bool c_auto_edit = cs_subset_bool(NeoMutt->sub, "auto_edit");
+    const bool c_auto_edit = cs_subset_bool(SpaceMutt->sub, "auto_edit");
     if (!draft_file && c_auto_edit && g_queue_is_empty(e->env->to) &&
         g_queue_is_empty(e->env->cc))
     {
@@ -1174,7 +1174,7 @@ main
         }
 
         /* Scan for neomutt header to set `$resume_draft_files` */
-        const bool c_resume_edited_draft_files = cs_subset_bool(NeoMutt->sub, "resume_edited_draft_files");
+        const bool c_resume_edited_draft_files = cs_subset_bool(SpaceMutt->sub, "resume_edited_draft_files");
         for (GList *np = e->env->userhdrs->head; np != NULL;)
         {
           GList *next = np->next;
@@ -1222,12 +1222,12 @@ main
       {
         if (b)
         {
-          b->next = mutt_make_file_attach(np->data, NeoMutt->sub);
+          b->next = mutt_make_file_attach(np->data, SpaceMutt->sub);
           b = b->next;
         }
         else
         {
-          b = mutt_make_file_attach(np->data, NeoMutt->sub);
+          b = mutt_make_file_attach(np->data, SpaceMutt->sub);
           e->body = b;
         }
         if (!b)
@@ -1241,7 +1241,7 @@ main
       g_slist_free_full(g_steal_pointer(&attach), g_free);
     }
 
-    rv = mutt_send_message(sendflags, e, bodyfile, NULL, NULL, NeoMutt->sub);
+    rv = mutt_send_message(sendflags, e, bodyfile, NULL, NULL, SpaceMutt->sub);
     /* We WANT the "Mail sent." and any possible, later error */
     log_queue_empty();
     if (ErrorBufMessage)
@@ -1271,21 +1271,21 @@ main
         {
           if (e->body->next)
             e->body = mutt_make_multipart(e->body);
-          mutt_encode_descriptions(e->body, true, NeoMutt->sub);
-          mutt_prepare_envelope(e->env, false, NeoMutt->sub);
+          mutt_encode_descriptions(e->body, true, SpaceMutt->sub);
+          mutt_prepare_envelope(e->env, false, SpaceMutt->sub);
           mutt_env_to_intl(e->env, NULL, NULL);
         }
 
-        const bool c_crypt_protected_headers_read = cs_subset_bool(NeoMutt->sub, "crypt_protected_headers_read");
+        const bool c_crypt_protected_headers_read = cs_subset_bool(SpaceMutt->sub, "crypt_protected_headers_read");
         mutt_rfc822_write_header(fp_out, e->env, e->body, MUTT_WRITE_HEADER_POSTPONE, false,
                                  c_crypt_protected_headers_read &&
                                      mutt_should_hide_protected_subject(e),
-                                 NeoMutt->sub);
-        const bool c_resume_edited_draft_files = cs_subset_bool(NeoMutt->sub, "resume_edited_draft_files");
+                                 SpaceMutt->sub);
+        const bool c_resume_edited_draft_files = cs_subset_bool(SpaceMutt->sub, "resume_edited_draft_files");
         if (c_resume_edited_draft_files)
           fprintf(fp_out, "X-Mutt-Resume-Draft: 1\n");
         fputc('\n', fp_out);
-        if ((mutt_write_mime_body(e->body, fp_out, NeoMutt->sub) == -1))
+        if ((mutt_write_mime_body(e->body, fp_out, SpaceMutt->sub) == -1))
         {
           mutt_file_fclose(&fp_out);
           email_free(&e);
@@ -1317,8 +1317,8 @@ main
   {
     if (flags & MUTT_CLI_MAILBOX)
     {
-      const bool c_imap_passive = cs_subset_bool(NeoMutt->sub, "imap_passive");
-      cs_subset_str_native_set(NeoMutt->sub, "imap_passive", false, NULL);
+      const bool c_imap_passive = cs_subset_bool(SpaceMutt->sub, "imap_passive");
+      cs_subset_str_native_set(SpaceMutt->sub, "imap_passive", false, NULL);
       const CheckStatsFlags csflags = MUTT_MAILBOX_CHECK_IMMEDIATE;
       if (mutt_mailbox_check(NULL, csflags) == 0)
       {
@@ -1327,19 +1327,19 @@ main
       }
       buf_reset(folder);
       mutt_mailbox_next(NULL, folder);
-      cs_subset_str_native_set(NeoMutt->sub, "imap_passive", c_imap_passive, NULL);
+      cs_subset_str_native_set(SpaceMutt->sub, "imap_passive", c_imap_passive, NULL);
     }
     else if (flags & MUTT_CLI_SELECT)
     {
       if (flags & MUTT_CLI_NEWS)
       {
-        const char *const c_news_server = cs_subset_string(NeoMutt->sub, "news_server");
+        const char *const c_news_server = cs_subset_string(SpaceMutt->sub, "news_server");
         OptNews = true;
         CurrentNewsSrv = nntp_select_server(NULL, c_news_server, false);
         if (!CurrentNewsSrv)
           goto main_curses; // TEST38: neomutt -G (unset news_server)
       }
-      else if (g_queue_is_empty(NeoMutt->accounts))
+      else if (g_queue_is_empty(SpaceMutt->accounts))
       {
         log_fault(_("No incoming mailboxes defined"));
         goto main_curses; // TEST39: neomutt -n -F /dev/null -y
@@ -1354,7 +1354,7 @@ main
 
     if (buf_is_empty(folder))
     {
-      const char *const c_spool_file = cs_subset_string(NeoMutt->sub, "spool_file");
+      const char *const c_spool_file = cs_subset_string(SpaceMutt->sub, "spool_file");
       if (c_spool_file)
       {
         // Check if `$spool_file` corresponds a mailboxes' description.
@@ -1403,14 +1403,14 @@ main
     mutt_folder_hook(buf_string(folder), m_cur ? m_cur->name : NULL);
     mutt_startup_shutdown_hook(MUTT_STARTUP_HOOK);
     log_notify("NT_GLOBAL_STARTUP");
-    notify_send(NeoMutt->notify, NT_GLOBAL, NT_GLOBAL_STARTUP, NULL);
+    notify_send(SpaceMutt->notify, NT_GLOBAL, NT_GLOBAL_STARTUP, NULL);
 
-    notify_send(NeoMutt->notify_resize, NT_RESIZE, 0, NULL);
+    notify_send(SpaceMutt->notify_resize, NT_RESIZE, 0, NULL);
     window_redraw(NULL);
 
     repeat_error = true;
     struct Mailbox *m = mx_resolve(buf_string(folder));
-    const bool c_read_only = cs_subset_bool(NeoMutt->sub, "read_only");
+    const bool c_read_only = cs_subset_bool(SpaceMutt->sub, "read_only");
     if (!mx_mbox_open(m, ((flags & MUTT_CLI_RO) || c_read_only) ? MUTT_READONLY : MUTT_OPEN_NO_FLAGS))
     {
       if (m->account)
@@ -1458,12 +1458,12 @@ main_curses:
   if (repeat_error && ErrorBufMessage)
     puts(ErrorBuf);
 main_exit:
-  if (NeoMutt && NeoMutt->sub)
+  if (SpaceMutt && SpaceMutt->sub)
   {
-    notify_observer_remove(NeoMutt->sub->notify, main_hist_observer, NULL);
-    notify_observer_remove(NeoMutt->sub->notify, main_log_observer, NULL);
-    notify_observer_remove(NeoMutt->sub->notify, main_config_observer, NULL);
-    notify_observer_remove(NeoMutt->notify, main_timeout_observer, NULL);
+    notify_observer_remove(SpaceMutt->sub->notify, main_hist_observer, NULL);
+    notify_observer_remove(SpaceMutt->sub->notify, main_log_observer, NULL);
+    notify_observer_remove(SpaceMutt->sub->notify, main_config_observer, NULL);
+    notify_observer_remove(SpaceMutt->notify, main_timeout_observer, NULL);
   }
   g_slist_free_full(g_steal_pointer(&commands), g_free);
   MuttLogWriter = log_writer_queue;
@@ -1487,7 +1487,7 @@ main_exit:
   mutt_keys_cleanup();
   mutt_prex_cleanup();
   config_cache_cleanup();
-  neomutt_free(&NeoMutt);
+  spacemutt_free(&SpaceMutt);
   cs_free(&cs);
   log_queue_flush(log_writer_terminal);
   mutt_log_stop();

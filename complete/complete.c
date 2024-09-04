@@ -73,8 +73,8 @@ int mutt_complete(struct CompletionData *cd, struct Buffer *buf)
   if (OptNews)
     return nntp_complete(buf);
 
-  const char *const c_spool_file = cs_subset_string(NeoMutt->sub, "spool_file");
-  const char *const c_folder = cs_subset_string(NeoMutt->sub, "folder");
+  const char *const c_spool_file = cs_subset_string(SpaceMutt->sub, "spool_file");
+  const char *const c_folder = cs_subset_string(SpaceMutt->sub, "folder");
 
   imap_path = buf_pool_get();
   /* we can use '/' as a delimiter, imap_complete rewrites it */

@@ -81,7 +81,7 @@ int mutt_num_postponed(struct Mailbox *m, bool force)
     force = true;
   }
 
-  const char *const c_postponed = cs_subset_string(NeoMutt->sub, "postponed");
+  const char *const c_postponed = cs_subset_string(SpaceMutt->sub, "postponed");
   if (!mutt_str_equal(c_postponed, OldPostponed))
   {
     FREE(&OldPostponed);
@@ -320,7 +320,7 @@ SecurityFlags mutt_parse_crypt_hdr(const char *p, bool set_empty_signas, Securit
   if (((WithCrypto & APPLICATION_SMIME) != 0) && *smime_cryptalg)
   {
     struct Buffer *errmsg = buf_pool_get();
-    int rc = cs_subset_str_string_set(NeoMutt->sub, "smime_encrypt_with",
+    int rc = cs_subset_str_string_set(SpaceMutt->sub, "smime_encrypt_with",
                                       smime_cryptalg, errmsg);
 
     if ((CSR_RESULT(rc) != CSR_SUCCESS) && !buf_is_empty(errmsg))
@@ -334,13 +334,13 @@ SecurityFlags mutt_parse_crypt_hdr(const char *p, bool set_empty_signas, Securit
   if (((WithCrypto & APPLICATION_PGP) != 0) && (crypt_app == APPLICATION_PGP) &&
       (flags & SEC_SIGN) && (set_empty_signas || *sign_as))
   {
-    cs_subset_str_string_set(NeoMutt->sub, "pgp_sign_as", sign_as, NULL);
+    cs_subset_str_string_set(SpaceMutt->sub, "pgp_sign_as", sign_as, NULL);
   }
 
   if (((WithCrypto & APPLICATION_SMIME) != 0) && (crypt_app == APPLICATION_SMIME) &&
       (flags & SEC_SIGN) && (set_empty_signas || *sign_as))
   {
-    cs_subset_str_string_set(NeoMutt->sub, "smime_sign_as", sign_as, NULL);
+    cs_subset_str_string_set(SpaceMutt->sub, "smime_sign_as", sign_as, NULL);
   }
 
   return flags;
@@ -596,7 +596,7 @@ int mutt_prepare_template(FILE *fp, struct Mailbox *m, struct Email *e_new,
     goto bail;
   }
 
-  const bool c_crypt_protected_headers_read = cs_subset_bool(NeoMutt->sub, "crypt_protected_headers_read");
+  const bool c_crypt_protected_headers_read = cs_subset_bool(SpaceMutt->sub, "crypt_protected_headers_read");
   if (c_crypt_protected_headers_read && protected_headers && protected_headers->subject &&
       !mutt_str_equal(e_new->env->subject, protected_headers->subject))
   {
@@ -616,7 +616,7 @@ int mutt_prepare_template(FILE *fp, struct Mailbox *m, struct Email *e_new,
   /* Theoretically, both could be set. Take the one the user wants to set by default. */
   if ((e_new->security & APPLICATION_PGP) && (e_new->security & APPLICATION_SMIME))
   {
-    const bool c_smime_is_default = cs_subset_bool(NeoMutt->sub, "smime_is_default");
+    const bool c_smime_is_default = cs_subset_bool(SpaceMutt->sub, "smime_is_default");
     if (c_smime_is_default)
       e_new->security &= ~APPLICATION_PGP;
     else
@@ -658,7 +658,7 @@ bail:
 int mutt_get_postponed(struct Mailbox *m_cur, struct Email *hdr,
                        struct Email **cur, struct Buffer *fcc)
 {
-  const char *const c_postponed = cs_subset_string(NeoMutt->sub, "postponed");
+  const char *const c_postponed = cs_subset_string(SpaceMutt->sub, "postponed");
   if (!c_postponed)
     return -1;
 
@@ -693,8 +693,8 @@ int mutt_get_postponed(struct Mailbox *m_cur, struct Email *hdr,
   }
 
   /* avoid the "purge deleted messages" prompt */
-  const enum QuadOption c_delete = cs_subset_quad(NeoMutt->sub, "delete");
-  cs_subset_str_native_set(NeoMutt->sub, "delete", MUTT_YES, NULL);
+  const enum QuadOption c_delete = cs_subset_quad(SpaceMutt->sub, "delete");
+  cs_subset_str_native_set(SpaceMutt->sub, "delete", MUTT_YES, NULL);
 
   if (m->msg_count == 1)
   {
@@ -784,7 +784,7 @@ int mutt_get_postponed(struct Mailbox *m_cur, struct Email *hdr,
     np = next;
   }
 
-  const bool c_crypt_opportunistic_encrypt = cs_subset_bool(NeoMutt->sub, "crypt_opportunistic_encrypt");
+  const bool c_crypt_opportunistic_encrypt = cs_subset_bool(SpaceMutt->sub, "crypt_opportunistic_encrypt");
   if (c_crypt_opportunistic_encrypt)
     crypt_opportunistic_encrypt(hdr);
 
@@ -795,6 +795,6 @@ cleanup:
     mailbox_free(&m);
   }
 
-  cs_subset_str_native_set(NeoMutt->sub, "delete", c_delete, NULL);
+  cs_subset_str_native_set(SpaceMutt->sub, "delete", c_delete, NULL);
   return rc;
 }

@@ -314,7 +314,7 @@ bool maildir_sync_mailbox_message(struct Mailbox *m, struct Email *e, struct Hea
   if (!e)
     return false;
 
-  const bool c_maildir_trash = cs_subset_bool(NeoMutt->sub, "maildir_trash");
+  const bool c_maildir_trash = cs_subset_bool(SpaceMutt->sub, "maildir_trash");
   if (e->deleted && !c_maildir_trash)
   {
     char path[PATH_MAX] = { 0 };

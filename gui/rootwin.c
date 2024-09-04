@@ -128,7 +128,7 @@ static int rootwin_config_observer(struct NotifyCallback *nc)
   
   struct MuttWindow *first = g_queue_peek_head(win_root->children);
 
-  const bool c_status_on_top = cs_subset_bool(NeoMutt->sub, "status_on_top");
+  const bool c_status_on_top = cs_subset_bool(SpaceMutt->sub, "status_on_top");
   if ((c_status_on_top && (first->type == WT_HELP_BAR)) ||
       (!c_status_on_top && (first->type != WT_HELP_BAR)))
   {
@@ -184,10 +184,10 @@ static int rootwin_window_observer(struct NotifyCallback *nc)
     return 0;
 
   notify_observer_remove(win_root->notify, rootwin_window_observer, win_root);
-  if (NeoMutt)
+  if (SpaceMutt)
   {
-    notify_observer_remove(NeoMutt->sub->notify, rootwin_config_observer, win_root);
-    notify_observer_remove(NeoMutt->notify_resize, rootwin_resize_observer, win_root);
+    notify_observer_remove(SpaceMutt->sub->notify, rootwin_config_observer, win_root);
+    notify_observer_remove(SpaceMutt->notify_resize, rootwin_resize_observer, win_root);
   }
 
   log_debug5("window delete done");
@@ -213,13 +213,13 @@ void rootwin_new(void)
 {
   struct MuttWindow *win_root = mutt_window_new(WT_ROOT, MUTT_WIN_ORIENT_VERTICAL,
                                                 MUTT_WIN_SIZE_FIXED, 0, 0);
-  notify_set_parent(win_root->notify, NeoMutt->notify);
+  notify_set_parent(win_root->notify, SpaceMutt->notify);
   RootWindow = win_root;
 
   struct MuttWindow *win_helpbar = helpbar_new();
   struct MuttWindow *win_alldlgs = alldialogs_new();
 
-  const bool c_status_on_top = cs_subset_bool(NeoMutt->sub, "status_on_top");
+  const bool c_status_on_top = cs_subset_bool(SpaceMutt->sub, "status_on_top");
   if (c_status_on_top)
   {
     mutt_window_add_child(win_root, win_alldlgs);
@@ -236,8 +236,8 @@ void rootwin_new(void)
   mutt_window_add_child(win_cont, win_msg);
   mutt_window_add_child(win_root, win_cont);
 
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, rootwin_config_observer, win_root);
-  notify_observer_add(NeoMutt->notify_resize, NT_RESIZE, rootwin_resize_observer, win_root);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, rootwin_config_observer, win_root);
+  notify_observer_add(SpaceMutt->notify_resize, NT_RESIZE, rootwin_resize_observer, win_root);
   notify_observer_add(win_root->notify, NT_WINDOW, rootwin_window_observer, win_root);
 }
 

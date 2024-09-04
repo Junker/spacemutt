@@ -436,12 +436,12 @@ MEMORY_OBJS	= test/memory/mutt_mem_calloc.o \
 		  test/memory/mutt_mem_malloc.o \
 		  test/memory/mutt_mem_realloc.o
 
-NEOMUTT_OBJS	= test/neo/neomutt_account_add.o \
-		  test/neo/neomutt_account_remove.o \
-		  test/neo/neomutt_free.o \
-		  test/neo/neomutt_mailboxlist_free.o \
-		  test/neo/neomutt_mailboxlist_get_all.o \
-		  test/neo/neomutt_new.o
+SPACEMUTT_OBJS	= test/neo/spacemutt_account_add.o \
+		  test/neo/spacemutt_account_remove.o \
+		  test/neo/spacemutt_free.o \
+		  test/neo/spacemutt_mailboxlist_free.o \
+		  test/neo/spacemutt_mailboxlist_get_all.o \
+		  test/neo/spacemutt_new.o
 
 NOTIFY_OBJS	= test/notify/notify_free.o \
 		  test/notify/notify_new.o \
@@ -699,7 +699,7 @@ TEST_OBJS	= test/common.o test/main.o \
 		  $(MBYTE_OBJS) \
 		  $(MD5_OBJS) \
 		  $(MEMORY_OBJS) \
-		  $(NEOMUTT_OBJS) \
+		  $(SPACEMUTT_OBJS) \
 		  $(NOTIFY_OBJS) \
 		  $(NOTMUCH_OBJS) \
 		  $(PARAMETER_OBJS) \

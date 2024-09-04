@@ -46,7 +46,7 @@ void test_mutt_idna_local_to_intl(void)
   // char * mutt_idna_local_to_intl(const char *user, const char *domain);
 
 #ifdef HAVE_LIBIDN
-  TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
+  TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, Vars));
 
   {
     const char *addr = mutt_idna_local_to_intl(NULL, "banana");

@@ -876,24 +876,24 @@ void dump_graphviz(const char *title, struct MailboxView *mv)
   dot_graph_header(fp);
 
 #ifndef GV_HIDE_NEOMUTT
-  dot_node(fp, NeoMutt, "NeoMutt", "#ffa500");
-  dot_add_link(&links, NeoMutt, g_queue_peek_head(NeoMutt->accounts),
-               "NeoMutt->accounts", NULL, false, NULL);
+  dot_node(fp, SpaceMutt, "SpaceMutt", "#ffa500");
+  dot_add_link(&links, SpaceMutt, g_queue_peek_head(SpaceMutt->accounts),
+               "SpaceMutt->accounts", NULL, false, NULL);
 #ifndef GV_HIDE_CONFIG
-  dot_config(fp, (const char *) NeoMutt->sub, 0, NeoMutt->sub, &links);
-  dot_add_link(&links, NeoMutt, NeoMutt->sub, "NeoMutt Config", NULL, false, NULL);
+  dot_config(fp, (const char *) SpaceMutt->sub, 0, SpaceMutt->sub, &links);
+  dot_add_link(&links, SpaceMutt, SpaceMutt->sub, "SpaceMutt Config", NULL, false, NULL);
   struct Buffer *buf = buf_pool_get();
   char obj1[64] = { 0 };
   char obj2[64] = { 0 };
-  dot_ptr_name(obj1, sizeof(obj1), NeoMutt);
-  dot_ptr_name(obj2, sizeof(obj2), NeoMutt->sub);
+  dot_ptr_name(obj1, sizeof(obj1), SpaceMutt);
+  dot_ptr_name(obj2, sizeof(obj2), SpaceMutt->sub);
   buf_printf(buf, "{ rank=same %s %s }", obj1, obj2);
   links = g_slist_append(links, buf_strdup(buf));
   buf_pool_release(&buf);
 #endif
 #endif
 
-  dot_account_list(fp, NeoMutt->accounts, &links);
+  dot_account_list(fp, SpaceMutt->accounts, &links);
 
 #ifndef GV_HIDE_MVIEW
   if (mv)
@@ -907,14 +907,14 @@ void dump_graphviz(const char *title, struct MailboxView *mv)
     dot_ptr_name(name, sizeof(name), mv);
     fprintf(fp, "%s ", name);
   }
-  dot_ptr_name(name, sizeof(name), NeoMutt);
+  dot_ptr_name(name, sizeof(name), SpaceMutt);
   fprintf(fp, "%s ", name);
   fprintf(fp, "}\n");
 #endif
 #endif
 
   fprintf(fp, "\t{ rank=same ");
-  for (GList *np = NeoMutt->accounts->head; np != NULL; np = np->next)
+  for (GList *np = SpaceMutt->accounts->head; np != NULL; np = np->next)
   {
     struct Account *acc = np->data;
 #ifdef GV_HIDE_MBOX

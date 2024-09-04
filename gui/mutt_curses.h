@@ -39,7 +39,7 @@
 #if (((NCURSES_VERSION_MAJOR > 6) ||                                           \
       ((NCURSES_VERSION_MAJOR == 6) && (NCURSES_VERSION_MINOR >= 1))) &&       \
      defined(NCURSES_EXT_COLORS))
-#define NEOMUTT_DIRECT_COLORS
+#define SPACEMUTT_DIRECT_COLORS
 #endif
 
 // ncurses defined A_ITALIC in such a way, that we can't use #if on it.

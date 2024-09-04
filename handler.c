@@ -489,7 +489,7 @@ static bool is_autoview(struct Body *b)
 
   snprintf(type, sizeof(type), "%s/%s", TYPE(b), b->subtype);
 
-  const bool c_implicit_auto_view = cs_subset_bool(NeoMutt->sub, "implicit_auto_view");
+  const bool c_implicit_auto_view = cs_subset_bool(SpaceMutt->sub, "implicit_auto_view");
   if (c_implicit_auto_view)
   {
     /* $implicit_auto_view is essentially the same as "auto_view *" */
@@ -685,7 +685,7 @@ static int text_plain_handler(struct Body *b_email, struct State *state)
   char *buf = NULL;
   size_t sz = 0;
 
-  const bool c_text_flowed = cs_subset_bool(NeoMutt->sub, "text_flowed");
+  const bool c_text_flowed = cs_subset_bool(SpaceMutt->sub, "text_flowed");
   while ((buf = mutt_file_read_line(buf, &sz, state->fp_in, NULL, MUTT_RL_NO_FLAGS)))
   {
     if (!mutt_str_equal(buf, "-- ") && c_text_flowed)
@@ -732,7 +732,7 @@ static int message_handler(struct Body *b_email, struct State *state)
   if (b->parts)
   {
     CopyHeaderFlags chflags = CH_DECODE | CH_FROM;
-    const bool c_weed = cs_subset_bool(NeoMutt->sub, "weed");
+    const bool c_weed = cs_subset_bool(SpaceMutt->sub, "weed");
     if ((state->flags & STATE_WEED) ||
         ((state->flags & (STATE_DISPLAY | STATE_PRINTING)) && c_weed))
     {
@@ -792,7 +792,7 @@ static int external_body_handler(struct Body *b_email, struct State *state)
   else
     expire = -1;
 
-  const bool c_weed = cs_subset_bool(NeoMutt->sub, "weed");
+  const bool c_weed = cs_subset_bool(SpaceMutt->sub, "weed");
   if (mutt_istr_equal(access_type, "x-mutt-deleted"))
   {
     if (state->flags & (STATE_DISPLAY | STATE_PRINTING))
@@ -1067,14 +1067,14 @@ static int alternative_handler(struct Body *b_email, struct State *state)
 
   if (choice)
   {
-    const bool c_weed = cs_subset_bool(NeoMutt->sub, "weed");
+    const bool c_weed = cs_subset_bool(SpaceMutt->sub, "weed");
     if (state->flags & STATE_DISPLAY && !c_weed &&
         mutt_file_seek(state->fp_in, choice->hdr_offset, SEEK_SET))
     {
       mutt_file_copy_bytes(state->fp_in, state->fp_out, choice->offset - choice->hdr_offset);
     }
 
-    const char *const c_show_multipart_alternative = cs_subset_string(NeoMutt->sub, "show_multipart_alternative");
+    const char *const c_show_multipart_alternative = cs_subset_string(SpaceMutt->sub, "show_multipart_alternative");
     if (mutt_str_equal("info", c_show_multipart_alternative))
     {
       print_part_line(state, choice, 0);
@@ -1168,11 +1168,11 @@ static int multilingual_handler(struct Body *b_email, struct State *state)
     b = b->next;
   }
 
-  const struct Slist *c_preferred_languages = cs_subset_slist(NeoMutt->sub, "preferred_languages");
+  const struct Slist *c_preferred_languages = cs_subset_slist(SpaceMutt->sub, "preferred_languages");
   if (c_preferred_languages)
   {
     struct Buffer *langs = buf_pool_get();
-    cs_subset_str_string_get(NeoMutt->sub, "preferred_languages", langs);
+    cs_subset_str_string_get(SpaceMutt->sub, "preferred_languages", langs);
     log_debug2("RFC8255 >> preferred_languages set in config to '%s'",
                buf_string(langs));
     buf_pool_release(&langs);
@@ -1252,8 +1252,8 @@ static int multipart_handler(struct Body *b_email, struct State *state)
     b = b_email;
   }
 
-  const bool c_weed = cs_subset_bool(NeoMutt->sub, "weed");
-  const bool c_include_only_first = cs_subset_bool(NeoMutt->sub, "include_only_first");
+  const bool c_weed = cs_subset_bool(SpaceMutt->sub, "weed");
+  const bool c_include_only_first = cs_subset_bool(SpaceMutt->sub, "include_only_first");
 
   for (p = b->parts, count = 1; p; p = p->next, count++)
   {
@@ -1657,7 +1657,7 @@ int mutt_body_handler(struct Body *b, struct State *state)
   {
     if (mutt_istr_equal("plain", b->subtype))
     {
-      const bool c_reflow_text = cs_subset_bool(NeoMutt->sub, "reflow_text");
+      const bool c_reflow_text = cs_subset_bool(SpaceMutt->sub, "reflow_text");
       /* avoid copying this part twice since removing the transfer-encoding is
        * the only operation needed.  */
       if (((WithCrypto & APPLICATION_PGP) != 0) && mutt_is_application_pgp(b))
@@ -1695,7 +1695,7 @@ int mutt_body_handler(struct Body *b, struct State *state)
   }
   else if (b->type == TYPE_MULTIPART)
   {
-    const char *const c_show_multipart_alternative = cs_subset_string(NeoMutt->sub, "show_multipart_alternative");
+    const char *const c_show_multipart_alternative = cs_subset_string(SpaceMutt->sub, "show_multipart_alternative");
     if (!mutt_str_equal("inline", c_show_multipart_alternative) &&
         mutt_istr_equal("alternative", b->subtype))
     {
@@ -1759,7 +1759,7 @@ int mutt_body_handler(struct Body *b, struct State *state)
      * displaying from the attachment menu (i.e. pager) */
     /* Prevent encrypted attachments from being included in replies
      * unless $include_encrypted is set. */
-    const bool c_include_encrypted = cs_subset_bool(NeoMutt->sub, "include_encrypted");
+    const bool c_include_encrypted = cs_subset_bool(SpaceMutt->sub, "include_encrypted");
     if ((state->flags & STATE_REPLYING) && (state->flags & STATE_FIRSTDONE) &&
         encrypted_handler && !c_include_encrypted)
     {
@@ -1772,7 +1772,7 @@ int mutt_body_handler(struct Body *b, struct State *state)
   {
     /* print hint to use attachment menu for disposition == attachment
      * if we're not already being called from there */
-    const bool c_honor_disposition = cs_subset_bool(NeoMutt->sub, "honor_disposition");
+    const bool c_honor_disposition = cs_subset_bool(SpaceMutt->sub, "honor_disposition");
     struct Buffer *msg = buf_pool_get();
 
     if (is_attachment_display)
@@ -1851,7 +1851,7 @@ bool mutt_prefer_as_attachment(struct Body *b)
   if (b->disposition != DISP_ATTACH)
     return false;
 
-  return cs_subset_bool(NeoMutt->sub, "honor_disposition");
+  return cs_subset_bool(SpaceMutt->sub, "honor_disposition");
 }
 
 /**

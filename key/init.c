@@ -235,7 +235,7 @@ void mutt_keys_cleanup(void)
 void mutt_init_abort_key(void)
 {
   keycode_t buf[2];
-  const char *const c_abort_key = cs_subset_string(NeoMutt->sub, "abort_key");
+  const char *const c_abort_key = cs_subset_string(SpaceMutt->sub, "abort_key");
   size_t len = parsekeys(c_abort_key, buf, mutt_array_size(buf));
   if (len == 0)
   {

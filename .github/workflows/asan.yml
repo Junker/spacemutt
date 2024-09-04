@@ -49,7 +49,7 @@ jobs:
     - name: Run Tests
       run: |
         export ASAN_OPTIONS="$ASAN_OPTIONS"
-        export NEOMUTT_TEST_DIR="$GITHUB_WORKSPACE/test-files"
+        export SPACEMUTT_TEST_DIR="$GITHUB_WORKSPACE/test-files"
         make test
 
     - name: Upload ASAN Log

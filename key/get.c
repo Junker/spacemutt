@@ -261,11 +261,11 @@ struct KeyEvent mutt_getch(GetChFlags flags)
     if (SigWinch)
     {
       SigWinch = false;
-      notify_send(NeoMutt->notify_resize, NT_RESIZE, 0, NULL);
+      notify_send(SpaceMutt->notify_resize, NT_RESIZE, 0, NULL);
       return event_repaint;
     }
 
-    notify_send(NeoMutt->notify_timeout, NT_TIMEOUT, 0, NULL);
+    notify_send(SpaceMutt->notify_timeout, NT_TIMEOUT, 0, NULL);
     return event_timeout;
   }
 
@@ -274,7 +274,7 @@ struct KeyEvent mutt_getch(GetChFlags flags)
 
   if (ch & 0x80)
   {
-    const bool c_meta_key = cs_subset_bool(NeoMutt->sub, "meta_key");
+    const bool c_meta_key = cs_subset_bool(SpaceMutt->sub, "meta_key");
     if (c_meta_key)
     {
       /* send ALT-x as ESC-x */

@@ -96,7 +96,7 @@ static void add_folder(char delim, char *folder, bool noselect, bool noinferiors
   /* apply filemask filter. This should really be done at menu setup rather
    * than at scan, since it's so expensive to scan. But that's big changes
    * to browser.c */
-  const struct Regex *c_mask = cs_subset_regex(NeoMutt->sub, "mask");
+  const struct Regex *c_mask = cs_subset_regex(SpaceMutt->sub, "mask");
   if (!mutt_regex_match(c_mask, relpath))
   {
     return;
@@ -123,7 +123,7 @@ static void add_folder(char delim, char *folder, bool noselect, bool noinferiors
   ff.inferiors = !noinferiors;
 
   MailboxList *ml = NULL;
-  neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
+  spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
 
   struct Mailbox *m = NULL;
   for (GSList *np = ml; np != NULL; np = np->next)
@@ -141,7 +141,7 @@ static void add_folder(char delim, char *folder, bool noselect, bool noinferiors
     ff.msg_count = m->msg_count;
     ff.msg_unread = m->msg_unread;
   }
-  neomutt_mailboxlist_free(ml);
+  spacemutt_mailboxlist_free(ml);
 
   ARRAY_ADD(&state->entry, ff);
 }
@@ -217,12 +217,12 @@ int imap_browse(const char *path, struct BrowserState *state)
     return -1;
   }
 
-  const bool c_imap_check_subscribed = cs_subset_bool(NeoMutt->sub, "imap_check_subscribed");
-  cs_subset_str_native_set(NeoMutt->sub, "imap_check_subscribed", false, NULL);
+  const bool c_imap_check_subscribed = cs_subset_bool(SpaceMutt->sub, "imap_check_subscribed");
+  cs_subset_str_native_set(SpaceMutt->sub, "imap_check_subscribed", false, NULL);
 
   // Pick first mailbox connected to the same server
   MailboxList *ml = NULL;
-  neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_IMAP);
+  spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_IMAP);
   for (GSList *np = ml; np != NULL; np = np->next)
   {
     adata = imap_adata_get(np->data);
@@ -231,11 +231,11 @@ int imap_browse(const char *path, struct BrowserState *state)
       break;
     adata = NULL;
   }
-  neomutt_mailboxlist_free(ml);
+  spacemutt_mailboxlist_free(ml);
   if (!adata)
     goto fail;
 
-  const bool c_imap_list_subscribed = cs_subset_bool(NeoMutt->sub, "imap_list_subscribed");
+  const bool c_imap_list_subscribed = cs_subset_bool(SpaceMutt->sub, "imap_list_subscribed");
   if (c_imap_list_subscribed)
   {
     /* RFC3348 section 3 states LSUB is unreliable for hierarchy information.
@@ -380,7 +380,7 @@ int imap_browse(const char *path, struct BrowserState *state)
   rc = 0;
 
 fail:
-  cs_subset_str_native_set(NeoMutt->sub, "imap_check_subscribed",
+  cs_subset_str_native_set(SpaceMutt->sub, "imap_check_subscribed",
                            c_imap_check_subscribed, NULL);
   return rc;
 }

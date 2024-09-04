@@ -87,7 +87,7 @@ static int socket_connect(int fd, struct sockaddr *sa)
 
   /* Batch mode does not call mutt_signal_init(), so ensure the alarm
    * interrupts the connect call */
-  const short c_socket_timeout = cs_subset_number(NeoMutt->sub, "socket_timeout");
+  const short c_socket_timeout = cs_subset_number(SpaceMutt->sub, "socket_timeout");
   if (c_socket_timeout > 0)
   {
     sigemptyset(&act.sa_mask);
@@ -161,7 +161,7 @@ int raw_socket_open(struct Connection *conn)
   struct addrinfo *cur = NULL;
 
   /* we accept v4 or v6 STREAM sockets */
-  const bool c_use_ipv6 = cs_subset_bool(NeoMutt->sub, "use_ipv6");
+  const bool c_use_ipv6 = cs_subset_bool(SpaceMutt->sub, "use_ipv6");
   if (c_use_ipv6)
     hints.ai_family = AF_UNSPEC;
   else

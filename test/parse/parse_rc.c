@@ -133,8 +133,8 @@ void test_parse_rc(void)
   rc = parse_rc_buffer(NULL, NULL, NULL);
   TEST_CHECK(rc == MUTT_CMD_SUCCESS);
 
-  TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
-  cs_str_initial_set(NeoMutt->sub->cs, "from", "rich@flatcap.org", NULL);
-  cs_str_reset(NeoMutt->sub->cs, "from", NULL);
+  TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, Vars));
+  cs_str_initial_set(SpaceMutt->sub->cs, "from", "rich@flatcap.org", NULL);
+  cs_str_reset(SpaceMutt->sub->cs, "from", NULL);
   test_parse_set();
 }

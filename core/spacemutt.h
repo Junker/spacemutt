@@ -20,8 +20,8 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUTT_CORE_NEOMUTT_H
-#define MUTT_CORE_NEOMUTT_H
+#ifndef MUTT_CORE_SPACEMUTT_H
+#define MUTT_CORE_SPACEMUTT_H
 
 #include <locale.h>
 #include <stdbool.h>
@@ -36,9 +36,9 @@
 struct ConfigSet;
 
 /**
- * struct NeoMutt - Container for Accounts, Notifications
+ * struct SpaceMutt - Container for Accounts, Notifications
  */
-struct NeoMutt
+struct SpaceMutt
 {
   struct Notify *notify;         ///< Notifications handler
   struct Notify *notify_resize;  ///< Window resize notifications handler
@@ -49,7 +49,7 @@ struct NeoMutt
   mode_t user_default_umask;     ///< User's default file writing permissions (inferred from umask)
 };
 
-extern struct NeoMutt *NeoMutt;
+extern struct SpaceMutt *SpaceMutt;
 
 /**
  * enum NotifyGlobal - Events not associated with an object
@@ -58,20 +58,20 @@ extern struct NeoMutt *NeoMutt;
  */
 enum NotifyGlobal
 {
-  NT_GLOBAL_STARTUP = 1, ///< NeoMutt is initialised
-  NT_GLOBAL_SHUTDOWN,    ///< NeoMutt is about to close
-  NT_GLOBAL_COMMAND,     ///< A NeoMutt command
+  NT_GLOBAL_STARTUP = 1, ///< SpaceMutt is initialised
+  NT_GLOBAL_SHUTDOWN,    ///< SpaceMutt is about to close
+  NT_GLOBAL_COMMAND,     ///< A SpaceMutt command
 };
 
-bool            neomutt_account_add   (struct NeoMutt *n, struct Account *a);
-bool            neomutt_account_remove(struct NeoMutt *n, const struct Account *a);
-void            neomutt_free          (struct NeoMutt **ptr);
-struct NeoMutt *neomutt_new           (struct ConfigSet *cs);
+bool            spacemutt_account_add   (struct SpaceMutt *n, struct Account *a);
+bool            spacemutt_account_remove(struct SpaceMutt *n, const struct Account *a);
+void            spacemutt_free          (struct SpaceMutt **ptr);
+struct SpaceMutt *spacemutt_new           (struct ConfigSet *cs);
 
-void   neomutt_mailboxlist_free   (MailboxList *ml);
-size_t neomutt_mailboxlist_get_all(MailboxList **head, struct NeoMutt *n, enum MailboxType type);
+void   spacemutt_mailboxlist_free   (MailboxList *ml);
+size_t spacemutt_mailboxlist_get_all(MailboxList **head, struct SpaceMutt *n, enum MailboxType type);
 
 // Similar to mutt_file_fopen, but with the proper permissions inferred from
 #define mutt_file_fopen_masked(PATH, MODE) mutt_file_fopen_masked_full(PATH, MODE, __FILE__, __LINE__, __func__)
 
-#endif /* MUTT_CORE_NEOMUTT_H */
+#endif /* MUTT_CORE_SPACEMUTT_H */

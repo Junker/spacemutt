@@ -570,7 +570,7 @@ static bool test_inherit(struct ConfigSet *cs, struct Buffer *err)
   char child[128];
   snprintf(child, sizeof(child), "%s:%s", account, parent);
 
-  struct ConfigSubset *sub = cs_subset_new(NULL, NULL, NeoMutt->notify);
+  struct ConfigSubset *sub = cs_subset_new(NULL, NULL, SpaceMutt->notify);
   sub->cs = cs;
   struct Account *a = account_new(account, sub);
 
@@ -668,7 +668,7 @@ static bool test_toggle(struct ConfigSubset *sub, struct Buffer *err)
     return false;
   }
 
-  rc = quad_he_toggle(NeoMutt->sub, NULL, err);
+  rc = quad_he_toggle(SpaceMutt->sub, NULL, err);
   if (!TEST_CHECK(CSR_RESULT(rc) == CSR_ERR_CODE))
   {
     TEST_MSG("Toggle succeeded when is shouldn't have");
@@ -697,7 +697,7 @@ static bool test_toggle(struct ConfigSubset *sub, struct Buffer *err)
       return false;
     }
 
-    rc = quad_he_toggle(NeoMutt->sub, he, err);
+    rc = quad_he_toggle(SpaceMutt->sub, he, err);
     if (!TEST_CHECK(CSR_RESULT(rc) == CSR_SUCCESS))
     {
       TEST_MSG("Toggle failed: %s", buf_string(err));
@@ -726,7 +726,7 @@ static bool test_toggle(struct ConfigSubset *sub, struct Buffer *err)
     return false;
 
   buf_reset(err);
-  rc = quad_he_toggle(NeoMutt->sub, he, err);
+  rc = quad_he_toggle(SpaceMutt->sub, he, err);
   if (!TEST_CHECK(CSR_RESULT(rc) != CSR_SUCCESS))
   {
     TEST_MSG("Expected error: %s", buf_string(err));
@@ -738,7 +738,7 @@ static bool test_toggle(struct ConfigSubset *sub, struct Buffer *err)
 
 void test_config_quad(void)
 {
-  struct ConfigSubset *sub = NeoMutt->sub;
+  struct ConfigSubset *sub = SpaceMutt->sub;
   struct ConfigSet *cs = sub->cs;
 
   StartupComplete = false;
@@ -748,7 +748,7 @@ void test_config_quad(void)
   dont_fail = false;
   StartupComplete = true;
 
-  notify_observer_add(NeoMutt->notify, NT_CONFIG, log_observer, 0);
+  notify_observer_add(SpaceMutt->notify, NT_CONFIG, log_observer, 0);
 
   set_list(cs);
 

@@ -49,7 +49,7 @@
  */
 static int socket_preconnect(void)
 {
-  const char *const c_preconnect = cs_subset_string(NeoMutt->sub, "preconnect");
+  const char *const c_preconnect = cs_subset_string(SpaceMutt->sub, "preconnect");
   if (!c_preconnect)
     return 0;
 

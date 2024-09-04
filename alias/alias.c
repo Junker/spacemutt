@@ -176,8 +176,8 @@ static void expand_aliases_r(AddressList *al, GSList **expn)
   }
 
   const char *fqdn = NULL;
-  const bool c_use_domain = cs_subset_bool(NeoMutt->sub, "use_domain");
-  if (c_use_domain && (fqdn = mutt_fqdn(true, NeoMutt->sub)))
+  const bool c_use_domain = cs_subset_bool(SpaceMutt->sub, "use_domain");
+  if (c_use_domain && (fqdn = mutt_fqdn(true, SpaceMutt->sub)))
   {
     /* now qualify all local addresses */
     mutt_addrlist_qualify(al, fqdn);
@@ -193,7 +193,7 @@ static void expand_aliases_r(AddressList *al, GSList **expn)
  */
 static void recode_buf(struct Buffer *buf)
 {
-  const char *const c_config_charset = cs_subset_string(NeoMutt->sub, "config_charset");
+  const char *const c_config_charset = cs_subset_string(SpaceMutt->sub, "config_charset");
   if (!c_config_charset || !cc_charset())
     return;
 
@@ -623,14 +623,14 @@ bool mutt_addr_is_user(const struct Address *addr)
                Username, ShortHostname);
     return true;
   }
-  const char *fqdn = mutt_fqdn(false, NeoMutt->sub);
+  const char *fqdn = mutt_fqdn(false, SpaceMutt->sub);
   if (string_is_address(buf_string(addr->mailbox), Username, fqdn))
   {
     log_debug5("#3 yes, %s = %s @ %s", buf_string(addr->mailbox),
                Username, NONULL(fqdn));
     return true;
   }
-  fqdn = mutt_fqdn(true, NeoMutt->sub);
+  fqdn = mutt_fqdn(true, SpaceMutt->sub);
   if (string_is_address(buf_string(addr->mailbox), Username, fqdn))
   {
     log_debug5("#4 yes, %s = %s @ %s", buf_string(addr->mailbox),
@@ -638,7 +638,7 @@ bool mutt_addr_is_user(const struct Address *addr)
     return true;
   }
 
-  const struct Address *c_from = cs_subset_address(NeoMutt->sub, "from");
+  const struct Address *c_from = cs_subset_address(SpaceMutt->sub, "from");
   if (c_from && mutt_istr_equal(buf_string(c_from->mailbox), buf_string(addr->mailbox)))
   {
     log_debug5("#5 yes, %s = %s", buf_string(addr->mailbox),
@@ -680,7 +680,7 @@ void alias_free(struct Alias **ptr)
 
   log_notify("NT_ALIAS_DELETE: %s", alias->name);
   struct EventAlias ev_a = { alias };
-  notify_send(NeoMutt->notify, NT_ALIAS, NT_ALIAS_DELETE, &ev_a);
+  notify_send(SpaceMutt->notify, NT_ALIAS, NT_ALIAS_DELETE, &ev_a);
 
   FREE(&alias->name);
   FREE(&alias->comment);

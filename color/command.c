@@ -361,12 +361,12 @@ static enum CommandResult parse_color(struct Buffer *buf, struct Buffer *s,
 
   if ((ac->fg.type == CT_RGB) || (ac->bg.type == CT_RGB))
   {
-#ifndef NEOMUTT_DIRECT_COLORS
+#ifndef SPACEMUTT_DIRECT_COLORS
     buf_printf(err, _("Direct colors support not compiled in: %s"), buf_string(s));
     return MUTT_CMD_ERROR;
 #endif
 
-    const bool c_color_directcolor = cs_subset_bool(NeoMutt->sub, "color_directcolor");
+    const bool c_color_directcolor = cs_subset_bool(SpaceMutt->sub, "color_directcolor");
     if (!c_color_directcolor)
     {
       buf_printf(err, _("Direct colors support disabled: %s"), buf_string(s));

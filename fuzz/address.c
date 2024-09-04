@@ -24,7 +24,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
   MuttLogWriter = log_writer_null;
   struct ConfigSet *cs = cs_new(16);
-  NeoMutt = neomutt_new(cs);
+  NeoMutt = spacemutt_new(cs);
   init_config(cs);
   OptNoCurses = true;
   char file[] = "/tmp/mutt-fuzz";
@@ -44,7 +44,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
   email_free(&e);
   mutt_env_free(&env);
   fclose(fp);
-  neomutt_free(&NeoMutt);
+  spacemutt_free(&NeoMutt);
   cs_free(&cs);
   return 0;
 }

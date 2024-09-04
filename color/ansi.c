@@ -74,7 +74,7 @@ static void ansi_color_list_add(AttrColorList *acl, struct AnsiColor *ansi)
   color_t fg = ansi->fg.color;
   color_t bg = ansi->bg.color;
 
-#ifdef NEOMUTT_DIRECT_COLORS
+#ifdef SPACEMUTT_DIRECT_COLORS
   if ((ansi->fg.type == CT_SIMPLE) || (ansi->fg.type == CT_PALETTE))
     fg = color_xterm256_to_24bit(fg);
   else if (fg < 8)

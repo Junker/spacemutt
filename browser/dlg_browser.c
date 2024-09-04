@@ -230,7 +230,7 @@ void folder_date(const struct ExpandoNode *node, void *data,
 
   if (use_c_locale)
   {
-    strftime_l(tmp, sizeof(tmp), tmp2, &tm, NeoMutt->time_c_locale);
+    strftime_l(tmp, sizeof(tmp), tmp2, &tm, SpaceMutt->time_c_locale);
   }
   else
   {
@@ -327,7 +327,7 @@ void folder_D(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 
   char tmp[128] = { 0 };
   bool use_c_locale = false;
-  const char *const c_date_format = cs_subset_string(NeoMutt->sub, "date_format");
+  const char *const c_date_format = cs_subset_string(SpaceMutt->sub, "date_format");
   const char *t_fmt = NONULL(c_date_format);
   if (*t_fmt == '!')
   {
@@ -338,7 +338,7 @@ void folder_D(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
   if (use_c_locale)
   {
     mutt_date_localtime_format_locale(tmp, sizeof(tmp), t_fmt,
-                                      folder->ff->mtime, NeoMutt->time_c_locale);
+                                      folder->ff->mtime, SpaceMutt->time_c_locale);
   }
   else
   {
@@ -719,7 +719,7 @@ int examine_directory(struct Mailbox *m, struct Menu *menu, struct BrowserState 
 
     init_state(state, menu);
 
-    const struct Regex *c_mask = cs_subset_regex(NeoMutt->sub, "mask");
+    const struct Regex *c_mask = cs_subset_regex(SpaceMutt->sub, "mask");
     for (unsigned int i = 0; i < adata->groups_num; i++)
     {
       struct NntpMboxData *mdata = adata->groups_list[i];
@@ -776,9 +776,9 @@ int examine_directory(struct Mailbox *m, struct Menu *menu, struct BrowserState 
     init_state(state, menu);
 
     MailboxList *ml = NULL;
-    neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
+    spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
 
-    const struct Regex *c_mask = cs_subset_regex(NeoMutt->sub, "mask");
+    const struct Regex *c_mask = cs_subset_regex(SpaceMutt->sub, "mask");
     while ((de = readdir(dir)))
     {
       if (mutt_str_equal(de->d_name, "."))
@@ -819,7 +819,7 @@ int examine_directory(struct Mailbox *m, struct Menu *menu, struct BrowserState 
       }
       browser_add_folder(menu, state, de->d_name, NULL, &st, mn, NULL);
     }
-    neomutt_mailboxlist_free(ml);
+    spacemutt_mailboxlist_free(ml);
     closedir(dir);
   }
   browser_sort(state);
@@ -849,7 +849,7 @@ int examine_mailboxes(struct Mailbox *m, struct Menu *menu, struct BrowserState 
 
     init_state(state, menu);
 
-    const bool c_show_only_unread = cs_subset_bool(NeoMutt->sub, "show_only_unread");
+    const bool c_show_only_unread = cs_subset_bool(SpaceMutt->sub, "show_only_unread");
     for (unsigned int i = 0; i < adata->groups_num; i++)
     {
       struct NntpMboxData *mdata = adata->groups_list[i];
@@ -864,7 +864,7 @@ int examine_mailboxes(struct Mailbox *m, struct Menu *menu, struct BrowserState 
   {
     init_state(state, menu);
 
-    if (g_queue_is_empty(NeoMutt->accounts))
+    if (g_queue_is_empty(SpaceMutt->accounts))
       return -1;
     mailbox = buf_pool_get();
     md = buf_pool_get();
@@ -872,8 +872,8 @@ int examine_mailboxes(struct Mailbox *m, struct Menu *menu, struct BrowserState 
     mutt_mailbox_check(m, MUTT_MAILBOX_CHECK_NO_FLAGS);
 
     MailboxList *ml = NULL;
-    neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
-    const bool c_browser_abbreviate_mailboxes = cs_subset_bool(NeoMutt->sub, "browser_abbreviate_mailboxes");
+    spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
+    const bool c_browser_abbreviate_mailboxes = cs_subset_bool(SpaceMutt->sub, "browser_abbreviate_mailboxes");
 
 
     for (GSList *np = ml; np != NULL; np = np->next)
@@ -928,7 +928,7 @@ int examine_mailboxes(struct Mailbox *m, struct Menu *menu, struct BrowserState 
       browser_add_folder(menu, state, buf_string(mailbox), mn->name,
                          &st, mn, NULL);
     }
-    neomutt_mailboxlist_free(ml);
+    spacemutt_mailboxlist_free(ml);
   }
   browser_sort(state);
 
@@ -974,19 +974,19 @@ static int folder_make_entry(struct Menu *menu, int line, int max_cols, struct B
 
   if (OptNews)
   {
-    const struct Expando *c_group_index_format = cs_subset_expando(NeoMutt->sub, "group_index_format");
+    const struct Expando *c_group_index_format = cs_subset_expando(SpaceMutt->sub, "group_index_format");
     return expando_filter(c_group_index_format, GroupIndexRenderData, &folder,
                           MUTT_FORMAT_ARROWCURSOR, max_cols, buf);
   }
 
   if (bstate->is_mailbox_list)
   {
-    const struct Expando *c_mailbox_folder_format = cs_subset_expando(NeoMutt->sub, "mailbox_folder_format");
+    const struct Expando *c_mailbox_folder_format = cs_subset_expando(SpaceMutt->sub, "mailbox_folder_format");
     return expando_filter(c_mailbox_folder_format, FolderRenderData, &folder,
                           MUTT_FORMAT_ARROWCURSOR, max_cols, buf);
   }
 
-  const struct Expando *c_folder_format = cs_subset_expando(NeoMutt->sub, "folder_format");
+  const struct Expando *c_folder_format = cs_subset_expando(SpaceMutt->sub, "folder_format");
   return expando_filter(c_folder_format, FolderRenderData, &folder,
                         MUTT_FORMAT_ARROWCURSOR, max_cols, buf);
 }
@@ -1065,8 +1065,8 @@ void init_menu(struct BrowserState *state, struct Menu *menu, struct Mailbox *m,
       struct Buffer *path = buf_pool_get();
       buf_copy(path, &LastDir);
       buf_pretty_mailbox(path);
-      const struct Regex *c_mask = cs_subset_regex(NeoMutt->sub, "mask");
-      const bool c_imap_list_subscribed = cs_subset_bool(NeoMutt->sub, "imap_list_subscribed");
+      const struct Regex *c_mask = cs_subset_regex(SpaceMutt->sub, "mask");
+      const bool c_imap_list_subscribed = cs_subset_bool(SpaceMutt->sub, "imap_list_subscribed");
       if (state->imap_browse && c_imap_list_subscribed)
       {
         snprintf(title, sizeof(title), _("Subscribed [%s], File mask: %s"),
@@ -1251,9 +1251,9 @@ static int browser_window_observer(struct NotifyCallback *nc)
   if (ev_w->win != win_menu)
     return 0;
 
-  notify_observer_remove(NeoMutt->sub->notify, browser_config_observer, priv);
+  notify_observer_remove(SpaceMutt->sub->notify, browser_config_observer, priv);
   notify_observer_remove(win_menu->notify, browser_window_observer, priv);
-  notify_observer_remove(NeoMutt->notify, browser_mailbox_observer, priv);
+  notify_observer_remove(SpaceMutt->notify, browser_mailbox_observer, priv);
 
   log_debug5("window delete done");
   return 0;
@@ -1390,7 +1390,7 @@ void dlg_browser(struct Buffer *file, SelectFileFlags flags, struct Mailbox *m,
        * only to help readability of the code.  */
       bool browser_track = false;
 
-      const enum SortType c_sort_browser = cs_subset_sort(NeoMutt->sub, "sort_browser");
+      const enum SortType c_sort_browser = cs_subset_sort(SpaceMutt->sub, "sort_browser");
       switch (c_sort_browser & SORT_MASK)
       {
         case SORT_DESC:
@@ -1428,8 +1428,8 @@ void dlg_browser(struct Buffer *file, SelectFileFlags flags, struct Mailbox *m,
             case MUTT_MH:
             case MUTT_MMDF:
             {
-              const char *const c_folder = cs_subset_string(NeoMutt->sub, "folder");
-              const char *const c_spool_file = cs_subset_string(NeoMutt->sub, "spool_file");
+              const char *const c_folder = cs_subset_string(SpaceMutt->sub, "folder");
+              const char *const c_spool_file = cs_subset_string(SpaceMutt->sub, "spool_file");
               if (c_folder)
                 buf_strcpy(&LastDir, c_folder);
               else if (c_spool_file)
@@ -1499,9 +1499,9 @@ void dlg_browser(struct Buffer *file, SelectFileFlags flags, struct Mailbox *m,
   struct MuttWindow *win_menu = priv->menu->win;
 
   // NT_COLOR is handled by the SimpleDialog
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, browser_config_observer, priv);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, browser_config_observer, priv);
   notify_observer_add(win_menu->notify, NT_WINDOW, browser_window_observer, priv);
-  notify_observer_add(NeoMutt->notify, NT_MAILBOX, browser_mailbox_observer, priv);
+  notify_observer_add(SpaceMutt->notify, NT_MAILBOX, browser_mailbox_observer, priv);
 
   struct MuttWindow *old_focus = window_set_focus(priv->menu->win);
 

@@ -54,7 +54,7 @@ void test_config_subset(void)
   if (!TEST_CHECK(cs_register_variables(cs, Vars)))
     return;
 
-  struct NeoMutt *n = neomutt_new(cs);
+  struct SpaceMutt *n = spacemutt_new(cs);
 
   cs_subset_free(NULL);
 
@@ -264,7 +264,7 @@ void test_config_subset(void)
   cs_subset_free(&sub_m);
   cs_subset_free(&sub_a);
 
-  neomutt_free(&n);
+  spacemutt_free(&n);
   cs_free(&cs);
   buf_pool_release(&err);
   log_line(__func__);

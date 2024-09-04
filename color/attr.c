@@ -259,7 +259,7 @@ void modify_color_by_prefix(enum ColorPrefix prefix, bool is_fg, color_t *col, i
   }
 }
 
-#ifdef NEOMUTT_DIRECT_COLORS
+#ifdef SPACEMUTT_DIRECT_COLORS
 /**
  * color_xterm256_to_24bit - Convert a xterm color to its RGB value
  * @param[in] color xterm color number to be converted
@@ -343,7 +343,7 @@ color_t color_xterm256_to_24bit(const color_t color)
   if (color < 0)
     return color;
 
-  const bool c_color_directcolor = cs_subset_bool(NeoMutt->sub, "color_directcolor");
+  const bool c_color_directcolor = cs_subset_bool(SpaceMutt->sub, "color_directcolor");
   if (!c_color_directcolor)
   {
     return color;
@@ -417,7 +417,7 @@ void attr_color_overwrite(struct AttrColor *ac_old, struct AttrColor *ac_new)
   modify_color_by_prefix(ac_new->fg.prefix, true, &fg, &attrs);
   modify_color_by_prefix(ac_new->bg.prefix, false, &bg, &attrs);
 
-#ifdef NEOMUTT_DIRECT_COLORS
+#ifdef SPACEMUTT_DIRECT_COLORS
   if ((ac_new->fg.type == CT_SIMPLE) || (ac_new->fg.type == CT_PALETTE))
     fg = color_xterm256_to_24bit(fg);
   else if (fg < 8)

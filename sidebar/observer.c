@@ -52,7 +52,7 @@ static bool calc_divider(struct SidebarWindowData *wdata)
 {
   enum DivType type = SB_DIV_USER;
   bool changed = false;
-  const char *const c_sidebar_divider_char = cs_subset_string(NeoMutt->sub, "sidebar_divider_char");
+  const char *const c_sidebar_divider_char = cs_subset_string(SpaceMutt->sub, "sidebar_divider_char");
 
   // Calculate the width of the delimiter in screen cells
   int width = mutt_strwidth(c_sidebar_divider_char);
@@ -62,7 +62,7 @@ static bool calc_divider(struct SidebarWindowData *wdata)
     goto done;
   }
 
-  const bool c_ascii_chars = cs_subset_bool(NeoMutt->sub, "ascii_chars");
+  const bool c_ascii_chars = cs_subset_bool(SpaceMutt->sub, "ascii_chars");
   if (c_ascii_chars || !CharsetIsUtf8)
   {
     const size_t len = mutt_str_len(c_sidebar_divider_char);
@@ -110,11 +110,11 @@ static struct MuttWindow *sb_win_init(struct MuttWindow *dlg)
   mutt_window_add_child(cont_right, pager_panel);
   cont_right->focus = index_panel;
 
-  const short c_sidebar_width = cs_subset_number(NeoMutt->sub, "sidebar_width");
+  const short c_sidebar_width = cs_subset_number(SpaceMutt->sub, "sidebar_width");
   struct MuttWindow *win_sidebar = mutt_window_new(WT_SIDEBAR, MUTT_WIN_ORIENT_HORIZONTAL,
                                                    MUTT_WIN_SIZE_FIXED, c_sidebar_width,
                                                    MUTT_WIN_SIZE_UNLIMITED);
-  const bool c_sidebar_visible = cs_subset_bool(NeoMutt->sub, "sidebar_visible");
+  const bool c_sidebar_visible = cs_subset_bool(SpaceMutt->sub, "sidebar_visible");
   win_sidebar->state.visible = c_sidebar_visible && (c_sidebar_width > 0);
 
   struct IndexSharedData *shared = dlg->wdata;
@@ -126,7 +126,7 @@ static struct MuttWindow *sb_win_init(struct MuttWindow *dlg)
   win_sidebar->recalc = sb_recalc;
   win_sidebar->repaint = sb_repaint;
 
-  const bool c_sidebar_on_right = cs_subset_bool(NeoMutt->sub, "sidebar_on_right");
+  const bool c_sidebar_on_right = cs_subset_bool(SpaceMutt->sub, "sidebar_on_right");
   if (c_sidebar_on_right)
   {
     mutt_window_add_child(dlg, cont_right);
@@ -157,14 +157,14 @@ static void sb_init_data(struct MuttWindow *win)
     return;
 
   MailboxList *ml = NULL;
-  neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
+  spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
   for (GSList *np = ml; np != NULL; np = np->next)
   {
     struct Mailbox *m = np->data;
     if (m->visible)
       sb_add_mailbox(wdata, m);
   }
-  neomutt_mailboxlist_free(ml);
+  spacemutt_mailboxlist_free(ml);
 }
 
 /**
@@ -281,7 +281,7 @@ static int sb_config_observer(struct NotifyCallback *nc)
 
   if (mutt_str_equal(ev_c->name, "sidebar_visible"))
   {
-    const bool c_sidebar_visible = cs_subset_bool(NeoMutt->sub, "sidebar_visible");
+    const bool c_sidebar_visible = cs_subset_bool(SpaceMutt->sub, "sidebar_visible");
     window_set_visible(win, c_sidebar_visible);
     window_reflow(win->parent);
     log_debug5("config done, request WA_REFLOW");
@@ -290,7 +290,7 @@ static int sb_config_observer(struct NotifyCallback *nc)
 
   if (mutt_str_equal(ev_c->name, "sidebar_width"))
   {
-    const short c_sidebar_width = cs_subset_number(NeoMutt->sub, "sidebar_width");
+    const short c_sidebar_width = cs_subset_number(SpaceMutt->sub, "sidebar_width");
     win->req_cols = c_sidebar_width;
     window_reflow(win->parent);
     log_debug5("config done, request WA_REFLOW");
@@ -308,7 +308,7 @@ static int sb_config_observer(struct NotifyCallback *nc)
   {
     struct MuttWindow *parent = win->parent;
     struct MuttWindow *first = g_queue_peek_head(parent->children);
-    const bool c_sidebar_on_right = cs_subset_bool(NeoMutt->sub, "sidebar_on_right");
+    const bool c_sidebar_on_right = cs_subset_bool(SpaceMutt->sub, "sidebar_on_right");
 
     if ((c_sidebar_on_right && (first == win)) || (!c_sidebar_on_right && (first != win)))
     {
@@ -425,17 +425,17 @@ static int sb_window_observer(struct NotifyCallback *nc)
  */
 void sb_win_add_observers(struct MuttWindow *win)
 {
-  if (!win || !NeoMutt)
+  if (!win || !SpaceMutt)
     return;
 
   struct MuttWindow *dlg = window_find_parent(win, WT_DLG_INDEX);
 
   mutt_color_observer_add(sb_color_observer, win);
-  notify_observer_add(NeoMutt->notify, NT_ACCOUNT, sb_account_observer, win);
-  notify_observer_add(NeoMutt->notify, NT_COMMAND, sb_command_observer, win);
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, sb_config_observer, win);
+  notify_observer_add(SpaceMutt->notify, NT_ACCOUNT, sb_account_observer, win);
+  notify_observer_add(SpaceMutt->notify, NT_COMMAND, sb_command_observer, win);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, sb_config_observer, win);
   notify_observer_add(dlg->notify, NT_ALL, sb_index_observer, win);
-  notify_observer_add(NeoMutt->notify, NT_MAILBOX, sb_mailbox_observer, win);
+  notify_observer_add(SpaceMutt->notify, NT_MAILBOX, sb_mailbox_observer, win);
   notify_observer_add(win->notify, NT_WINDOW, sb_window_observer, win);
 }
 
@@ -445,17 +445,17 @@ void sb_win_add_observers(struct MuttWindow *win)
  */
 void sb_win_remove_observers(struct MuttWindow *win)
 {
-  if (!win || !NeoMutt)
+  if (!win || !SpaceMutt)
     return;
 
   struct MuttWindow *dlg = window_find_parent(win, WT_DLG_INDEX);
 
   mutt_color_observer_remove(sb_color_observer, win);
-  notify_observer_remove(NeoMutt->notify, sb_account_observer, win);
-  notify_observer_remove(NeoMutt->notify, sb_command_observer, win);
-  notify_observer_remove(NeoMutt->sub->notify, sb_config_observer, win);
+  notify_observer_remove(SpaceMutt->notify, sb_account_observer, win);
+  notify_observer_remove(SpaceMutt->notify, sb_command_observer, win);
+  notify_observer_remove(SpaceMutt->sub->notify, sb_config_observer, win);
   notify_observer_remove(dlg->notify, sb_index_observer, win);
-  notify_observer_remove(NeoMutt->notify, sb_mailbox_observer, win);
+  notify_observer_remove(SpaceMutt->notify, sb_mailbox_observer, win);
   notify_observer_remove(win->notify, sb_window_observer, win);
 }
 

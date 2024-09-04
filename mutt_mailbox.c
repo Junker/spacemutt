@@ -87,7 +87,7 @@ static void mailbox_check(struct Mailbox *m_cur, struct Mailbox *m_check,
 
   enum MailboxType mb_type = mx_path_probe(mailbox_path(m_check));
 
-  const bool c_mail_check_recent = cs_subset_bool(NeoMutt->sub, "mail_check_recent");
+  const bool c_mail_check_recent = cs_subset_bool(SpaceMutt->sub, "mail_check_recent");
   if ((m_cur == m_check) && c_mail_check_recent)
     m_check->has_new = false;
 
@@ -115,7 +115,7 @@ static void mailbox_check(struct Mailbox *m_cur, struct Mailbox *m_check,
       break; // kept for consistency.
   }
 
-  const bool c_check_mbox_size = cs_subset_bool(NeoMutt->sub, "check_mbox_size");
+  const bool c_check_mbox_size = cs_subset_bool(SpaceMutt->sub, "check_mbox_size");
 
   /* check to see if the folder is the currently selected folder before polling */
   if (!is_same_mailbox(m_cur, m_check, st_cur, &st))
@@ -168,15 +168,15 @@ static void mailbox_check(struct Mailbox *m_cur, struct Mailbox *m_check,
  */
 int mutt_mailbox_check(struct Mailbox *m_cur, CheckStatsFlags flags)
 {
-  if (g_queue_is_empty(NeoMutt->accounts)) // fast return if there are no mailboxes
+  if (g_queue_is_empty(SpaceMutt->accounts)) // fast return if there are no mailboxes
     return 0;
 
   if (flags & MUTT_MAILBOX_CHECK_POSTPONED)
     mutt_update_num_postponed();
 
-  const short c_mail_check = cs_subset_number(NeoMutt->sub, "mail_check");
-  const bool c_mail_check_stats = cs_subset_bool(NeoMutt->sub, "mail_check_stats");
-  const short c_mail_check_stats_interval = cs_subset_number(NeoMutt->sub, "mail_check_stats_interval");
+  const short c_mail_check = cs_subset_number(SpaceMutt->sub, "mail_check");
+  const bool c_mail_check_stats = cs_subset_bool(SpaceMutt->sub, "mail_check_stats");
+  const short c_mail_check_stats_interval = cs_subset_number(SpaceMutt->sub, "mail_check_stats_interval");
 
   time_t t = mutt_date_now();
   if ((flags == MUTT_MAILBOX_CHECK_NO_FLAGS) && ((t - MailboxTime) < c_mail_check))
@@ -203,7 +203,7 @@ int mutt_mailbox_check(struct Mailbox *m_cur, CheckStatsFlags flags)
   }
 
   MailboxList *ml = NULL;
-  neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
+  spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
   for (GSList *np = ml; np != NULL; np = np->next)
   {
     struct Mailbox *m = np->data;
@@ -221,7 +221,7 @@ int mutt_mailbox_check(struct Mailbox *m_cur, CheckStatsFlags flags)
       MailboxCount++;
     m->first_check_stats_done = true;
   }
-  neomutt_mailboxlist_free(ml);
+  spacemutt_mailboxlist_free(ml);
 
   return MailboxCount;
 }
@@ -253,7 +253,7 @@ bool mutt_mailbox_list(void)
 
   buf_addstr(mailboxlist, _("New mail in "));
   MailboxList *ml = NULL;
-  neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
+  spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
   bool any_new = false;
   for (GSList *np = ml; np != NULL; np = np->next)
   {
@@ -278,7 +278,7 @@ bool mutt_mailbox_list(void)
     buf_addstr(mailboxlist, buf_string(path));
     any_new = true;
   }
-  neomutt_mailboxlist_free(ml);
+  spacemutt_mailboxlist_free(ml);
 
   buf_pool_release(&path);
 
@@ -324,7 +324,7 @@ static struct Mailbox *find_next_mailbox(struct Buffer *s, bool find_new)
   for (int pass = 0; pass < 2; pass++)
   {
     MailboxList *ml = NULL;
-    neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
+    spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
     for (GSList *np = ml; np != NULL; np = np->next)
     {
       struct Mailbox *m = np->data;
@@ -336,13 +336,13 @@ static struct Mailbox *find_next_mailbox(struct Buffer *s, bool find_new)
         buf_strcpy(s, mailbox_path(m));
         buf_pretty_mailbox(s);
         struct Mailbox *m_result = m;
-        neomutt_mailboxlist_free(ml);
+        spacemutt_mailboxlist_free(ml);
         return m_result;
       }
       if (mutt_str_equal(buf_string(s), mailbox_path(m)))
         found = true;
     }
-    neomutt_mailboxlist_free(ml);
+    spacemutt_mailboxlist_free(ml);
   }
 
   return NULL;
@@ -411,7 +411,7 @@ void mailbox_restore_timestamp(const char *path, struct stat *st)
   struct utimbuf ut = { 0 };
 #endif
 
-  const bool c_check_mbox_size = cs_subset_bool(NeoMutt->sub, "check_mbox_size");
+  const bool c_check_mbox_size = cs_subset_bool(SpaceMutt->sub, "check_mbox_size");
   if (c_check_mbox_size)
   {
     struct Mailbox *m = mailbox_find(path);

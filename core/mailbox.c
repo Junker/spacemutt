@@ -33,7 +33,7 @@
 #include "config/lib.h"
 #include "email/lib.h"
 #include "mailbox.h"
-#include "neomutt.h"
+#include "spacemutt.h"
 
 /// Lookups for Mailbox types
 static const struct Mapping MailboxTypes[] = {
@@ -159,7 +159,7 @@ struct Mailbox *mailbox_find(const char *path)
     return NULL;
 
   MailboxList *ml = NULL;
-  neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
+  spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
   struct Mailbox *m;
   for (GSList *np = ml; np != NULL; np = np->next)
   {
@@ -169,7 +169,7 @@ struct Mailbox *mailbox_find(const char *path)
       break;
     m = NULL;
   }
-  neomutt_mailboxlist_free(ml);
+  spacemutt_mailboxlist_free(ml);
 
   return m;
 }
@@ -188,7 +188,7 @@ struct Mailbox *mailbox_find_name(const char *name)
     return NULL;
 
   MailboxList *ml = NULL;
-  neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
+  spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
   struct Mailbox *m = NULL;
   for (GSList *np = ml; np != NULL; np = np->next)
   {
@@ -197,7 +197,7 @@ struct Mailbox *mailbox_find_name(const char *name)
       break;
     m = NULL;
   }
-  neomutt_mailboxlist_free(ml);
+  spacemutt_mailboxlist_free(ml);
 
   return m;
 }

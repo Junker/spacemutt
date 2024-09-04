@@ -85,7 +85,7 @@ struct MenuStatusLineData
 void status_r(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
               int max_cols, struct Buffer *buf)
 {
-  const struct MbTable *c_status_chars = cs_subset_mbtable(NeoMutt->sub, "status_chars");
+  const struct MbTable *c_status_chars = cs_subset_mbtable(SpaceMutt->sub, "status_chars");
   if (!c_status_chars || !c_status_chars->len)
     return;
 
@@ -325,7 +325,7 @@ void status_s(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 {
   char tmp[128] = { 0 };
 
-  const enum SortType c_sort = cs_subset_sort(NeoMutt->sub, "sort");
+  const enum SortType c_sort = cs_subset_sort(SpaceMutt->sub, "sort");
   const char *s = get_sort_str(tmp, sizeof(tmp), c_sort);
   buf_strcpy(buf, s);
 }
@@ -338,7 +338,7 @@ void status_S(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 {
   char tmp[128] = { 0 };
 
-  const enum SortType c_sort_aux = cs_subset_sort(NeoMutt->sub, "sort_aux");
+  const enum SortType c_sort_aux = cs_subset_sort(SpaceMutt->sub, "sort_aux");
   const char *s = get_sort_str(tmp, sizeof(tmp), c_sort_aux);
   buf_strcpy(buf, s);
 }

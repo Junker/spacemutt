@@ -81,7 +81,7 @@ static int ipanel_config_observer(struct NotifyCallback *nc)
 
   if (mutt_str_equal(ev_c->name, "status_on_top"))
   {
-    window_status_on_top(panel_index, NeoMutt->sub);
+    window_status_on_top(panel_index, SpaceMutt->sub);
     log_debug5("config done");
   }
 
@@ -105,7 +105,7 @@ static int ipanel_window_observer(struct NotifyCallback *nc)
   if (ev_w->win != panel_index)
     return 0;
 
-  notify_observer_remove(NeoMutt->sub->notify, ipanel_config_observer, panel_index);
+  notify_observer_remove(SpaceMutt->sub->notify, ipanel_config_observer, panel_index);
   notify_observer_remove(panel_index->notify, ipanel_window_observer, panel_index);
   log_debug5("window delete done");
 
@@ -142,7 +142,7 @@ struct MuttWindow *ipanel_new(bool status_on_top, struct IndexSharedData *shared
     mutt_window_add_child(panel_index, win_ibar);
   }
 
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, ipanel_config_observer, panel_index);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, ipanel_config_observer, panel_index);
   notify_observer_add(panel_index->notify, NT_WINDOW, ipanel_window_observer, panel_index);
 
   return panel_index;

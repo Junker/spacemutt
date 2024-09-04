@@ -67,7 +67,7 @@
  */
 void mutt_beep(bool force)
 {
-  const bool c_beep = cs_subset_bool(NeoMutt->sub, "beep");
+  const bool c_beep = cs_subset_bool(SpaceMutt->sub, "beep");
   if (force || c_beep)
     beep();
 }
@@ -540,12 +540,12 @@ void mw_what_key(void)
       if (SigWinch)
       {
         SigWinch = false;
-        notify_send(NeoMutt->notify_resize, NT_RESIZE, 0, NULL);
+        notify_send(SpaceMutt->notify_resize, NT_RESIZE, 0, NULL);
         window_redraw(NULL);
       }
       else
       {
-        notify_send(NeoMutt->notify_timeout, NT_TIMEOUT, 0, NULL);
+        notify_send(SpaceMutt->notify_timeout, NT_TIMEOUT, 0, NULL);
       }
 
       continue;

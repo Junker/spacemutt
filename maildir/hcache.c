@@ -98,7 +98,7 @@ struct HeaderCache *maildir_hcache_open(struct Mailbox *m)
   if (!m)
     return NULL;
 
-  const char *const c_header_cache = cs_subset_path(NeoMutt->sub, "header_cache");
+  const char *const c_header_cache = cs_subset_path(SpaceMutt->sub, "header_cache");
 
   return hcache_open(c_header_cache, mailbox_path(m), NULL, true);
 }
@@ -125,7 +125,7 @@ struct Email *maildir_hcache_read(struct HeaderCache *hc, struct Email *e, const
   if (!hce.email)
     return NULL;
 
-  const bool c_maildir_header_cache_verify = cs_subset_bool(NeoMutt->sub, "maildir_header_cache_verify");
+  const bool c_maildir_header_cache_verify = cs_subset_bool(SpaceMutt->sub, "maildir_header_cache_verify");
   if (c_maildir_header_cache_verify)
     rc = stat(fn, &st_lastchanged);
 

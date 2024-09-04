@@ -379,7 +379,7 @@ static enum CommandResult parse_ifdef(struct Buffer *buf, struct Buffer *s,
   }
 
   // is the item defined as:
-  bool res = cs_subset_lookup(NeoMutt->sub, buf->data) // a variable?
+  bool res = cs_subset_lookup(SpaceMutt->sub, buf->data) // a variable?
              || feature_enabled(buf->data)             // a compiled-in feature?
              || is_function(buf->data)                 // a function?
              || command_get(buf->data)                 // a command?
@@ -495,7 +495,7 @@ static enum CommandResult mailbox_add(const char *folder, const char *mailbox,
   struct Account *a = mx_ac_find(m);
   if (!a)
   {
-    a = account_new(NULL, NeoMutt->sub);
+    a = account_new(NULL, SpaceMutt->sub);
     a->type = m->type;
     new_account = true;
   }
@@ -552,7 +552,7 @@ static enum CommandResult mailbox_add(const char *folder, const char *mailbox,
 
   if (new_account)
   {
-    neomutt_account_add(NeoMutt, a);
+    spacemutt_account_add(SpaceMutt, a);
   }
 
   // this is finally a visible mailbox in the sidebar and mailboxes list
@@ -591,7 +591,7 @@ enum CommandResult parse_mailboxes(struct Buffer *buf, struct Buffer *s,
   struct Buffer *label = buf_pool_get();
   struct Buffer *mailbox = buf_pool_get();
 
-  const char *const c_folder = cs_subset_string(NeoMutt->sub, "folder");
+  const char *const c_folder = cs_subset_string(SpaceMutt->sub, "folder");
   while (MoreArgs(s))
   {
     bool label_set = false;
@@ -697,13 +697,13 @@ enum CommandResult parse_my_hdr(struct Buffer *buf, struct Buffer *s,
   {
     header_update(n, buf->data);
     log_notify("NT_HEADER_CHANGE: %s", buf->data);
-    notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_CHANGE, &ev_h);
+    notify_send(SpaceMutt->notify, NT_HEADER, NT_HEADER_CHANGE, &ev_h);
   }
   else
   {
     header_add(UserHeader, buf->data);
     log_notify("NT_HEADER_ADD: %s", buf->data);
-    notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_ADD, &ev_h);
+    notify_send(SpaceMutt->notify, NT_HEADER, NT_HEADER_ADD, &ev_h);
   }
 
   return MUTT_CMD_SUCCESS;
@@ -732,7 +732,7 @@ enum CommandResult set_dump(ConfigDumpFlags flags, struct Buffer *err)
     return MUTT_CMD_ERROR;
   }
 
-  dump_config(NeoMutt->sub->cs, flags, fp_out);
+  dump_config(SpaceMutt->sub->cs, flags, fp_out);
 
   mutt_file_fclose(&fp_out);
 
@@ -1231,7 +1231,7 @@ static void do_unmailboxes(struct Mailbox *m)
   {
     struct EventMailbox ev_m = { NULL };
     log_notify("NT_MAILBOX_CHANGE: NULL");
-    notify_send(NeoMutt->notify, NT_MAILBOX, NT_MAILBOX_CHANGE, &ev_m);
+    notify_send(SpaceMutt->notify, NT_MAILBOX, NT_MAILBOX_CHANGE, &ev_m);
   }
   else
   {
@@ -1246,12 +1246,12 @@ static void do_unmailboxes(struct Mailbox *m)
 static void do_unmailboxes_star(void)
 {
   MailboxList *ml = NULL;
-  neomutt_mailboxlist_get_all(&ml, NeoMutt, MUTT_MAILBOX_ANY);
+  spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
   for (GSList *np = ml; np != NULL; np = np->next)
   {
     do_unmailboxes(np->data);
   }
-  neomutt_mailboxlist_free(ml);
+  spacemutt_mailboxlist_free(ml);
 }
 
 /**
@@ -1274,7 +1274,7 @@ enum CommandResult parse_unmailboxes(struct Buffer *buf, struct Buffer *s,
 
     buf_expand_path(buf);
 
-    for (GList *np = NeoMutt->accounts->head; np != NULL; np = np->next)
+    for (GList *np = SpaceMutt->accounts->head; np != NULL; np = np->next)
     {
       struct Account *a = np->data;
       struct Mailbox *m = mx_mbox_find(a, buf_string(buf));
@@ -1306,7 +1306,7 @@ static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
       {
         log_notify("NT_HEADER_DELETE: %s", (char*)np->data);
         struct EventHeader ev_h = { np->data };
-        notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_DELETE, &ev_h);
+        notify_send(SpaceMutt->notify, NT_HEADER, NT_HEADER_DELETE, &ev_h);
       }
       g_queue_clear_full(UserHeader, g_free);
       continue;
@@ -1323,7 +1323,7 @@ static enum CommandResult parse_unmy_hdr(struct Buffer *buf, struct Buffer *s,
       {
         log_notify("NT_HEADER_DELETE: %s", (char*)np->data);
         struct EventHeader ev_h = { np->data };
-        notify_send(NeoMutt->notify, NT_HEADER, NT_HEADER_DELETE, &ev_h);
+        notify_send(SpaceMutt->notify, NT_HEADER, NT_HEADER_DELETE, &ev_h);
 
         header_free(UserHeader, np);
       }

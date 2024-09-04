@@ -102,7 +102,7 @@ static int curses_color_init(color_t fg, color_t bg)
     return 0;
   }
 
-#ifdef NEOMUTT_DIRECT_COLORS
+#ifdef SPACEMUTT_DIRECT_COLORS
   int rc = init_extended_pair(index, fg, bg);
   log_color_debug("init_extended_pair(%d,%d,%d) -> %d\n", index, fg, bg, rc);
 #else

@@ -86,7 +86,7 @@ void mutt_colors_init(void)
   use_default_colors();
   log_color_debug("COLORS = %d, COLOR_PAIRS = %d\n", COLORS, COLOR_PAIRS);
 
-  notify_set_parent(ColorsNotify, NeoMutt->notify);
+  notify_set_parent(ColorsNotify, SpaceMutt->notify);
 }
 
 /**

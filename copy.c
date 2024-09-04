@@ -373,7 +373,7 @@ int mutt_copy_hdr(FILE *fp_in, FILE *fp_out, LOFF_T off_start, LOFF_T off_end,
   /* Now output the headers in order */
   bool error = false;
   char **hp = NULL;
-  const short c_wrap = cs_subset_number(NeoMutt->sub, "wrap");
+  const short c_wrap = cs_subset_number(SpaceMutt->sub, "wrap");
 
   ARRAY_FOREACH(hp, &headers)
   {
@@ -386,7 +386,7 @@ int mutt_copy_hdr(FILE *fp_in, FILE *fp_out, LOFF_T off_start, LOFF_T off_end,
         const char *pre = (chflags & CH_PREFIX) ? prefix : NULL;
         wraplen = mutt_window_wrap_cols(wraplen, c_wrap);
 
-        if (mutt_write_one_header(fp_out, 0, *hp, pre, wraplen, chflags, NeoMutt->sub) == -1)
+        if (mutt_write_one_header(fp_out, 0, *hp, pre, wraplen, chflags, SpaceMutt->sub) == -1)
         {
           error = true;
         }
@@ -498,7 +498,7 @@ int mutt_copy_header(FILE *fp_in, struct Email *e, FILE *fp_out,
       fprintf(fp_out, "Lines: %d\n", e->lines);
   }
 
-  const bool c_weed = cs_subset_bool(NeoMutt->sub, "weed");
+  const bool c_weed = cs_subset_bool(SpaceMutt->sub, "weed");
 #ifdef USE_NOTMUCH
   if (chflags & CH_VIRTUAL)
   {
@@ -527,8 +527,8 @@ int mutt_copy_header(FILE *fp_in, struct Email *e, FILE *fp_out,
   }
   buf_pool_release(&tags);
 
-  const struct Slist *const c_send_charset = cs_subset_slist(NeoMutt->sub, "send_charset");
-  const short c_wrap = cs_subset_number(NeoMutt->sub, "wrap");
+  const struct Slist *const c_send_charset = cs_subset_slist(SpaceMutt->sub, "send_charset");
+  const short c_wrap = cs_subset_number(SpaceMutt->sub, "wrap");
   if ((chflags & CH_UPDATE_LABEL) && e->env->x_label)
   {
     temp_hdr = e->env->x_label;
@@ -541,7 +541,7 @@ int mutt_copy_header(FILE *fp_in, struct Email *e, FILE *fp_out,
     }
     if (mutt_write_one_header(fp_out, "X-Label", temp_hdr, (chflags & CH_PREFIX) ? prefix : 0,
                               mutt_window_wrap_cols(wraplen, c_wrap), chflags,
-                              NeoMutt->sub) == -1)
+                              SpaceMutt->sub) == -1)
     {
       return -1;
     }
@@ -561,7 +561,7 @@ int mutt_copy_header(FILE *fp_in, struct Email *e, FILE *fp_out,
     }
     if (mutt_write_one_header(fp_out, "Subject", temp_hdr, (chflags & CH_PREFIX) ? prefix : 0,
                               mutt_window_wrap_cols(wraplen, c_wrap), chflags,
-                              NeoMutt->sub) == -1)
+                              SpaceMutt->sub) == -1)
     {
       return -1;
     }
@@ -657,15 +657,15 @@ int mutt_copy_message_fp(FILE *fp_out, FILE *fp_in, struct Email *e,
 
   if (cmflags & MUTT_CM_PREFIX)
   {
-    const bool c_text_flowed = cs_subset_bool(NeoMutt->sub, "text_flowed");
+    const bool c_text_flowed = cs_subset_bool(SpaceMutt->sub, "text_flowed");
     if (c_text_flowed)
     {
       buf_strcpy(prefix, ">");
     }
     else
     {
-      const char *const c_attribution_locale = cs_subset_string(NeoMutt->sub, "attribution_locale");
-      const struct Expando *c_indent_string = cs_subset_expando(NeoMutt->sub, "indent_string");
+      const char *const c_attribution_locale = cs_subset_string(SpaceMutt->sub, "attribution_locale");
+      const struct Expando *c_indent_string = cs_subset_expando(SpaceMutt->sub, "indent_string");
       struct Mailbox *m_cur = get_current_mailbox();
       setlocale(LC_TIME, NONULL(c_attribution_locale));
       mutt_make_string(prefix, -1, c_indent_string, m_cur, -1, e, MUTT_FORMAT_NO_FLAGS, NULL);
@@ -688,7 +688,7 @@ int mutt_copy_message_fp(FILE *fp_out, FILE *fp_in, struct Email *e,
 
       quoted_date = buf_pool_get();
       buf_addch(quoted_date, '"');
-      mutt_date_make_date(quoted_date, cs_subset_bool(NeoMutt->sub, "local_date_header"));
+      mutt_date_make_date(quoted_date, cs_subset_bool(SpaceMutt->sub, "local_date_header"));
       buf_addch(quoted_date, '"');
 
       /* Count the number of lines and bytes to be deleted */
@@ -775,7 +775,7 @@ int mutt_copy_message_fp(FILE *fp_out, FILE *fp_in, struct Email *e,
     {
       state.flags |= STATE_DISPLAY;
       state.wraplen = wraplen;
-      const char *const c_pager = pager_get_pager(NeoMutt->sub);
+      const char *const c_pager = pager_get_pager(SpaceMutt->sub);
       if (!c_pager)
         state.flags |= STATE_PAGER;
     }
@@ -826,7 +826,7 @@ int mutt_copy_message_fp(FILE *fp_out, FILE *fp_in, struct Email *e,
       goto done;
     }
 
-    mutt_write_mime_header(cur, fp_out, NeoMutt->sub);
+    mutt_write_mime_header(cur, fp_out, SpaceMutt->sub);
     fputc('\n', fp_out);
 
     if (!mutt_file_seek(fp, cur->offset, SEEK_SET))

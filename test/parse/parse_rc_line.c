@@ -63,7 +63,7 @@ static bool set_non_empty_values(void)
   for (int v = 0; v < mutt_array_size(ConfigVars) - 1; v++)
   {
     buf_reset(err);
-    int rc = cs_str_reset(NeoMutt->sub->cs, ConfigVars[v].name, err);
+    int rc = cs_str_reset(SpaceMutt->sub->cs, ConfigVars[v].name, err);
     if (!TEST_CHECK(CSR_RESULT(rc) == CSR_SUCCESS))
     {
       TEST_MSG("Failed to set dummy value for %s: %s", ConfigVars[v].name, buf_string(err));
@@ -86,7 +86,7 @@ static bool set_empty_values(void)
   int rc = 0;
 
   buf_reset(err);
-  rc = cs_str_string_set(NeoMutt->sub->cs, "Apple", "no", err);
+  rc = cs_str_string_set(SpaceMutt->sub->cs, "Apple", "no", err);
   if (!TEST_CHECK(CSR_RESULT(rc) == CSR_SUCCESS))
   {
     TEST_MSG("Failed to set dummy value for %s: %s", "Apple", buf_string(err));
@@ -94,7 +94,7 @@ static bool set_empty_values(void)
   }
 
   buf_reset(err);
-  rc = cs_str_string_set(NeoMutt->sub->cs, "Banana", "no", err);
+  rc = cs_str_string_set(SpaceMutt->sub->cs, "Banana", "no", err);
   if (!TEST_CHECK(CSR_RESULT(rc) == CSR_SUCCESS))
   {
     TEST_MSG("Failed to set dummy value for %s: %s", "Banana", buf_string(err));
@@ -102,7 +102,7 @@ static bool set_empty_values(void)
   }
 
   buf_reset(err);
-  rc = cs_str_string_set(NeoMutt->sub->cs, "Cherry", "0", err);
+  rc = cs_str_string_set(SpaceMutt->sub->cs, "Cherry", "0", err);
   if (!TEST_CHECK(CSR_RESULT(rc) == CSR_SUCCESS))
   {
     TEST_MSG("Failed to set dummy value for %s: %s", "Cherry", buf_string(err));
@@ -118,7 +118,7 @@ static bool set_empty_values(void)
   for (int i = 0; i < mutt_array_size(stringlike); i++)
   {
     buf_reset(err);
-    rc = cs_str_string_set(NeoMutt->sub->cs, stringlike[i], "", err);
+    rc = cs_str_string_set(SpaceMutt->sub->cs, stringlike[i], "", err);
     if (!TEST_CHECK(CSR_RESULT(rc) == CSR_SUCCESS))
     {
       TEST_MSG("Failed to set dummy value for %s: %s", stringlike[i], buf_string(err));
@@ -171,7 +171,7 @@ static bool test_set(struct Buffer *err)
 
         // Check effect
         buf_reset(err);
-        int grc = cs_str_string_get(NeoMutt->sub->cs, boolish[v], err);
+        int grc = cs_str_string_get(SpaceMutt->sub->cs, boolish[v], err);
         if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
         {
           TEST_MSG("Failed to get %s: %s", boolish[v], buf_string(err));
@@ -199,7 +199,7 @@ static bool test_set(struct Buffer *err)
 
     // Check effect
     buf_reset(err);
-    int grc = cs_str_string_get(NeoMutt->sub->cs, "Damson", err);
+    int grc = cs_str_string_get(SpaceMutt->sub->cs, "Damson", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
     {
       TEST_MSG("Failed to get %s: %s", "Damson", buf_string(err));
@@ -214,7 +214,7 @@ static bool test_set(struct Buffer *err)
 
   // set on my_var succeeds even if not existent.
   {
-    int grc = cs_str_delete(NeoMutt->sub->cs, "my_var", err);
+    int grc = cs_str_delete(SpaceMutt->sub->cs, "my_var", err);
     // return value grc is irrelevant.
 
     buf_reset(err);
@@ -228,7 +228,7 @@ static bool test_set(struct Buffer *err)
 
     // Check effect
     buf_reset(err);
-    grc = cs_str_string_get(NeoMutt->sub->cs, "my_var", err);
+    grc = cs_str_string_get(SpaceMutt->sub->cs, "my_var", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
     {
       TEST_MSG("Failed to get %s: %s", "my_var", buf_string(err));
@@ -298,7 +298,7 @@ static bool test_unset(struct Buffer *err)
 
         // Check effect
         buf_reset(err);
-        int grc = cs_str_string_get(NeoMutt->sub->cs, boolish[v], err);
+        int grc = cs_str_string_get(SpaceMutt->sub->cs, boolish[v], err);
         if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
         {
           TEST_MSG("Failed to get %s: %s", boolish[v], buf_string(err));
@@ -338,7 +338,7 @@ static bool test_unset(struct Buffer *err)
 
     // Check effect
     buf_reset(err);
-    int grc = cs_str_string_get(NeoMutt->sub->cs, "Damson", err);
+    int grc = cs_str_string_get(SpaceMutt->sub->cs, "Damson", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
     {
       TEST_MSG("Failed to get %s: %s", "Damson", buf_string(err));
@@ -354,15 +354,15 @@ static bool test_unset(struct Buffer *err)
   // unset on my_var deletes it
   {
     // Delete any trace of my_var if existent
-    cs_str_delete(NeoMutt->sub->cs, "my_var", err); // return value is irrelevant.
+    cs_str_delete(SpaceMutt->sub->cs, "my_var", err); // return value is irrelevant.
     buf_reset(err);
-    if (!TEST_CHECK(cs_register_variable(NeoMutt->sub->cs, &MyVarDef, err) != NULL))
+    if (!TEST_CHECK(cs_register_variable(SpaceMutt->sub->cs, &MyVarDef, err) != NULL))
     {
       TEST_MSG("Failed to register my_var config variable: %s", buf_string(err));
       return false;
     }
     buf_reset(err);
-    int grc = cs_str_string_set(NeoMutt->sub->cs, "my_var", "foo", err);
+    int grc = cs_str_string_set(SpaceMutt->sub->cs, "my_var", "foo", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
     {
       TEST_MSG("Failed to set dummy value for %s: %s", "my_var", buf_string(err));
@@ -380,7 +380,7 @@ static bool test_unset(struct Buffer *err)
 
     // Check effect
     buf_reset(err);
-    grc = cs_str_string_get(NeoMutt->sub->cs, "my_var", err);
+    grc = cs_str_string_get(SpaceMutt->sub->cs, "my_var", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_ERR_UNKNOWN))
     {
       TEST_MSG("my_var was not an unknown config variable: %s", buf_string(err));
@@ -439,14 +439,14 @@ static bool test_reset(struct Buffer *err)
 
         // Check effect
         buf_reset(err);
-        int grc = cs_str_string_get(NeoMutt->sub->cs, ConfigVars[v].name, err);
+        int grc = cs_str_string_get(SpaceMutt->sub->cs, ConfigVars[v].name, err);
         if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
         {
           TEST_MSG("Failed to get %s: %s", ConfigVars[v].name, buf_string(err));
           return false;
         }
         struct Buffer *buf = buf_pool_get();
-        grc = cs_str_initial_get(NeoMutt->sub->cs, ConfigVars[v].name, buf);
+        grc = cs_str_initial_get(SpaceMutt->sub->cs, ConfigVars[v].name, buf);
         if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
         {
           TEST_MSG("Failed to get %s: %s", ConfigVars[v].name, buf_string(buf));
@@ -468,15 +468,15 @@ static bool test_reset(struct Buffer *err)
   // reset on my_var deletes it
   {
     // Delete any trace of my_var if existent
-    cs_str_delete(NeoMutt->sub->cs, "my_var", err); // return value is irrelevant.
+    cs_str_delete(SpaceMutt->sub->cs, "my_var", err); // return value is irrelevant.
     buf_reset(err);
-    if (!TEST_CHECK(cs_register_variable(NeoMutt->sub->cs, &MyVarDef, err) != NULL))
+    if (!TEST_CHECK(cs_register_variable(SpaceMutt->sub->cs, &MyVarDef, err) != NULL))
     {
       TEST_MSG("Failed to register my_var config variable: %s", buf_string(err));
       return false;
     }
     buf_reset(err);
-    int grc = cs_str_string_set(NeoMutt->sub->cs, "my_var", "foo", err);
+    int grc = cs_str_string_set(SpaceMutt->sub->cs, "my_var", "foo", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
     {
       TEST_MSG("Failed to set dummy value for %s: %s", "my_var", buf_string(err));
@@ -494,7 +494,7 @@ static bool test_reset(struct Buffer *err)
 
     // Check effect
     buf_reset(err);
-    grc = cs_str_string_get(NeoMutt->sub->cs, "my_var", err);
+    grc = cs_str_string_get(SpaceMutt->sub->cs, "my_var", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_ERR_UNKNOWN))
     {
       TEST_MSG("my_var was not an unknown config variable: %s", buf_string(err));
@@ -510,15 +510,15 @@ static bool test_reset(struct Buffer *err)
       return false;
     }
     // Delete any trace of my_var if existent
-    cs_str_delete(NeoMutt->sub->cs, "my_var", err); // return value is irrelevant.
+    cs_str_delete(SpaceMutt->sub->cs, "my_var", err); // return value is irrelevant.
     buf_reset(err);
-    if (!TEST_CHECK(cs_register_variable(NeoMutt->sub->cs, &MyVarDef, err) != NULL))
+    if (!TEST_CHECK(cs_register_variable(SpaceMutt->sub->cs, &MyVarDef, err) != NULL))
     {
       TEST_MSG("Failed to register my_var config variable: %s", buf_string(err));
       return false;
     }
     buf_reset(err);
-    int grc = cs_str_string_set(NeoMutt->sub->cs, "my_var", "foo", err);
+    int grc = cs_str_string_set(SpaceMutt->sub->cs, "my_var", "foo", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
     {
       TEST_MSG("Failed to set dummy value for %s: %s", "my_var", buf_string(err));
@@ -538,14 +538,14 @@ static bool test_reset(struct Buffer *err)
     for (int v = 0; v < mutt_array_size(ConfigVars) - 1; v++)
     {
       buf_reset(err);
-      grc = cs_str_string_get(NeoMutt->sub->cs, ConfigVars[v].name, err);
+      grc = cs_str_string_get(SpaceMutt->sub->cs, ConfigVars[v].name, err);
       if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
       {
         TEST_MSG("Failed to get %s: %s", ConfigVars[v].name, buf_string(err));
         return false;
       }
       struct Buffer *buf = buf_pool_get();
-      grc = cs_str_initial_get(NeoMutt->sub->cs, ConfigVars[v].name, buf);
+      grc = cs_str_initial_get(SpaceMutt->sub->cs, ConfigVars[v].name, buf);
       if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
       {
         TEST_MSG("Failed to get %s: %s", ConfigVars[v].name, buf_string(buf));
@@ -563,7 +563,7 @@ static bool test_reset(struct Buffer *err)
     }
 
     buf_reset(err);
-    grc = cs_str_string_get(NeoMutt->sub->cs, "my_var", err);
+    grc = cs_str_string_get(SpaceMutt->sub->cs, "my_var", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_ERR_UNKNOWN))
     {
       TEST_MSG("my_var was not an unknown config variable: expected = %d, got = %d, err = %s",
@@ -626,7 +626,7 @@ static bool test_toggle(struct Buffer *err)
 
           // Check effect
           buf_reset(err);
-          int grc = cs_str_string_get(NeoMutt->sub->cs, boolish[v], err);
+          int grc = cs_str_string_get(SpaceMutt->sub->cs, boolish[v], err);
           if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
           {
             TEST_MSG("Failed to get %s: %s", boolish[v], buf_string(err));
@@ -655,7 +655,7 @@ static bool test_toggle(struct Buffer *err)
 
           // Check effect
           buf_reset(err);
-          int grc = cs_str_string_get(NeoMutt->sub->cs, boolish[v], err);
+          int grc = cs_str_string_get(SpaceMutt->sub->cs, boolish[v], err);
           if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
           {
             TEST_MSG("Failed to get %s: %s", boolish[v], buf_string(err));
@@ -697,15 +697,15 @@ static bool test_query(struct Buffer *err)
         return false;
       }
       // Delete any trace of my_var if existent
-      cs_str_delete(NeoMutt->sub->cs, "my_var", err); // return value is irrelevant.
+      cs_str_delete(SpaceMutt->sub->cs, "my_var", err); // return value is irrelevant.
       buf_reset(err);
-      if (!TEST_CHECK(cs_register_variable(NeoMutt->sub->cs, &MyVarDef, err) != NULL))
+      if (!TEST_CHECK(cs_register_variable(SpaceMutt->sub->cs, &MyVarDef, err) != NULL))
       {
         TEST_MSG("Failed to register my_var config variable: %s", buf_string(err));
         return false;
       }
       buf_reset(err);
-      int grc = cs_str_string_set(NeoMutt->sub->cs, "my_var", "foo", err);
+      int grc = cs_str_string_set(SpaceMutt->sub->cs, "my_var", "foo", err);
       if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
       {
         TEST_MSG("Failed to set dummy value for %s: %s", "my_var", buf_string(err));
@@ -750,7 +750,7 @@ static bool test_query(struct Buffer *err)
       TEST_MSG("setup failed");
       return false;
     }
-    int grc = cs_str_string_set(NeoMutt->sub->cs, "my_var", "foo", err);
+    int grc = cs_str_string_set(SpaceMutt->sub->cs, "my_var", "foo", err);
     if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
     {
       TEST_MSG("Failed to set dummy value for %s: %s", "my_var", buf_string(err));
@@ -807,7 +807,7 @@ static bool test_increment(struct Buffer *err)
     TEST_MSG("setup failed");
     return false;
   }
-  int grc = cs_str_string_set(NeoMutt->sub->cs, "my_var", "foo", err);
+  int grc = cs_str_string_set(SpaceMutt->sub->cs, "my_var", "foo", err);
   if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
   {
     TEST_MSG("Failed to set dummy value for %s: %s", "my_var", buf_string(err));
@@ -846,7 +846,7 @@ static bool test_increment(struct Buffer *err)
 
       // Check effect
       buf_reset(err);
-      grc = cs_str_string_get(NeoMutt->sub->cs, vars[v], err);
+      grc = cs_str_string_get(SpaceMutt->sub->cs, vars[v], err);
       if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
       {
         TEST_MSG("Failed to get %s: %s", vars[v], buf_string(err));
@@ -903,7 +903,7 @@ static bool test_decrement(struct Buffer *err)
 
       // Check effect
       buf_reset(err);
-      int grc = cs_str_string_get(NeoMutt->sub->cs, vars[v], err);
+      int grc = cs_str_string_get(SpaceMutt->sub->cs, vars[v], err);
       if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
       {
         TEST_MSG("Failed to get %s: %s", vars[v], buf_string(err));
@@ -995,7 +995,7 @@ static bool test_path_expanding(struct Buffer *err)
 
       // Check effect
       buf_reset(err);
-      int grc = cs_str_string_get(NeoMutt->sub->cs, pathlike[v], err);
+      int grc = cs_str_string_get(SpaceMutt->sub->cs, pathlike[v], err);
       if (!TEST_CHECK(CSR_RESULT(grc) == CSR_SUCCESS))
       {
         TEST_MSG("Failed to get %s: %s", pathlike[v], buf_string(err));
@@ -1015,7 +1015,7 @@ static bool test_path_expanding(struct Buffer *err)
 
 void test_command_set(void)
 {
-  if (!TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, ConfigVars)))
+  if (!TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, ConfigVars)))
   {
     TEST_MSG("Failed to register config variables");
     return;

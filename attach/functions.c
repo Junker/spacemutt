@@ -144,7 +144,7 @@ static void attach_collapse(struct AttachCtx *actx, struct Menu *menu)
   const int index = menu_get_index(menu);
   rindex = actx->v2r[index] + 1;
 
-  const bool c_digest_collapse = cs_subset_bool(NeoMutt->sub, "digest_collapse");
+  const bool c_digest_collapse = cs_subset_bool(SpaceMutt->sub, "digest_collapse");
   while ((rindex < actx->idxlen) && (actx->idx[rindex]->level > curlevel))
   {
     if (c_digest_collapse && (actx->idx[rindex]->body->type == TYPE_MULTIPART) &&
@@ -319,7 +319,7 @@ static int op_attachment_delete(struct AttachPrivateData *priv, int op)
     if (cur_att->parent_type == TYPE_MULTIPART)
     {
       cur_att->body->deleted = true;
-      const bool c_resolve = cs_subset_bool(NeoMutt->sub, "resolve");
+      const bool c_resolve = cs_subset_bool(SpaceMutt->sub, "resolve");
       const int index = menu_get_index(priv->menu) + 1;
       if (c_resolve && (index < priv->menu->max))
       {
@@ -380,7 +380,7 @@ static int op_attachment_save(struct AttachPrivateData *priv, int op)
   mutt_save_attachment_list(priv->actx, cur_att->fp, priv->menu->tag_prefix,
                             cur_att->body, priv->actx->email, priv->menu);
 
-  const bool c_resolve = cs_subset_bool(NeoMutt->sub, "resolve");
+  const bool c_resolve = cs_subset_bool(SpaceMutt->sub, "resolve");
   const int index = menu_get_index(priv->menu) + 1;
   if (!priv->menu->tag_prefix && c_resolve && (index < priv->menu->max))
     menu_set_index(priv->menu, index);
@@ -410,7 +410,7 @@ static int op_attachment_undelete(struct AttachPrivateData *priv, int op)
   {
     struct AttachPtr *cur_att = current_attachment(priv->actx, priv->menu);
     cur_att->body->deleted = false;
-    const bool c_resolve = cs_subset_bool(NeoMutt->sub, "resolve");
+    const bool c_resolve = cs_subset_bool(SpaceMutt->sub, "resolve");
     const int index = menu_get_index(priv->menu) + 1;
     if (c_resolve && (index < priv->menu->max))
     {
@@ -642,7 +642,7 @@ static int op_followup(struct AttachPrivateData *priv, int op)
   struct AttachPtr *cur_att = current_attachment(priv->actx, priv->menu);
   if (!cur_att->body->email->env->followup_to ||
       !mutt_istr_equal(cur_att->body->email->env->followup_to, "poster") ||
-      (query_quadoption(_("Reply by mail as poster prefers?"), NeoMutt->sub,
+      (query_quadoption(_("Reply by mail as poster prefers?"), SpaceMutt->sub,
                         "followup_to_poster") != MUTT_YES))
   {
     mutt_attach_reply(cur_att->fp, priv->mailbox, priv->actx->email, priv->actx,

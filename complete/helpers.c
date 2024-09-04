@@ -190,7 +190,7 @@ int mutt_command_complete(struct CompletionData *cd, struct Buffer *buf, int pos
       memset(cd->completed, 0, sizeof(cd->completed));
 
       struct HashElem *he = NULL;
-      struct HashElem **he_list = get_elem_list(NeoMutt->sub->cs);
+      struct HashElem **he_list = get_elem_list(SpaceMutt->sub->cs);
       for (size_t i = 0; he_list[i]; i++)
       {
         he = he_list[i];
@@ -398,13 +398,13 @@ int mutt_var_value_complete(struct CompletionData *cd, struct Buffer *buf, int p
 
     var[vlen - 1] = '\0';
 
-    struct HashElem *he = cs_subset_lookup(NeoMutt->sub, var);
+    struct HashElem *he = cs_subset_lookup(SpaceMutt->sub, var);
     if (!he)
       return 0; /* no such variable. */
 
     struct Buffer *value = buf_pool_get();
     struct Buffer *pretty = buf_pool_get();
-    int rc = cs_subset_he_string_get(NeoMutt->sub, he, value);
+    int rc = cs_subset_he_string_get(SpaceMutt->sub, he, value);
     if (CSR_RESULT(rc) == CSR_SUCCESS)
     {
       pretty_var(value->data, pretty);

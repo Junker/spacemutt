@@ -44,7 +44,7 @@ void test_rfc2047_encode_addrlist(void)
 {
   // void rfc2047_encode_addrlist(struct Address *addr, const char *tag);
 
-  TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
+  TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, Vars));
 
   {
     rfc2047_encode_addrlist(NULL, "apple");

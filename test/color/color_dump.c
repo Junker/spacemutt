@@ -49,7 +49,7 @@ void test_color_dump(void)
   regex_colors_init();
   simple_colors_init();
 
-  TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
+  TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, Vars));
 
   struct AttrColor ac = { 0 };
 

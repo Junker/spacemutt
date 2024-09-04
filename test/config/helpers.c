@@ -91,9 +91,9 @@ static struct ConfigDef Vars[] = {
 
 void test_config_helpers(void)
 {
-  TEST_CHECK(cs_register_variables(NeoMutt->sub->cs, Vars));
+  TEST_CHECK(cs_register_variables(SpaceMutt->sub->cs, Vars));
 
-  struct ConfigSubset *sub = NeoMutt->sub;
+  struct ConfigSubset *sub = SpaceMutt->sub;
 
   TEST_CHECK(cs_subset_bool(sub, "Apple") == false);
   TEST_CHECK(cs_subset_enum(sub, "Hawthorn") == 2);

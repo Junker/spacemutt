@@ -137,7 +137,7 @@ const char *mutt_get_name(const struct Address *a)
 
   if (a)
   {
-    const bool c_reverse_alias = cs_subset_bool(NeoMutt->sub, "reverse_alias");
+    const bool c_reverse_alias = cs_subset_bool(SpaceMutt->sub, "reverse_alias");
     if (c_reverse_alias && (ali = alias_reverse_lookup(a)) && ali->personal)
       return buf_string(ali->personal);
     if (a->personal)
@@ -372,7 +372,7 @@ void mutt_sort_headers(struct MailboxView *mv, bool init)
   if (m->verbose)
     log_message(_("Sorting mailbox..."));
 
-  const bool c_score = cs_subset_bool(NeoMutt->sub, "score");
+  const bool c_score = cs_subset_bool(SpaceMutt->sub, "score");
   if (OptNeedRescore && c_score)
   {
     for (int i = 0; i < m->msg_count; i++)
@@ -403,8 +403,8 @@ void mutt_sort_headers(struct MailboxView *mv, bool init)
   {
     struct EmailCompare cmp = { 0 };
     cmp.type = mx_type(m);
-    cmp.sort = cs_subset_sort(NeoMutt->sub, "sort");
-    cmp.sort_aux = cs_subset_sort(NeoMutt->sub, "sort_aux");
+    cmp.sort = cs_subset_sort(SpaceMutt->sub, "sort");
+    cmp.sort_aux = cs_subset_sort(SpaceMutt->sub, "sort_aux");
     mutt_qsort_r((void *) m->emails, m->msg_count, sizeof(struct Email *),
                  compare_email_shim, &cmp);
   }

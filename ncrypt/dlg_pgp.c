@@ -294,7 +294,7 @@ void pgp_entry_pgp_date(const struct ExpandoNode *node, void *data,
   if (use_c_locale)
   {
     mutt_date_localtime_format_locale(tmp, sizeof(tmp), datestr, key->gen_time,
-                                      NeoMutt->time_c_locale);
+                                      SpaceMutt->time_c_locale);
   }
   else
   {
@@ -546,7 +546,7 @@ static int pgp_make_entry(struct Menu *menu, int line, int max_cols, struct Buff
     max_cols -= (mutt_strwidth(c_arrow_string) + 1);
   }
 
-  const struct Expando *c_pgp_entry_format = cs_subset_expando(NeoMutt->sub, "pgp_entry_format");
+  const struct Expando *c_pgp_entry_format = cs_subset_expando(SpaceMutt->sub, "pgp_entry_format");
   return expando_filter(c_pgp_entry_format, PgpEntryRenderData, &entry,
                         MUTT_FORMAT_ARROWCURSOR, max_cols, buf);
 }
@@ -609,7 +609,7 @@ static int pgp_key_window_observer(struct NotifyCallback *nc)
 
   struct Menu *menu = win_menu->wdata;
 
-  notify_observer_remove(NeoMutt->sub->notify, pgp_key_config_observer, menu);
+  notify_observer_remove(SpaceMutt->sub->notify, pgp_key_config_observer, menu);
   notify_observer_remove(win_menu->notify, pgp_key_window_observer, win_menu);
 
   log_debug5("window delete done");
@@ -634,7 +634,7 @@ struct PgpKeyInfo *dlg_pgp(struct PgpKeyInfo *keys, struct Address *p, const cha
   bool unusable = false;
   int keymax = 0;
 
-  const bool c_pgp_show_unusable = cs_subset_bool(NeoMutt->sub, "pgp_show_unusable");
+  const bool c_pgp_show_unusable = cs_subset_bool(SpaceMutt->sub, "pgp_show_unusable");
   int i = 0;
   for (struct PgpKeyInfo *kp = keys; kp; kp = kp->next)
   {
@@ -669,7 +669,7 @@ struct PgpKeyInfo *dlg_pgp(struct PgpKeyInfo *keys, struct Address *p, const cha
   }
 
   sort_t f = NULL;
-  short c_pgp_sort_keys = cs_subset_sort(NeoMutt->sub, "pgp_sort_keys");
+  short c_pgp_sort_keys = cs_subset_sort(SpaceMutt->sub, "pgp_sort_keys");
   switch (c_pgp_sort_keys & SORT_MASK)
   {
     case SORT_ADDRESS:
@@ -705,7 +705,7 @@ struct PgpKeyInfo *dlg_pgp(struct PgpKeyInfo *keys, struct Address *p, const cha
   dlg->wdata = &pd;
 
   // NT_COLOR is handled by the SimpleDialog
-  notify_observer_add(NeoMutt->sub->notify, NT_CONFIG, pgp_key_config_observer, menu);
+  notify_observer_add(SpaceMutt->sub->notify, NT_CONFIG, pgp_key_config_observer, menu);
   notify_observer_add(menu->win->notify, NT_WINDOW, pgp_key_window_observer, menu->win);
 
   if (p)

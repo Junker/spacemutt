@@ -35,8 +35,8 @@
 
 void test_gen_path(struct Buffer *buf, const char *fmt);
 
-bool test_neomutt_create(void);
-void test_neomutt_destroy(void);
+bool test_spacemutt_create(void);
+void test_spacemutt_destroy(void);
 const char *get_test_dir(void);
 
 static inline bool test_check_str_eq(const char *actual, const char *expected, const char *file, int lnum)

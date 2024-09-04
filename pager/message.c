@@ -70,9 +70,9 @@ static void process_protected_headers(struct Mailbox *m, struct Email *e)
 {
   struct Envelope *prot_headers = NULL;
 
-  const bool c_crypt_protected_headers_read = cs_subset_bool(NeoMutt->sub, "crypt_protected_headers_read");
+  const bool c_crypt_protected_headers_read = cs_subset_bool(SpaceMutt->sub, "crypt_protected_headers_read");
 #ifdef USE_AUTOCRYPT
-  const bool c_autocrypt = cs_subset_bool(NeoMutt->sub, "autocrypt");
+  const bool c_autocrypt = cs_subset_bool(SpaceMutt->sub, "autocrypt");
   if (!c_crypt_protected_headers_read && !c_autocrypt)
     return;
 #else
@@ -131,7 +131,7 @@ static void process_protected_headers(struct Mailbox *m, struct Email *e)
     mx_save_hcache(m, e);
 
     /* Also persist back to the message headers if this is set */
-    const bool c_crypt_protected_headers_save = cs_subset_bool(NeoMutt->sub, "crypt_protected_headers_save");
+    const bool c_crypt_protected_headers_save = cs_subset_bool(SpaceMutt->sub, "crypt_protected_headers_save");
     if (c_crypt_protected_headers_save)
     {
       e->env->changed |= MUTT_ENV_CHANGED_SUBJECT;
@@ -193,7 +193,7 @@ static int email_to_file(struct Message *msg, struct Buffer *tempfile,
     {
       /* find out whether or not the verify signature */
       /* L10N: Used for the $crypt_verify_sig prompt */
-      if (query_quadoption(_("Verify signature?"), NeoMutt->sub, "crypt_verify_sig") == MUTT_YES)
+      if (query_quadoption(_("Verify signature?"), SpaceMutt->sub, "crypt_verify_sig") == MUTT_YES)
       {
         *cmflags |= MUTT_CM_VERIFY;
       }
@@ -223,7 +223,7 @@ static int email_to_file(struct Message *msg, struct Buffer *tempfile,
     goto cleanup;
   }
 
-  const char *const c_display_filter = cs_subset_string(NeoMutt->sub, "display_filter");
+  const char *const c_display_filter = cs_subset_string(SpaceMutt->sub, "display_filter");
   if (c_display_filter)
   {
     fp_filter_out = fp_out;
@@ -245,7 +245,7 @@ static int email_to_file(struct Message *msg, struct Buffer *tempfile,
     fputs("\n\n", fp_out);
   }
 
-  const bool c_weed = cs_subset_bool(NeoMutt->sub, "weed");
+  const bool c_weed = cs_subset_bool(SpaceMutt->sub, "weed");
   CopyHeaderFlags chflags = (c_weed ? (CH_WEED | CH_REORDER) : CH_NO_FLAGS) |
                             CH_DECODE | CH_FROM | CH_DISPLAY;
 #ifdef USE_NOTMUCH
@@ -309,7 +309,7 @@ int external_pager(struct MailboxView *mv, struct Email *e, const char *command)
     return -1;
 
   struct Buffer *buf = buf_pool_get();
-  const struct Expando *c_pager_format = cs_subset_expando(NeoMutt->sub, "pager_format");
+  const struct Expando *c_pager_format = cs_subset_expando(SpaceMutt->sub, "pager_format");
   const int screen_width = RootWindow->state.cols;
   mutt_make_string(buf, screen_width, c_pager_format, m, -1, e,
                    MUTT_FORMAT_NO_FLAGS, _(ExtPagerProgress));
@@ -335,7 +335,7 @@ int external_pager(struct MailboxView *mv, struct Email *e, const char *command)
     keypad(stdscr, true);
   if (r != -1)
     mutt_set_flag(m, e, MUTT_READ, true, true);
-  const bool c_prompt_after = cs_subset_bool(NeoMutt->sub, "prompt_after");
+  const bool c_prompt_after = cs_subset_bool(SpaceMutt->sub, "prompt_after");
   if ((r != -1) && c_prompt_after)
   {
     mutt_unget_ch(mutt_any_key_to_continue(_("Command: ")));
@@ -400,7 +400,7 @@ static void notify_crypto(struct Email *e, struct Message *msg, CopyMessageFlags
 static void squash_index_panel(struct Mailbox *m, struct MuttWindow *win_index,
                                struct MuttWindow *win_pager)
 {
-  const short c_pager_index_lines = cs_subset_number(NeoMutt->sub, "pager_index_lines");
+  const short c_pager_index_lines = cs_subset_number(SpaceMutt->sub, "pager_index_lines");
   if (c_pager_index_lines > 0)
   {
     win_index->size = MUTT_WIN_SIZE_FIXED;
