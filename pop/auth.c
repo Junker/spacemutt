@@ -317,7 +317,6 @@ void pop_apop_timestamp(struct PopAccountData *adata, char *buf)
  */
 static enum PopAuthRes pop_auth_apop(struct PopAccountData *adata, const char *method)
 {
-  struct Md5Ctx md5ctx = { 0 };
   unsigned char digest[16];
   char hash[33] = { 0 };
   char buf[1024] = { 0 };
@@ -338,11 +337,11 @@ static enum PopAuthRes pop_auth_apop(struct PopAccountData *adata, const char *m
   log_message(_("Authenticating (%s)..."), "APOP");
 
   /* Compute the authentication hash to send to the server */
-  mutt_md5_init_ctx(&md5ctx);
-  mutt_md5_process(adata->timestamp, &md5ctx);
-  mutt_md5_process(adata->conn->account.pass, &md5ctx);
-  mutt_md5_finish_ctx(&md5ctx, digest);
-  mutt_md5_toascii(digest, hash);
+  GChecksum *checksum = g_checksum_new(G_CHECKSUM_MD5);
+  g_checksum_update(checksum, (const guchar *)adata->timestamp, -1);
+  g_checksum_update(checksum, (const guchar *)adata->conn->account.pass, -1);
+  strcpy(hash, g_checksum_get_string(checksum));
+  g_checksum_free(checksum);
 
   /* Send APOP command to server */
   snprintf(buf, sizeof(buf), "APOP %s %s\r\n", adata->conn->account.user, hash);
