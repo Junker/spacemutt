@@ -365,7 +365,7 @@ GLogWriterOutput log_writer_file(GLogLevelFlags level, const GLogField *fields, 
     return G_LOG_WRITER_HANDLED;
 
   const gchar *function = log_get_field(fields, n_fields, "CODE_FUNC");
-  const short _errno = (long)log_get_field(fields, n_fields, "ERRNO");
+  const short _errno = GPOINTER_TO_INT(log_get_field(fields, n_fields, "ERRNO"));
 
   if (!function)
     function = "UNKNOWN";
@@ -456,7 +456,7 @@ void log_queue_flush(GLogWriterFunc writer)
       { "CODE_FILE", ll->file, -1 },
       { "CODE_LINE", ll->line, -1 },
       { "CODE_FUNC", ll->func, -1 },
-      { "ERRNO", (gpointer)(long)ll->err_no, -1 }
+      { "ERRNO", GINT_TO_POINTER(ll->err_no), -1 }
     };
     writer(ll->level, fields, G_N_ELEMENTS (fields), (gpointer)true);
   }
