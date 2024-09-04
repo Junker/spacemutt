@@ -1554,7 +1554,7 @@ cleanup:
  */
 void mutt_encode_descriptions(struct Body *b, bool recurse, struct ConfigSubset *sub)
 {
-  const struct Slist *const c_send_charset = cs_subset_slist(sub, "send_charset");
+  const struct StrList *const c_send_charset = cs_subset_slist(sub, "send_charset");
   for (struct Body *t = b; t; t = t->next)
   {
     if (t->description)

@@ -166,7 +166,7 @@ static void parse_parameters(ParameterList *pl, const char *s, bool allow_value_
 
   log_debug2("'%s'", s);
 
-  const bool assumed = !slist_is_empty(cc_assumed_charset());
+  const bool assumed = !strlist_is_empty(cc_assumed_charset());
   while (*s)
   {
     buf_reset(buf);

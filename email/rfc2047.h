@@ -27,10 +27,10 @@
 #include "address/address.h"
 
 struct Envelope;
-struct Slist;
+struct StrList;
 
 void rfc2047_decode(char **pd);
-void rfc2047_encode(char **pd, const char *specials, int col, const struct Slist *charsets);
+void rfc2047_encode(char **pd, const char *specials, int col, const struct StrList *charsets);
 
 void rfc2047_decode_addrlist(AddressList *al);
 void rfc2047_encode_addrlist(AddressList *al, const char *tag);

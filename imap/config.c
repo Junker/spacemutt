@@ -45,7 +45,7 @@
 static int imap_auth_validator(const struct ConfigSet *cs, const struct ConfigDef *cdef,
                                intptr_t value, struct Buffer *err)
 {
-  const struct Slist *imap_auth_methods = (const struct Slist *) value;
+  const struct StrList *imap_auth_methods = (const struct StrList *) value;
   if (!imap_auth_methods || (imap_auth_methods->count == 0))
     return CSR_SUCCESS;
 
@@ -75,7 +75,7 @@ static struct ConfigDef ImapVars[] = {
   { "imap_condstore", DT_BOOL, false, 0, NULL,
     "(imap) Enable the CONDSTORE extension"
   },
-  { "imap_authenticators", DT_SLIST|D_SLIST_SEP_COLON, 0, 0, imap_auth_validator,
+  { "imap_authenticators", DT_STRLIST|D_STRLIST_SEP_COLON, 0, 0, imap_auth_validator,
     "(imap) List of allowed IMAP authentication methods (colon-separated)"
   },
   { "imap_delim_chars", DT_STRING, IP "/.", 0, NULL,

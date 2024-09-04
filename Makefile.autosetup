@@ -265,7 +265,7 @@ LIBCONFIG=	libconfig.a
 LIBCONFIGOBJS=	config/bool.o config/charset.o config/dump.o config/enum.o \
 		config/helpers.o config/long.o config/mbtable.o config/myvar.o \
 		config/number.o config/path.o config/quad.o config/regex.o \
-		config/set.o config/slist.o config/sort.o config/string.o \
+		config/set.o config/strlist.o config/sort.o config/string.o \
 		config/subset.o
 CLEANFILES+=	$(LIBCONFIG) $(LIBCONFIGOBJS)
 ALLOBJS+=	$(LIBCONFIGOBJS)
@@ -628,7 +628,7 @@ LIBMUTTOBJS=	mutt/atoi.o mutt/base64.o mutt/buffer.o mutt/charset.o \
 		mutt/mapping.o mutt/mbyte.o mutt/memory.o \
 		mutt/notify.o mutt/path.o mutt/pool.o mutt/prex.o \
 		mutt/qsort_r.o mutt/random.o mutt/regex.o mutt/signal.o \
-		mutt/slist.o mutt/state.o mutt/string.o
+		mutt/strlist.o mutt/state.o mutt/string.o
 
 CLEANFILES+=	$(LIBMUTT) $(LIBMUTTOBJS)
 ALLOBJS+=	$(LIBMUTTOBJS)

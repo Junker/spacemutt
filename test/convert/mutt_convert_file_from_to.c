@@ -36,15 +36,15 @@
 
 void test_mutt_convert_file_from_to(void)
 {
-  // size_t mutt_convert_file_from_to(FILE *fp, const struct Slist *fromcodes, const struct Slist *tocodes, char **fromcode, char **tocode, struct Content *info);
+  // size_t mutt_convert_file_from_to(FILE *fp, const struct StrList *fromcodes, const struct StrList *tocodes, char **fromcode, char **tocode, struct Content *info);
 
   {
     /* Conversion from us-ascii to UTF-8. */
     char data[] = "us-ascii text\nline 2 \r\nline3";
     FILE *fp = test_make_file_with_contents(data, sizeof(data) - 1);
 
-    struct Slist *tocodes = slist_parse("utf-8", D_SLIST_SEP_COLON);
-    struct Slist *fromcodes = slist_parse("us-ascii", D_SLIST_SEP_COLON);
+    struct StrList *tocodes = strlist_parse("utf-8", D_STRLIST_SEP_COLON);
+    struct StrList *fromcodes = strlist_parse("us-ascii", D_STRLIST_SEP_COLON);
     struct Content info = initial_info;
 
     char *fromcode = NULL;
@@ -56,8 +56,8 @@ void test_mutt_convert_file_from_to(void)
     TEST_CHECK_STR_EQ(tocode, "utf-8");
     TEST_MSG("Check failed: %s == utf-8", tocode);
 
-    slist_free(&fromcodes);
-    slist_free(&tocodes);
+    strlist_free(&fromcodes);
+    strlist_free(&tocodes);
     FREE(&tocode);
     fclose(fp);
   }
@@ -69,8 +69,8 @@ void test_mutt_convert_file_from_to(void)
     char data[] = "line 2\r\nline3\n\xc5\xbc\xc3\xb3\xc5\x82\x77";
     FILE *fp = test_make_file_with_contents(data, sizeof(data) - 1);
 
-    struct Slist *tocodes = slist_parse("iso-8859-2", D_SLIST_SEP_COLON);
-    struct Slist *fromcodes = slist_parse("us-ascii:utf-8", D_SLIST_SEP_COLON);
+    struct StrList *tocodes = strlist_parse("iso-8859-2", D_STRLIST_SEP_COLON);
+    struct StrList *fromcodes = strlist_parse("us-ascii:utf-8", D_STRLIST_SEP_COLON);
     char *fromcode = NULL;
     char *tocode = NULL;
     struct Content info = initial_info;
@@ -82,8 +82,8 @@ void test_mutt_convert_file_from_to(void)
     TEST_CHECK_STR_EQ(tocode, "iso-8859-2");
     TEST_MSG("Check failed: %s == utf-8", tocode);
 
-    slist_free(&fromcodes);
-    slist_free(&tocodes);
+    strlist_free(&fromcodes);
+    strlist_free(&tocodes);
     FREE(&tocode);
     fclose(fp);
   }

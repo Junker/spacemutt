@@ -45,7 +45,7 @@
 static int pop_auth_validator(const struct ConfigSet *cs, const struct ConfigDef *cdef,
                               intptr_t value, struct Buffer *err)
 {
-  const struct Slist *pop_auth_methods = (const struct Slist *) value;
+  const struct StrList *pop_auth_methods = (const struct StrList *) value;
   if (!pop_auth_methods || (pop_auth_methods->count == 0))
     return CSR_SUCCESS;
 
@@ -72,7 +72,7 @@ static struct ConfigDef PopVars[] = {
   { "pop_auth_try_all", DT_BOOL, true, 0, NULL,
     "(pop) Try all available authentication methods"
   },
-  { "pop_authenticators", DT_SLIST|D_SLIST_SEP_COLON, 0, 0, pop_auth_validator,
+  { "pop_authenticators", DT_STRLIST|D_STRLIST_SEP_COLON, 0, 0, pop_auth_validator,
     "(pop) List of allowed authentication methods (colon-separated)"
   },
   { "pop_check_interval", DT_NUMBER|D_INTEGER_NOT_NEGATIVE, 60, 0, NULL,

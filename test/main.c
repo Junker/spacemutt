@@ -195,7 +195,7 @@ void test_fini(void);
   SPACEMUTT_TEST_ITEM(test_config_quad)                                          \
   SPACEMUTT_TEST_ITEM(test_config_regex)                                         \
   SPACEMUTT_TEST_ITEM(test_config_set)                                           \
-  SPACEMUTT_TEST_ITEM(test_config_slist)                                         \
+  SPACEMUTT_TEST_ITEM(test_config_strlist)                                       \
   SPACEMUTT_TEST_ITEM(test_config_sort)                                          \
   SPACEMUTT_TEST_ITEM(test_config_string)                                        \
   SPACEMUTT_TEST_ITEM(test_config_subset)                                        \
@@ -588,16 +588,16 @@ void test_fini(void);
   SPACEMUTT_TEST_ITEM(test_mutt_sig_unblock)                                     \
   SPACEMUTT_TEST_ITEM(test_mutt_sig_unblock_system)                              \
                                                                                  \
-  /* slist */                                                                    \
-  SPACEMUTT_TEST_ITEM(test_slist_add_string)                                     \
-  SPACEMUTT_TEST_ITEM(test_slist_dup)                                            \
-  SPACEMUTT_TEST_ITEM(test_slist_equal)                                          \
-  SPACEMUTT_TEST_ITEM(test_slist_free)                                           \
-  SPACEMUTT_TEST_ITEM(test_slist_is_empty)                                       \
-  SPACEMUTT_TEST_ITEM(test_slist_is_member)                                      \
-  SPACEMUTT_TEST_ITEM(test_slist_parse)                                          \
-  SPACEMUTT_TEST_ITEM(test_slist_remove_string)                                  \
-  SPACEMUTT_TEST_ITEM(test_slist_to_buffer)                                      \
+  /* strlist */                                                                  \
+  SPACEMUTT_TEST_ITEM(test_strlist_add_string)                                   \
+  SPACEMUTT_TEST_ITEM(test_strlist_dup)                                          \
+  SPACEMUTT_TEST_ITEM(test_strlist_equal)                                        \
+  SPACEMUTT_TEST_ITEM(test_strlist_free)                                         \
+  SPACEMUTT_TEST_ITEM(test_strlist_is_empty)                                     \
+  SPACEMUTT_TEST_ITEM(test_strlist_is_member)                                    \
+  SPACEMUTT_TEST_ITEM(test_strlist_parse)                                        \
+  SPACEMUTT_TEST_ITEM(test_strlist_remove_string)                                \
+  SPACEMUTT_TEST_ITEM(test_strlist_to_buffer)                                    \
                                                                                  \
   /* sort */                                                                     \
   SPACEMUTT_TEST_ITEM(test_mutt_qsort_r)                                         \

@@ -1,9 +1,9 @@
 /**
  * @file
- * Test code for slist_remove_string()
+ * Test code for strlist_equal()
  *
  * @authors
- * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
+ * Copyright (C) 2023 Richard Russon <rich@flatcap.org>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -24,7 +24,7 @@
 #include "config.h"
 #include "acutest.h"
 
-void test_slist_remove_string(void)
+void test_strlist_equal(void)
 {
-  // struct Slist *slist_remove_string(struct Slist *list, const char *str);
+  // bool strlist_equal(const struct StrList *a, const struct StrList *b);
 }

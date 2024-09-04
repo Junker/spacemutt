@@ -532,7 +532,7 @@ int pop_authenticate(struct PopAccountData *adata)
     return -3;
   }
 
-  const struct Slist *c_pop_authenticators = cs_subset_slist(SpaceMutt->sub, "pop_authenticators");
+  const struct StrList *c_pop_authenticators = cs_subset_slist(SpaceMutt->sub, "pop_authenticators");
   const bool c_pop_auth_try_all = cs_subset_bool(SpaceMutt->sub, "pop_auth_try_all");
   if (c_pop_authenticators && (c_pop_authenticators->count > 0))
   {

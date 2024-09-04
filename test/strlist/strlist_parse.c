@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for slist_to_buffer()
+ * Test code for strlist_parse()
  *
  * @authors
  * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
@@ -24,7 +24,7 @@
 #include "config.h"
 #include "acutest.h"
 
-void test_slist_to_buffer(void)
+void test_strlist_parse(void)
 {
-  // int slist_to_buffer(const struct Slist *list, struct Buffer *buf);
+  // struct StrList *strlist_parse(const char *str, uint32_t flags);
 }

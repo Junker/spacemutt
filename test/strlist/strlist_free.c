@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for slist_dup()
+ * Test code for strlist_free()
  *
  * @authors
  * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
@@ -24,7 +24,7 @@
 #include "config.h"
 #include "acutest.h"
 
-void test_slist_dup(void)
+void test_strlist_free(void)
 {
-  // struct Slist *slist_dup(const struct Slist *list);
+  // void slist_free(struct StrList **list);
 }

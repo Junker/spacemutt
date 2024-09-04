@@ -55,7 +55,7 @@
  * | mutt/random.c    | @subpage mutt_random    |
  * | mutt/regex.c     | @subpage mutt_regex     |
  * | mutt/signal.c    | @subpage mutt_signal    |
- * | mutt/slist.c     | @subpage mutt_slist     |
+ * | mutt/strlist.c   | @subpage mutt_slist     |
  * | mutt/state.c     | @subpage mutt_state     |
  * | mutt/string.c    | @subpage mutt_string    |
  *
@@ -97,7 +97,7 @@
 #include "random.h"
 #include "regex3.h"
 #include "signal2.h"
-#include "slist.h"
+#include "strlist.h"
 #include "state.h"
 #include "string2.h"
 // IWYU pragma: end_keep

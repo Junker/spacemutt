@@ -62,7 +62,7 @@ const struct CompleteOps CompleteMailboxOps = { 0 };
 
 static struct ConfigDef Vars[] = {
   // clang-format off
-  { "assumed_charset", DT_SLIST|D_SLIST_SEP_COLON|D_SLIST_ALLOW_EMPTY, 0, 0, NULL, },
+  { "assumed_charset", DT_STRLIST|D_STRLIST_SEP_COLON|D_STRLIST_ALLOW_EMPTY, 0, 0, NULL, },
   { "charset", DT_STRING|D_NOT_EMPTY|D_CHARSET_SINGLE, IP "utf-8", 0, NULL, },
   { "maildir_field_delimiter", DT_STRING, IP ":", 0, NULL, },
   { "tmp_dir", DT_PATH|D_PATH_DIR|D_NOT_EMPTY, IP TMPDIR, 0, NULL, },
@@ -108,7 +108,7 @@ bool test_spacemutt_create(void)
   CONFIG_INIT_TYPE(cs, Path);
   CONFIG_INIT_TYPE(cs, Quad);
   CONFIG_INIT_TYPE(cs, Regex);
-  CONFIG_INIT_TYPE(cs, Slist);
+  CONFIG_INIT_TYPE(cs, StrList);
   CONFIG_INIT_TYPE(cs, Sort);
   CONFIG_INIT_TYPE(cs, String);
 

@@ -946,7 +946,7 @@ static int smtp_authenticate(struct SmtpAccountData *adata)
 {
   int r = SMTP_AUTH_UNAVAIL;
 
-  const struct Slist *c_smtp_authenticators = cs_subset_slist(adata->sub, "smtp_authenticators");
+  const struct StrList *c_smtp_authenticators = cs_subset_slist(adata->sub, "smtp_authenticators");
   if (c_smtp_authenticators && (c_smtp_authenticators->count > 0))
   {
     log_debug2("Trying user-defined smtp_authenticators");

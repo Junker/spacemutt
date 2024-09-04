@@ -259,7 +259,7 @@ void rfc2231_decode_parameters(ParameterList *pl)
   purge_empty_parameters(pl);
 
   const bool c_rfc2047_parameters = cs_subset_bool(SpaceMutt->sub, "rfc2047_parameters");
-  const struct Slist *c_assumed_charset = cc_assumed_charset();
+  const struct StrList *c_assumed_charset = cc_assumed_charset();
   const char *c_charset = cc_charset();
 
   for (GList *np = pl->head; np != NULL;)
@@ -281,7 +281,7 @@ void rfc2231_decode_parameters(ParameterList *pl)
       {
         rfc2047_decode(&p->value);
       }
-      else if (!slist_is_empty(c_assumed_charset))
+      else if (!strlist_is_empty(c_assumed_charset))
       {
         mutt_ch_convert_nonmime_string(c_assumed_charset, c_charset, &p->value);
       }
@@ -386,7 +386,7 @@ size_t rfc2231_encode_string(ParameterList *head, const char *attribute, char *v
 
   if (encode)
   {
-    const struct Slist *const c_send_charset = cs_subset_slist(SpaceMutt->sub, "send_charset");
+    const struct StrList *const c_send_charset = cs_subset_slist(SpaceMutt->sub, "send_charset");
     const char *c_charset = cc_charset();
     if (c_charset && c_send_charset)
     {

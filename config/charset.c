@@ -78,17 +78,17 @@ int charset_validator(const struct ConfigSet *cs, const struct ConfigDef *cdef,
 }
 
 /**
- * charset_slist_validator - Validate the multiple "charset" config variables - Implements ConfigDef::validator() - @ingroup cfg_def_validator
+ * charset_strlist_validator - Validate the multiple "charset" config variables - Implements ConfigDef::validator() - @ingroup cfg_def_validator
  *
  * Validate the config variables that can contain a multiple charsets.
  */
-int charset_slist_validator(const struct ConfigSet *cs, const struct ConfigDef *cdef,
+int charset_strlist_validator(const struct ConfigSet *cs, const struct ConfigDef *cdef,
                             intptr_t value, struct Buffer *err)
 {
   if (value == 0)
     return CSR_SUCCESS;
 
-  const struct Slist *list = (const struct Slist *) value;
+  const struct StrList *list = (const struct StrList *) value;
 
   int rc = CSR_SUCCESS;
   bool strict = (cdef->type & D_CHARSET_STRICT);

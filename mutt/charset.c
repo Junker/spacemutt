@@ -44,7 +44,7 @@
 #include "memory.h"
 #include "pool.h"
 #include "regex3.h"
-#include "slist.h"
+#include "strlist.h"
 #include "string2.h"
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -325,7 +325,7 @@ static const char *lookup_charset(enum LookupType type, const char *cs)
  * Work through `$assumed_charset` looking for a character set conversion that
  * works.  Failing that, try mutt_ch_get_default_charset().
  */
-int mutt_ch_convert_nonmime_string(const struct Slist *const assumed_charset,
+int mutt_ch_convert_nonmime_string(const struct StrList *const assumed_charset,
                                    const char *charset, char **ps)
 {
   if (!ps)
@@ -458,7 +458,7 @@ bool mutt_ch_chscmp(const char *cs1, const char *cs2)
  *
  * @warning This returns a pointer to a static buffer.  Do not free it.
  */
-const char *mutt_ch_get_default_charset(const struct Slist *const assumed_charset)
+const char *mutt_ch_get_default_charset(const struct StrList *const assumed_charset)
 {
   static char fcharset[128];
   const char *c = NULL;
@@ -1101,7 +1101,7 @@ void mutt_ch_set_charset(const char *charset)
  * @retval ptr  Best performing charset
  * @retval NULL None could be found
  */
-char *mutt_ch_choose(const char *fromcode, const struct Slist *charsets,
+char *mutt_ch_choose(const char *fromcode, const struct StrList *charsets,
                      const char *u, size_t ulen, char **d, size_t *dlen)
 {
   if (!fromcode || !charsets)

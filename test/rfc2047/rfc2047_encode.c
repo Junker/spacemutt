@@ -35,21 +35,21 @@
 
 void test_rfc2047_encode(void)
 {
-  // void rfc2047_encode(char **pd, const char *specials, int col, const struct Slist *charsets);
+  // void rfc2047_encode(char **pd, const char *specials, int col, const struct StrList *charsets);
 
   {
-    struct Slist *charsets = slist_parse("apple", D_SLIST_SEP_COLON);
+    struct StrList *charsets = strlist_parse("apple", D_STRLIST_SEP_COLON);
     rfc2047_encode(NULL, AddressSpecials, 0, charsets);
     TEST_CHECK_(1, "rfc2047_encode(NULL, AddressSpecials, 0, \"apple\")");
-    slist_free(&charsets);
+    strlist_free(&charsets);
   }
 
   {
     char *pd = NULL;
-    struct Slist *charsets = slist_parse("apple", D_SLIST_SEP_COLON);
+    struct StrList *charsets = strlist_parse("apple", D_STRLIST_SEP_COLON);
     rfc2047_encode(&pd, NULL, 0, charsets);
     TEST_CHECK_(1, "rfc2047_encode(&pd, NULL, 0, \"apple\")");
-    slist_free(&charsets);
+    strlist_free(&charsets);
   }
 
   {
@@ -59,7 +59,7 @@ void test_rfc2047_encode(void)
   }
 
   {
-    struct Slist *charsets = slist_parse("utf-8", D_SLIST_SEP_COLON);
+    struct StrList *charsets = strlist_parse("utf-8", D_STRLIST_SEP_COLON);
     for (size_t i = 0; rfc2047_test_data[i].decoded; i++)
     {
       /* encode the expected result */
@@ -68,6 +68,6 @@ void test_rfc2047_encode(void)
       TEST_CHECK_STR_EQ(s, rfc2047_test_data[i].encoded);
       FREE(&s);
     }
-    slist_free(&charsets);
+    strlist_free(&charsets);
   }
 }

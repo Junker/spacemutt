@@ -169,7 +169,7 @@ static SCM guile_mutt_set(SCM scm_param, SCM scm_value)
     case DT_MYVAR:
     case DT_PATH:
     case DT_REGEX:
-    case DT_SLIST:
+    case DT_STRLIST:
     case DT_SORT:
     case DT_EXPANDO:
     case DT_STRING:
@@ -262,7 +262,7 @@ static SCM guile_mutt_get(SCM scm_param)
     case DT_MBTABLE:
     case DT_MYVAR:
     case DT_REGEX:
-    case DT_SLIST:
+    case DT_STRLIST:
     case DT_SORT:
     case DT_STRING:
     {

@@ -41,10 +41,10 @@ struct Body;
 struct ConfigSubset;
 struct Content;
 struct ContentState;
-struct Slist;
+struct StrList;
 
-size_t          mutt_convert_file_from_to(FILE *fp, const struct Slist *fromcodes, const struct Slist *tocodes, char **fromcode, char **tocode, struct Content *info);
-size_t          mutt_convert_file_to(FILE *fp, const char *fromcode, struct Slist const *const tocodes, int *tocode, struct Content *info);
+size_t          mutt_convert_file_from_to(FILE *fp, const struct StrList *fromcodes, const struct StrList *tocodes, char **fromcode, char **tocode, struct Content *info);
+size_t          mutt_convert_file_to(FILE *fp, const char *fromcode, struct StrList const *const tocodes, int *tocode, struct Content *info);
 struct Content *mutt_get_content_info(const char *fname, struct Body *b, struct ConfigSubset *sub);
 void            mutt_update_content_info(struct Content *info, struct ContentState *s, char *buf, size_t buflen);
 

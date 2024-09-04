@@ -35,7 +35,7 @@
 
 static struct ConfigDef Vars[] = {
   // clang-format off
-  { "send_charset", DT_SLIST|D_SLIST_SEP_COLON|D_SLIST_ALLOW_EMPTY|D_CHARSET_STRICT, IP "us-ascii:iso-8859-1:utf-8", 0, NULL, },
+  { "send_charset", DT_STRLIST|D_STRLIST_SEP_COLON|D_STRLIST_ALLOW_EMPTY|D_CHARSET_STRICT, IP "us-ascii:iso-8859-1:utf-8", 0, NULL, },
   { NULL },
   // clang-format on
 };

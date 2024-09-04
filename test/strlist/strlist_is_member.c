@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for slist_free()
+ * Test code for strlist_is_member()
  *
  * @authors
  * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
@@ -24,7 +24,7 @@
 #include "config.h"
 #include "acutest.h"
 
-void test_slist_free(void)
+void test_strlist_is_member(void)
 {
-  // void slist_free(struct Slist **list);
+  // bool strlist_is_member(const struct StrList *list, const char *str);
 }

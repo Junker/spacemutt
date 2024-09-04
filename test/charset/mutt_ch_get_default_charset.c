@@ -29,7 +29,7 @@
 
 void test_mutt_ch_get_default_charset(void)
 {
-  // const char *mutt_ch_get_default_charset(const struct Slist *const assumed_charset);
+  // const char *mutt_ch_get_default_charset(const struct StrList *const assumed_charset);
 
   {
     const char *cs = mutt_ch_get_default_charset(NULL);

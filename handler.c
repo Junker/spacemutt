@@ -1168,7 +1168,7 @@ static int multilingual_handler(struct Body *b_email, struct State *state)
     b = b->next;
   }
 
-  const struct Slist *c_preferred_languages = cs_subset_slist(SpaceMutt->sub, "preferred_languages");
+  const struct StrList *c_preferred_languages = cs_subset_slist(SpaceMutt->sub, "preferred_languages");
   if (c_preferred_languages)
   {
     struct Buffer *langs = buf_pool_get();
@@ -1915,7 +1915,7 @@ void mutt_decode_attachment(const struct Body *b, struct State *state)
     if (!charset)
     {
       charset = mutt_param_get(b->parameter, "charset");
-      if (!charset && !slist_is_empty(cc_assumed_charset()))
+      if (!charset && !strlist_is_empty(cc_assumed_charset()))
         charset = mutt_ch_get_default_charset(cc_assumed_charset());
     }
     if (charset && cc_charset())

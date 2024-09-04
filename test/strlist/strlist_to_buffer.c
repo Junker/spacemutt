@@ -1,9 +1,9 @@
 /**
  * @file
- * Test code for the Slist object
+ * Test code for strlist_to_buffer()
  *
  * @authors
- * Copyright (C) 2019 Richard Russon <rich@flatcap.org>
+ * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -20,11 +20,11 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TEST_CONFIG_SLIST_H
-#define TEST_CONFIG_SLIST_H
+#define TEST_NO_MAIN
+#include "config.h"
+#include "acutest.h"
 
-#include <stdbool.h>
-
-void config_slist(void);
-
-#endif /* TEST_CONFIG_SLIST_H */
+void test_strlist_to_buffer(void)
+{
+  // int strlist_to_buffer(const struct StrList *list, struct Buffer *buf);
+}

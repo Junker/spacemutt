@@ -1,9 +1,9 @@
 /**
  * @file
- * Test code for slist_is_member()
+ * Test code for the StrList object
  *
  * @authors
- * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
+ * Copyright (C) 2019 Richard Russon <rich@flatcap.org>
  *
  * @copyright
  * This program is free software: you can redistribute it and/or modify it under
@@ -20,11 +20,11 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define TEST_NO_MAIN
-#include "config.h"
-#include "acutest.h"
+#ifndef TEST_CONFIG_STRLIST_H
+#define TEST_CONFIG_STRLIST_H
 
-void test_slist_is_member(void)
-{
-  // bool slist_is_member(const struct Slist *list, const char *str);
-}
+#include <stdbool.h>
+
+void config_strlist(void);
+
+#endif /* TEST_CONFIG_STRLIST_H */

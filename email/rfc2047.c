@@ -425,7 +425,7 @@ static char *decode_word(const char *s, size_t len, enum ContentEncoding enc)
  * @retval 0 Success
  */
 static int encode(const char *d, size_t dlen, int col, const char *fromcode,
-                  const struct Slist *charsets, char **e, size_t *elen, const char *specials)
+                  const struct StrList *charsets, char **e, size_t *elen, const char *specials)
 {
   int rc = 0;
   char *buf = NULL;
@@ -626,7 +626,7 @@ static int encode(const char *d, size_t dlen, int col, const char *fromcode,
  * @param[in]     col      Starting index in string
  * @param[in]     charsets List of charsets to choose from
  */
-void rfc2047_encode(char **pd, const char *specials, int col, const struct Slist *charsets)
+void rfc2047_encode(char **pd, const char *specials, int col, const struct StrList *charsets)
 {
   if (!pd || !*pd)
     return;
@@ -635,10 +635,10 @@ void rfc2047_encode(char **pd, const char *specials, int col, const struct Slist
   if (!c_charset)
     return;
 
-  struct Slist *fallback = NULL;
+  struct StrList *fallback = NULL;
   if (!charsets)
   {
-    fallback = slist_parse("utf-8", D_SLIST_SEP_COLON);
+    fallback = strlist_parse("utf-8", D_STRLIST_SEP_COLON);
     charsets = fallback;
   }
 
@@ -646,7 +646,7 @@ void rfc2047_encode(char **pd, const char *specials, int col, const struct Slist
   size_t elen = 0;
   encode(*pd, strlen(*pd), col, c_charset, charsets, &e, &elen, specials);
 
-  slist_free(&fallback);
+  strlist_free(&fallback);
   FREE(pd);
   *pd = e;
 }
@@ -680,7 +680,7 @@ void rfc2047_decode(char **pd)
   char *prev_charset = NULL;  /* Previously used charset                */
   size_t prev_charsetlen = 0; /* Length of the previously used charset  */
 
-  const struct Slist *c_assumed_charset = cc_assumed_charset();
+  const struct StrList *c_assumed_charset = cc_assumed_charset();
   const char *c_charset = cc_charset();
   while (*s)
   {
@@ -704,7 +704,7 @@ void rfc2047_decode(char **pd)
       }
 
       /* Add non-encoded part */
-      if (slist_is_empty(c_assumed_charset))
+      if (strlist_is_empty(c_assumed_charset))
       {
         buf_addstr_n(buf, s, holelen);
       }
@@ -771,7 +771,7 @@ void rfc2047_encode_addrlist(AddressList *al, const char *tag)
 
   int col = tag ? strlen(tag) + 2 : 32;
   char *data = NULL;
-  const struct Slist *const c_send_charset = cs_subset_slist(SpaceMutt->sub, "send_charset");
+  const struct StrList *const c_send_charset = cs_subset_slist(SpaceMutt->sub, "send_charset");
   for (GList *np = al->head; np != NULL; np = np->next)
   {
     struct Address *a = np->data;
@@ -804,7 +804,7 @@ void rfc2047_decode_addrlist(AddressList *al)
   if (!al)
     return;
 
-  const bool assumed = !slist_is_empty(cc_assumed_charset());
+  const bool assumed = !strlist_is_empty(cc_assumed_charset());
   char *data = NULL;
   for (GList *np = al->head; np != NULL; np = np->next)
   {
@@ -866,7 +866,7 @@ void rfc2047_encode_envelope(struct Envelope *env)
   rfc2047_encode_addrlist(env->reply_to, "Reply-To");
   rfc2047_encode_addrlist(env->mail_followup_to, "Mail-Followup-To");
   rfc2047_encode_addrlist(env->sender, "Sender");
-  const struct Slist *const c_send_charset = cs_subset_slist(SpaceMutt->sub, "send_charset");
+  const struct StrList *const c_send_charset = cs_subset_slist(SpaceMutt->sub, "send_charset");
   rfc2047_encode(&env->x_label, NULL, sizeof("X-Label:"), c_send_charset);
 
   char *subj = env->subject;

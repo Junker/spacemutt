@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for slist_parse()
+ * Test code for strlist_remove_string()
  *
  * @authors
  * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
@@ -24,7 +24,7 @@
 #include "config.h"
 #include "acutest.h"
 
-void test_slist_parse(void)
+void test_strlist_remove_string(void)
 {
-  // struct Slist *slist_parse(const char *str, uint32_t flags);
+  // struct StrList *strlist_remove_string(struct StrList *list, const char *str);
 }

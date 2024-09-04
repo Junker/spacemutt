@@ -670,7 +670,7 @@ static void encode_headers(GQueue *h, struct ConfigSubset *sub)
   char *p = NULL;
   int i;
 
-  const struct Slist *const c_send_charset = cs_subset_slist(sub, "send_charset");
+  const struct StrList *const c_send_charset = cs_subset_slist(sub, "send_charset");
 
   for (GList *np = h->head; np != NULL; np = np->next)
   {

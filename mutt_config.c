@@ -419,7 +419,7 @@ static struct ConfigDef MainVars[] = {
   { "ascii_chars", DT_BOOL, false, 0, NULL,
     "Use plain ASCII characters, when drawing email threads"
   },
-  { "assumed_charset", DT_SLIST|D_SLIST_SEP_COLON|D_SLIST_ALLOW_EMPTY, 0, 0, charset_slist_validator,
+  { "assumed_charset", DT_STRLIST|D_STRLIST_SEP_COLON|D_STRLIST_ALLOW_EMPTY, 0, 0, charset_strlist_validator,
     "If a message is missing a character set, assume this character set"
   },
   { "attach_format", DT_EXPANDO|D_NOT_EMPTY, IP "%u%D%I %t%4n %T%d %> [%.7m/%.10M, %.6e%<C?, %C>, %s] ", IP &AttachFormatDef, NULL,
@@ -545,7 +545,7 @@ static struct ConfigDef MainVars[] = {
   { "header", DT_BOOL, false, 0, NULL,
     "Include the message headers in the reply email (Weed applies)"
   },
-  { "hidden_tags", DT_SLIST|D_SLIST_SEP_COMMA, IP "unread,draft,flagged,passed,replied,attachment,signed,encrypted", 0, NULL,
+  { "hidden_tags", DT_STRLIST|D_STRLIST_SEP_COMMA, IP "unread,draft,flagged,passed,replied,attachment,signed,encrypted", 0, NULL,
     "List of tags that shouldn't be displayed on screen (comma-separated)"
   },
   { "hide_limited", DT_BOOL, false, 0, NULL,
@@ -602,7 +602,7 @@ static struct ConfigDef MainVars[] = {
   { "mail_check_stats_interval", DT_NUMBER|D_INTEGER_NOT_NEGATIVE, 60, 0, NULL,
     "How often to check for new mail"
   },
-  { "mailcap_path", DT_SLIST|D_SLIST_SEP_COLON, IP "~/.mailcap:" PKGDATADIR "/mailcap:" SYSCONFDIR "/mailcap:/etc/mailcap:/usr/etc/mailcap:/usr/local/etc/mailcap", 0, NULL,
+  { "mailcap_path", DT_STRLIST|D_STRLIST_SEP_COLON, IP "~/.mailcap:" PKGDATADIR "/mailcap:" SYSCONFDIR "/mailcap:/etc/mailcap:/usr/etc/mailcap:/usr/local/etc/mailcap", 0, NULL,
     "List of mailcap files (colon-separated)"
   },
   { "mailcap_sanitize", DT_BOOL, true, 0, NULL,
@@ -665,7 +665,7 @@ static struct ConfigDef MainVars[] = {
   { "postponed", DT_STRING|D_STRING_MAILBOX, IP "~/postponed", 0, NULL,
     "Folder to store postponed messages"
   },
-  { "preferred_languages", DT_SLIST|D_SLIST_SEP_COMMA, 0, 0, NULL,
+  { "preferred_languages", DT_STRLIST|D_STRLIST_SEP_COMMA, 0, 0, NULL,
     "List of Preferred Languages for multilingual MIME (comma-separated)"
   },
   { "print", DT_QUAD, MUTT_ASKNO, 0, NULL,
@@ -765,7 +765,7 @@ static struct ConfigDef MainVars[] = {
   { "score_threshold_read", DT_NUMBER, -1, 0, NULL,
     "Messages with a lower score will be automatically marked read"
   },
-  { "send_charset", DT_SLIST|D_SLIST_SEP_COLON|D_SLIST_ALLOW_EMPTY|D_CHARSET_STRICT, IP "us-ascii:iso-8859-1:utf-8", 0, charset_slist_validator,
+  { "send_charset", DT_STRLIST|D_STRLIST_SEP_COLON|D_STRLIST_ALLOW_EMPTY|D_CHARSET_STRICT, IP "us-ascii:iso-8859-1:utf-8", 0, charset_strlist_validator,
     "Character sets for outgoing mail"
   },
   { "shell", DT_STRING|D_STRING_COMMAND, IP "/bin/sh", 0, NULL,
@@ -963,7 +963,7 @@ static void init_types(struct ConfigSet *cs)
   CONFIG_INIT_TYPE(cs, Path);
   CONFIG_INIT_TYPE(cs, Quad);
   CONFIG_INIT_TYPE(cs, Regex);
-  CONFIG_INIT_TYPE(cs, Slist);
+  CONFIG_INIT_TYPE(cs, StrList);
   CONFIG_INIT_TYPE(cs, Sort);
   CONFIG_INIT_TYPE(cs, String);
 }

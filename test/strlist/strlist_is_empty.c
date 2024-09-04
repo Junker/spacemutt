@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for slist_equal()
+ * Test code for strlist_is_empty()
  *
  * @authors
  * Copyright (C) 2023 Richard Russon <rich@flatcap.org>
@@ -23,8 +23,17 @@
 #define TEST_NO_MAIN
 #include "config.h"
 #include "acutest.h"
+#include <stddef.h>
+#include "mutt/lib.h"
+#include "config/lib.h"
 
-void test_slist_equal(void)
+void test_strlist_is_empty(void)
 {
-  // bool slist_equal(const struct Slist *a, const struct Slist *b);
+  // bool strlist_is_empty(const struct StrList *list);
+
+  TEST_CHECK(strlist_is_empty(NULL));
+
+  struct StrList *slist = strlist_new(D_STRLIST_SEP_COMMA);
+  TEST_CHECK(strlist_is_empty(slist));
+  strlist_free(&slist);
 }

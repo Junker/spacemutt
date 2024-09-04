@@ -67,10 +67,10 @@ void parse_alias_tags(const char *tags, TagList **tl)
   if (!tags || !tl)
     return;
 
-  struct Slist *sl = slist_parse(tags, D_SLIST_SEP_COMMA);
-  if (slist_is_empty(sl))
+  struct StrList *sl = strlist_parse(tags, D_STRLIST_SEP_COMMA);
+  if (strlist_is_empty(sl))
   {
-    slist_free(&sl);
+    strlist_free(&sl);
     return;
   }
 
@@ -81,7 +81,7 @@ void parse_alias_tags(const char *tags, TagList **tl)
     np->data = NULL;
     *tl = g_slist_append(*tl, tag);
   }
-  slist_free(&sl);
+  strlist_free(&sl);
 }
 
 /**

@@ -1,6 +1,6 @@
 /**
  * @file
- * Test code for slist_add_string()
+ * Test code for strlist_add_string()
  *
  * @authors
  * Copyright (C) 2020 Richard Russon <rich@flatcap.org>
@@ -24,7 +24,7 @@
 #include "config.h"
 #include "acutest.h"
 
-void test_slist_add_string(void)
+void test_strlist_add_string(void)
 {
-  // struct Slist *slist_add_string(struct Slist *list, const char *str);
+  // struct StrList *strlist_add_string(struct StrList *list, const char *str);
 }

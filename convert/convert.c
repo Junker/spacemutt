@@ -61,7 +61,7 @@
  * long as the input for any pair of charsets we might be interested
  * in.
  */
-size_t mutt_convert_file_to(FILE *fp, const char *fromcode, struct Slist const *const tocodes,
+size_t mutt_convert_file_to(FILE *fp, const char *fromcode, struct StrList const *const tocodes,
                             int *tocode, struct Content *info)
 {
   char bufi[256] = { 0 };
@@ -211,8 +211,8 @@ size_t mutt_convert_file_to(FILE *fp, const char *fromcode, struct Slist const *
  * and return the number of characters converted inexactly. If no conversion
  * was possible, return -1.
  */
-size_t mutt_convert_file_from_to(FILE *fp, const struct Slist *fromcodes,
-                                 const struct Slist *tocodes, char **fromcode,
+size_t mutt_convert_file_from_to(FILE *fp, const struct StrList *fromcodes,
+                                 const struct StrList *tocodes, char **fromcode,
                                  char **tocode, struct Content *info)
 {
   char **tcode = NULL;

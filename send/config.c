@@ -76,7 +76,7 @@ static int wrapheaders_validator(const struct ConfigSet *cs, const struct Config
 static int smtp_auth_validator(const struct ConfigSet *cs, const struct ConfigDef *cdef,
                                intptr_t value, struct Buffer *err)
 {
-  const struct Slist *smtp_auth_methods = (const struct Slist *) value;
+  const struct StrList *smtp_auth_methods = (const struct StrList *) value;
   if (!smtp_auth_methods || (smtp_auth_methods->count == 0))
     return CSR_SUCCESS;
 
@@ -162,7 +162,7 @@ static struct ConfigDef SendVars[] = {
   { "ask_x_comment_to", DT_BOOL, false, 0, NULL,
     "(nntp) Ask the user for the 'X-Comment-To' field before editing"
   },
-  { "attach_charset", DT_SLIST|D_SLIST_SEP_COLON|D_SLIST_ALLOW_EMPTY, 0, 0, charset_slist_validator,
+  { "attach_charset", DT_STRLIST|D_STRLIST_SEP_COLON|D_STRLIST_ALLOW_EMPTY, 0, 0, charset_strlist_validator,
     "When attaching files, use one of these character sets"
   },
   // L10N: $attribution_intro default format
@@ -333,7 +333,7 @@ static struct ConfigDef SendVars[] = {
   { "signature", DT_PATH|D_PATH_FILE, IP "~/.signature", 0, NULL,
     "File containing a signature to append to all mail"
   },
-  { "smtp_authenticators", DT_SLIST|D_SLIST_SEP_COLON, 0, 0, smtp_auth_validator,
+  { "smtp_authenticators", DT_STRLIST|D_STRLIST_SEP_COLON, 0, 0, smtp_auth_validator,
     "(smtp) List of allowed authentication methods (colon-separated)"
   },
   { "smtp_oauth_refresh_command", DT_STRING|D_STRING_COMMAND|D_SENSITIVE, 0, 0, NULL,

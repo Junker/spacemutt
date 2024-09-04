@@ -203,7 +203,7 @@
 ** the body of an outgoing message.
 */
 
-{ "assumed_charset", DT_SLIST, 0 },
+{ "assumed_charset", DT_STRLIST, 0 },
 /*
 ** .pp
 ** This variable is a colon-separated list of character encoding
@@ -221,7 +221,7 @@
 ** However, only the first content is valid for the message body.
 */
 
-{ "attach_charset", DT_SLIST, 0 },
+{ "attach_charset", DT_STRLIST, 0 },
 /*
 ** .pp
 ** This variable is a colon-separated list of character encoding
@@ -1686,7 +1686,7 @@
 ** when adding the domain part to addresses.
 */
 
-{ "hidden_tags", DT_SLIST, "unread,draft,flagged,passed,replied,attachment,signed,encrypted" },
+{ "hidden_tags", DT_STRLIST, "unread,draft,flagged,passed,replied,attachment,signed,encrypted" },
 /*
 ** .pp
 ** This variable specifies a list of comma-separated private notmuch/imap tags
@@ -1844,7 +1844,7 @@
 ** list.
 */
 
-{ "imap_authenticators", DT_SLIST, 0 },
+{ "imap_authenticators", DT_STRLIST, 0 },
 /*
 ** .pp
 ** This is a colon-separated list of authentication methods NeoMutt may
@@ -2341,7 +2341,7 @@
 ** "$$folder_format".
 */
 
-{ "mailcap_path", DT_SLIST, "~/.mailcap:" PKGDATADIR "/mailcap:" SYSCONFDIR "/mailcap:/etc/mailcap:/usr/etc/mailcap:/usr/local/etc/mailcap" },
+{ "mailcap_path", DT_STRLIST, "~/.mailcap:" PKGDATADIR "/mailcap:" SYSCONFDIR "/mailcap:/etc/mailcap:/usr/etc/mailcap:/usr/local/etc/mailcap" },
 /*
 ** .pp
 ** This variable specifies a list of colon-separated files to consult when
@@ -3507,7 +3507,7 @@
 ** available but authentication fails, NeoMutt will not connect to the POP server.
 */
 
-{ "pop_authenticators", DT_SLIST, 0 },
+{ "pop_authenticators", DT_STRLIST, 0 },
 /*
 ** .pp
 ** This is a colon-separated list of authentication methods NeoMutt may
@@ -3662,7 +3662,7 @@
 ** remote machine without having to enter a password.
 */
 
-{ "preferred_languages", DT_SLIST, 0 },
+{ "preferred_languages", DT_STRLIST, 0 },
 /*
 ** .pp
 ** This variable specifies a list of comma-separated languages.
@@ -4168,7 +4168,7 @@
 ** before search results. By default, search results will be top-aligned.
 */
 
-{ "send_charset", DT_SLIST, "us-ascii:iso-8859-1:utf-8" },
+{ "send_charset", DT_STRLIST, "us-ascii:iso-8859-1:utf-8" },
 /*
 ** .pp
 ** A colon-delimited list of character sets for outgoing messages. NeoMutt will use the
@@ -4803,7 +4803,7 @@
 */
 #endif
 
-{ "smtp_authenticators", DT_SLIST, 0 },
+{ "smtp_authenticators", DT_STRLIST, 0 },
 /*
 ** .pp
 ** This is a colon-separated list of authentication methods NeoMutt may

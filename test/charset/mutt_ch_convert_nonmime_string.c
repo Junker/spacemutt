@@ -28,7 +28,7 @@
 
 void test_mutt_ch_convert_nonmime_string(void)
 {
-  // int mutt_ch_convert_nonmime_string(const struct Slist *const assumed_charset, const char *charset, char **ps);
+  // int mutt_ch_convert_nonmime_string(const struct StrList *const assumed_charset, const char *charset, char **ps);
 
   {
     TEST_CHECK(mutt_ch_convert_nonmime_string(NULL, NULL, NULL) != 0);

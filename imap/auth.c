@@ -112,7 +112,7 @@ int imap_authenticate(struct ImapAccountData *adata)
 {
   int rc = IMAP_AUTH_FAILURE;
 
-  const struct Slist *c_imap_authenticators = cs_subset_slist(SpaceMutt->sub, "imap_authenticators");
+  const struct StrList *c_imap_authenticators = cs_subset_slist(SpaceMutt->sub, "imap_authenticators");
   if (c_imap_authenticators && (c_imap_authenticators->count > 0))
   {
     log_debug2("Trying user-defined imap_authenticators");

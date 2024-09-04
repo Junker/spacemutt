@@ -84,7 +84,7 @@ static struct ConfigDef Vars[] = {
   { "Lemon",      DT_REGEX,                          0,                           0,                   NULL, },
   { "Mango",      DT_SORT,                           1,                           IP SortMangoMethods, NULL, },
   { "Nectarine",  DT_STRING|D_SENSITIVE,             IP "nectarine",              0,                   NULL, },
-  { "Olive",      DT_SLIST,                          IP "olive",                  IP "olive",          NULL, },
+  { "Olive",      DT_STRLIST,                        IP "olive",                  IP "olive",          NULL, },
   { NULL },
 };
 // clang-format on

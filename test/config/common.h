@@ -44,7 +44,7 @@ extern const struct ConfigSetType CstNumber;
 extern const struct ConfigSetType CstPath;
 extern const struct ConfigSetType CstQuad;
 extern const struct ConfigSetType CstRegex;
-extern const struct ConfigSetType CstSlist;
+extern const struct ConfigSetType CstStrList;
 extern const struct ConfigSetType CstSort;
 extern const struct ConfigSetType CstString;
 

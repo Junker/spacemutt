@@ -36,14 +36,14 @@
 
 void test_mutt_convert_file_to(void)
 {
-  // static size_t convert_file_to(FILE *fp, const char *fromcode, struct Slist const *const tocodes, int *tocode, struct Content *info)
+  // static size_t convert_file_to(FILE *fp, const char *fromcode, struct StrList const *const tocodes, int *tocode, struct Content *info)
 
   {
     /* Conversion from us-ascii to UTF-8. */
     char data[] = "us-ascii text\nline 2 \r\nline3";
     FILE *fp = test_make_file_with_contents(data, sizeof(data) - 1);
 
-    struct Slist *tocodes = slist_parse("utf-8", D_SLIST_SEP_COLON);
+    struct StrList *tocodes = strlist_parse("utf-8", D_STRLIST_SEP_COLON);
     int tocode = 0;
     struct Content info = initial_info;
 
@@ -76,7 +76,7 @@ void test_mutt_convert_file_to(void)
     TEST_CHECK(info.cr == 1);
     TEST_MSG("Check failed: %d == 1", info.cr);
 
-    slist_free(&tocodes);
+    strlist_free(&tocodes);
     fclose(fp);
   }
 
@@ -86,14 +86,14 @@ void test_mutt_convert_file_to(void)
     char data[] = "line 2\r\nline3\n\xf3\xbf\x77\xb3\x00";
     FILE *fp = test_make_file_with_contents(data, sizeof(data) - 1);
 
-    struct Slist *tocodes = slist_parse("us-ascii", D_SLIST_SEP_COLON);
+    struct StrList *tocodes = strlist_parse("us-ascii", D_STRLIST_SEP_COLON);
     int tocode = 0;
     struct Content info = initial_info;
 
     size_t rc = mutt_convert_file_to(fp, "iso-8859-2", tocodes, &tocode, &info);
     TEST_CHECK(rc != sizeof(data) - 1);
 
-    slist_free(&tocodes);
+    strlist_free(&tocodes);
     fclose(fp);
   }
 
@@ -103,14 +103,14 @@ void test_mutt_convert_file_to(void)
     char data[] = "line 2\r\nline3\n\xf3\xbf\x77\xb3\x00";
     FILE *fp = test_make_file_with_contents(data, sizeof(data) - 1);
 
-    struct Slist *tocodes = slist_parse("us-ascii:iso-8859-1", D_SLIST_SEP_COLON);
+    struct StrList *tocodes = strlist_parse("us-ascii:iso-8859-1", D_STRLIST_SEP_COLON);
     int tocode = 0;
     struct Content info = initial_info;
 
     size_t rc = mutt_convert_file_to(fp, "iso-8859-2", tocodes, &tocode, &info);
     TEST_CHECK(rc != sizeof(data) - 1);
 
-    slist_free(&tocodes);
+    strlist_free(&tocodes);
     fclose(fp);
   }
 
@@ -120,7 +120,7 @@ void test_mutt_convert_file_to(void)
     char data[] = "line 2\r\nline3\n";
     FILE *fp = test_make_file_with_contents(data, sizeof(data) - 1);
 
-    struct Slist *tocodes = slist_parse("us-ascii:iso-8859-1", D_SLIST_SEP_COLON);
+    struct StrList *tocodes = strlist_parse("us-ascii:iso-8859-1", D_STRLIST_SEP_COLON);
     int tocode = 0;
     struct Content info = initial_info;
 
@@ -131,7 +131,7 @@ void test_mutt_convert_file_to(void)
     TEST_CHECK(tocode == 0);
     TEST_MSG("Check failed: %d == 0", tocode);
 
-    slist_free(&tocodes);
+    strlist_free(&tocodes);
     fclose(fp);
   }
 
@@ -142,7 +142,7 @@ void test_mutt_convert_file_to(void)
     char data[] = "line 2\r\nline3\n\xf3\xbf\x77\xb3\x00";
     FILE *fp = test_make_file_with_contents(data, sizeof(data) - 1);
 
-    struct Slist *tocodes = slist_parse("us-ascii:utf-8", D_SLIST_SEP_COLON);
+    struct StrList *tocodes = strlist_parse("us-ascii:utf-8", D_STRLIST_SEP_COLON);
     int tocode = 0;
     struct Content info = initial_info;
 
@@ -178,7 +178,7 @@ void test_mutt_convert_file_to(void)
     TEST_CHECK(info.cr == 1);
     TEST_MSG("Check failed: %d == 1", info.cr);
 
-    slist_free(&tocodes);
+    strlist_free(&tocodes);
     fclose(fp);
   }
 }

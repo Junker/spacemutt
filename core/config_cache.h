@@ -24,7 +24,7 @@
 #ifndef MUTT_CORE_CONFIG_CACHE_H
 #define MUTT_CORE_CONFIG_CACHE_H
 
-const struct Slist *cc_assumed_charset        (void);
+const struct StrList *cc_assumed_charset        (void);
 const char *        cc_charset                (void);
 const char *        cc_maildir_field_delimiter(void);
 

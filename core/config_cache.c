@@ -38,7 +38,7 @@
 /// Is the cache enabled?
 static bool CacheActive = false;
 /// Cached value of $assumed_charset
-static const struct Slist *CachedAssumedCharset = NULL;
+static const struct StrList *CachedAssumedCharset = NULL;
 /// Cached value of $charset
 static const char *CachedCharset = NULL;
 /// Cached value of $maildir_field_delimiter
@@ -60,7 +60,7 @@ static int cc_config_observer(struct NotifyCallback *nc)
 
   if (mutt_str_equal(ev_c->name, "assumed_charset"))
   {
-    CachedAssumedCharset = (const struct Slist *) cs_subset_he_native_get(ev_c->sub,
+    CachedAssumedCharset = (const struct StrList *) cs_subset_he_native_get(ev_c->sub,
                                                                           ev_c->he, NULL);
   }
   else if (mutt_str_equal(ev_c->name, "charset"))
@@ -98,7 +98,7 @@ static void cache_setup(void)
  * cc_assumed_charset - Get the cached value of $assumed_charset
  * @retval ptr Value of $assumed_charset
  */
-const struct Slist *cc_assumed_charset(void)
+const struct StrList *cc_assumed_charset(void)
 {
   if (!CacheActive)
   {

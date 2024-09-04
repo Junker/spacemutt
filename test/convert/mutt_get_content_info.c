@@ -39,7 +39,7 @@
 static struct ConfigDef CharsetVars[] = {
   // clang-format off
   { "config_charset", DT_STRING, 0, 0, charset_validator, },
-  { "send_charset", DT_SLIST|D_SLIST_SEP_COLON|D_SLIST_ALLOW_EMPTY|D_CHARSET_STRICT, IP "us-ascii:iso-8859-1:utf-8", 0, charset_slist_validator, },
+  { "send_charset", DT_STRLIST|D_STRLIST_SEP_COLON|D_STRLIST_ALLOW_EMPTY|D_CHARSET_STRICT, IP "us-ascii:iso-8859-1:utf-8", 0, charset_strlist_validator, },
   { NULL },
   // clang-format on
 };

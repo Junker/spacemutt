@@ -20,8 +20,8 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MUTT_MUTT_SLIST_H
-#define MUTT_MUTT_SLIST_H
+#ifndef MUTT_MUTT_STRLIST_H
+#define MUTT_MUTT_STRLIST_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -31,24 +31,24 @@
 struct Buffer;
 
 /**
- * struct Slist - String list
+ * struct StrList - String list
  */
-struct Slist
+struct StrList
 {
   GSList *head;         ///< List containing values
   size_t count;         ///< Number of values in list
-  uint32_t flags;       ///< Flags controlling list, e.g. #D_SLIST_SEP_SPACE
+  uint32_t flags;       ///< Flags controlling list, e.g. #D_STRLIST_SEP_SPACE
 };
 
-struct Slist *slist_add_string   (struct Slist *list, const char *str);
-struct Slist *slist_dup          (const struct Slist *list);
-bool          slist_equal        (const struct Slist *a, const struct Slist *b);
-void          slist_free         (struct Slist **ptr);
-bool          slist_is_empty     (const struct Slist *list);
-bool          slist_is_member    (const struct Slist *list, const char *str);
-struct Slist *slist_new          (uint32_t flags);
-struct Slist *slist_parse        (const char *str, uint32_t flags);
-struct Slist *slist_remove_string(struct Slist *list, const char *str);
-int           slist_to_buffer    (const struct Slist *list, struct Buffer *buf);
+struct StrList *strlist_add_string    (struct StrList *list, const char *str);
+struct StrList *strlist_dup           (const struct StrList *list);
+bool            strlist_equal         (const struct StrList *a, const struct StrList *b);
+void            strlist_free          (struct StrList **ptr);
+bool            strlist_is_empty      (const struct StrList *list);
+bool            strlist_is_member     (const struct StrList *list, const char *str);
+struct StrList *strlist_new           (uint32_t flags);
+struct StrList *strlist_parse         (const char *str, uint32_t flags);
+struct StrList *strlist_remove_string (struct StrList *list, const char *str);
+int             strlist_to_buffer     (const struct StrList *list, struct Buffer *buf);
 
-#endif /* MUTT_MUTT_SLIST_H */
+#endif /* MUTT_MUTT_STRLIST_H */

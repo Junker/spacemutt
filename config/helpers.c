@@ -239,7 +239,7 @@ const struct Regex *cs_subset_regex(const struct ConfigSubset *sub, const char *
  * @retval ptr  String list
  * @retval NULL Empty string list
  */
-const struct Slist *cs_subset_slist(const struct ConfigSubset *sub, const char *name)
+const struct StrList *cs_subset_slist(const struct ConfigSubset *sub, const char *name)
 {
   ASSERT(sub && name);
 
@@ -248,13 +248,13 @@ const struct Slist *cs_subset_slist(const struct ConfigSubset *sub, const char *
 
 #ifndef NDEBUG
   struct HashElem *he_base = cs_get_base(he);
-  ASSERT(DTYPE(he_base->type) == DT_SLIST);
+  ASSERT(DTYPE(he_base->type) == DT_STRLIST);
 #endif
 
   intptr_t value = cs_subset_he_native_get(sub, he, NULL);
   ASSERT(value != INT_MIN);
 
-  return (const struct Slist *) value;
+  return (const struct StrList *) value;
 }
 
 /**

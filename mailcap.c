@@ -488,7 +488,7 @@ bool mailcap_lookup(struct Body *b, char *type, size_t typelen,
    * $HOME/.mailcap:/etc/mailcap:/usr/etc/mailcap:/usr/local/etc/mailcap, etc
    * and overridden by the MAILCAPS environment variable, and, just to be nice,
    * we'll make it specifiable in .neomuttrc */
-  const struct Slist *c_mailcap_path = cs_subset_slist(SpaceMutt->sub, "mailcap_path");
+  const struct StrList *c_mailcap_path = cs_subset_slist(SpaceMutt->sub, "mailcap_path");
   if (!c_mailcap_path || (c_mailcap_path->count == 0))
   {
     /* L10N:

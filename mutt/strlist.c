@@ -36,7 +36,7 @@
 #include "config.h"
 #include <stddef.h>
 #include "config/types.h"
-#include "slist.h"
+#include "strlist.h"
 #include "buffer.h"
 #include "memory.h"
 #include "string2.h"
@@ -44,13 +44,13 @@
 
 
 /**
- * slist_new - Create a new string list
- * @param flags Flag to set, e.g. #D_SLIST_SEP_COMMA
+ * strlist_new - Create a new string list
+ * @param flags Flag to set, e.g. #D_STRLIST_SEP_COMMA
  * @retval ptr New string list
  */
-struct Slist *slist_new(uint32_t flags)
+struct StrList *strlist_new(uint32_t flags)
 {
-  struct Slist *list = mutt_mem_calloc(1, sizeof(*list));
+  struct StrList *list = mutt_mem_calloc(1, sizeof(*list));
   list->flags = flags;
   list->head = NULL;
 
@@ -58,12 +58,12 @@ struct Slist *slist_new(uint32_t flags)
 }
 
 /**
- * slist_add_string - Add a string to a list
+ * strlist_add_string - Add a string to a list
  * @param list List to modify
  * @param str  String to add
  * @retval ptr Modified list
  */
-struct Slist *slist_add_string(struct Slist *list, const char *str)
+struct StrList *strlist_add_string(struct StrList *list, const char *str)
 {
   if (!list)
     return NULL;
@@ -71,7 +71,7 @@ struct Slist *slist_add_string(struct Slist *list, const char *str)
   if (str && (str[0] == '\0'))
     str = NULL;
 
-  if (!str && !(list->flags & D_SLIST_ALLOW_EMPTY))
+  if (!str && !(list->flags & D_STRLIST_ALLOW_EMPTY))
     return list;
 
   list->head = g_slist_append(list->head, mutt_str_dup(str));
@@ -81,12 +81,12 @@ struct Slist *slist_add_string(struct Slist *list, const char *str)
 }
 
 /**
- * slist_equal - Compare two string lists
+ * strlist_equal - Compare two string lists
  * @param a First list
  * @param b Second list
  * @retval true They are identical
  */
-bool slist_equal(const struct Slist *a, const struct Slist *b)
+bool strlist_equal(const struct StrList *a, const struct StrList *b)
 {
   if (!a && !b) /* both empty */
     return true;
@@ -99,16 +99,16 @@ bool slist_equal(const struct Slist *a, const struct Slist *b)
 }
 
 /**
- * slist_dup - Create a copy of an Slist object
- * @param list Slist to duplicate
- * @retval ptr New Slist object
+ * strlist_dup - Create a copy of a StrList object
+ * @param list StrList to duplicate
+ * @retval ptr New StrList object
  */
-struct Slist *slist_dup(const struct Slist *list)
+struct StrList *strlist_dup(const struct StrList *list)
 {
   if (!list)
     return NULL;
 
-  struct Slist *list_new = slist_new(list->flags);
+  struct StrList *list_new = strlist_new(list->flags);
 
   list_new->head = g_slist_copy_deep(list->head, (GCopyFunc)mutt_str_dup, NULL);
   list_new->count = list->count;
@@ -116,26 +116,26 @@ struct Slist *slist_dup(const struct Slist *list)
 }
 
 /**
- * slist_free - Free an Slist object
- * @param ptr Slist to free
+ * strlist_free - Free a StrList object
+ * @param ptr StrList to free
  */
-void slist_free(struct Slist **ptr)
+void strlist_free(struct StrList **ptr)
 {
   if (!ptr || !*ptr)
     return;
 
-  struct Slist *slist = *ptr;
+  struct StrList *slist = *ptr;
   g_slist_free_full(g_steal_pointer(&slist->head), g_free);
 
   FREE(ptr);
 }
 
 /**
- * slist_is_empty - Is the slist empty?
+ * strlist_is_empty - Is the strlist empty?
  * @param list List to check
  * @retval true List is empty
  */
-bool slist_is_empty(const struct Slist *list)
+bool strlist_is_empty(const struct StrList *list)
 {
   if (!list)
     return true;
@@ -144,17 +144,17 @@ bool slist_is_empty(const struct Slist *list)
 }
 
 /**
- * slist_is_member - Is a string a member of a list?
+ * strlist_is_member - Is a string a member of a list?
  * @param list List to modify
  * @param str  String to find
  * @retval true String is in the list
  */
-bool slist_is_member(const struct Slist *list, const char *str)
+bool strlist_is_member(const struct StrList *list, const char *str)
 {
   if (!list)
     return false;
 
-  if (!str && !(list->flags & D_SLIST_ALLOW_EMPTY))
+  if (!str && !(list->flags & D_STRLIST_ALLOW_EMPTY))
     return false;
 
   for (GSList *np = list->head; np != NULL; np = np->next)
@@ -166,24 +166,24 @@ bool slist_is_member(const struct Slist *list, const char *str)
 }
 
 /**
- * slist_parse - Parse a list of strings into a list
+ * strlist_parse - Parse a list of strings into a list
  * @param str   String of strings
- * @param flags Flags, e.g. #D_SLIST_ALLOW_EMPTY
+ * @param flags Flags, e.g. #D_STRLIST_ALLOW_EMPTY
  * @retval ptr New Slist object
  */
-struct Slist *slist_parse(const char *str, uint32_t flags)
+struct StrList *strlist_parse(const char *str, uint32_t flags)
 {
   char *src = mutt_str_dup(str);
-  if (!src && !(flags & D_SLIST_ALLOW_EMPTY))
+  if (!src && !(flags & D_STRLIST_ALLOW_EMPTY))
     return NULL;
 
   char sep = ' ';
-  if ((flags & D_SLIST_SEP_MASK) == D_SLIST_SEP_COMMA)
+  if ((flags & D_STRLIST_SEP_MASK) == D_STRLIST_SEP_COMMA)
     sep = ',';
-  else if ((flags & D_SLIST_SEP_MASK) == D_SLIST_SEP_COLON)
+  else if ((flags & D_STRLIST_SEP_MASK) == D_STRLIST_SEP_COLON)
     sep = ':';
 
-  struct Slist *list = mutt_mem_calloc(1, sizeof(struct Slist));
+  struct StrList *list = mutt_mem_calloc(1, sizeof(struct StrList));
   list->flags = flags;
 
   if (!src)
@@ -201,7 +201,7 @@ struct Slist *slist_parse(const char *str, uint32_t flags)
     if (p[0] == sep)
     {
       p[0] = '\0';
-      if (slist_is_member(list, start))
+      if (strlist_is_member(list, start))
       {
         start = p + 1;
         continue;
@@ -212,7 +212,7 @@ struct Slist *slist_parse(const char *str, uint32_t flags)
     }
   }
 
-  if (!slist_is_member(list, start))
+  if (!strlist_is_member(list, start))
   {
     list->head = g_slist_append(list->head, mutt_str_dup(start));
     list->count++;
@@ -223,16 +223,16 @@ struct Slist *slist_parse(const char *str, uint32_t flags)
 }
 
 /**
- * slist_remove_string - Remove a string from a list
+ * strlist_remove_string - Remove a string from a list
  * @param list List to modify
  * @param str  String to remove
  * @retval ptr Modified list
  */
-struct Slist *slist_remove_string(struct Slist *list, const char *str)
+struct StrList *strlist_remove_string(struct StrList *list, const char *str)
 {
   if (!list)
     return NULL;
-  if (!str && !(list->flags & D_SLIST_ALLOW_EMPTY))
+  if (!str && !(list->flags & D_STRLIST_ALLOW_EMPTY))
     return list;
 
   for (GSList *np = list->head; np != NULL;)
@@ -251,12 +251,12 @@ struct Slist *slist_remove_string(struct Slist *list, const char *str)
 }
 
 /**
- * slist_to_buffer - Export an Slist to a Buffer
+ * strlist_to_buffer - Export a StrList to a Buffer
  * @param list List to export
  * @param buf  Buffer for the results
  * @retval num Number of strings written to Buffer
  */
-int slist_to_buffer(const struct Slist *list, struct Buffer *buf)
+int strlist_to_buffer(const struct StrList *list, struct Buffer *buf)
 {
   if (!list || !buf || (list->count == 0))
     return 0;
@@ -266,10 +266,10 @@ int slist_to_buffer(const struct Slist *list, struct Buffer *buf)
     buf_addstr(buf, np->data);
     if (np->next)
     {
-      const int sep = (list->flags & D_SLIST_SEP_MASK);
-      if (sep == D_SLIST_SEP_COMMA)
+      const int sep = (list->flags & D_STRLIST_SEP_MASK);
+      if (sep == D_STRLIST_SEP_COMMA)
         buf_addch(buf, ',');
-      else if (sep == D_SLIST_SEP_COLON)
+      else if (sep == D_STRLIST_SEP_COLON)
         buf_addch(buf, ':');
       else
         buf_addch(buf, ' ');

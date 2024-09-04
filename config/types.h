@@ -40,7 +40,7 @@ enum ConfigType
   DT_PATH,        ///< a path to a file/directory
   DT_QUAD,        ///< quad-option (no/yes/ask-no/ask-yes)
   DT_REGEX,       ///< regular expressions
-  DT_SLIST,       ///< a list of strings
+  DT_STRLIST,       ///< a list of strings
   DT_SORT,        ///< sorting methods
   DT_STRING,      ///< a string
   DT_SYNONYM,     ///< synonym for another variable
@@ -107,14 +107,14 @@ enum ConfigTypeField
 #define D_REGEX_ALLOW_NOT          D_CUSTOM_BIT_1                      ///< Regex can begin with '!'
 #define D_REGEX_NOSUB              D_CUSTOM_BIT_2                      ///< Do not report what was matched (REG_NOSUB)
 
-#define D_SLIST_SEP_SPACE          (0 << D_B_CUSTOM_BIT_0)             ///< Slist items are space-separated
-#define D_SLIST_SEP_COMMA          (1 << D_B_CUSTOM_BIT_0)             ///< Slist items are comma-separated
-#define D_SLIST_SEP_COLON          (2 << D_B_CUSTOM_BIT_0)             ///< Slist items are colon-separated
-#define D_SLIST_SEP_MASK           (D_CUSTOM_BIT_0 | D_CUSTOM_BIT_1)
+#define D_STRLIST_SEP_SPACE        (0 << D_B_CUSTOM_BIT_0)             ///< StrList items are space-separated
+#define D_STRLIST_SEP_COMMA        (1 << D_B_CUSTOM_BIT_0)             ///< StrList items are comma-separated
+#define D_STRLIST_SEP_COLON        (2 << D_B_CUSTOM_BIT_0)             ///< StrList items are colon-separated
+#define D_STRLIST_SEP_MASK         (D_CUSTOM_BIT_0 | D_CUSTOM_BIT_1)
 
-#define D_SLIST_ALLOW_DUPES        D_CUSTOM_BIT_2                      ///< Slist may contain duplicates
-#define D_SLIST_ALLOW_EMPTY        D_CUSTOM_BIT_3                      ///< Slist may be empty
-#define D_SLIST_CASE_SENSITIVE     D_CUSTOM_BIT_4                      ///< Slist is case-sensitive
+#define D_STRLIST_ALLOW_DUPES      D_CUSTOM_BIT_2                      ///< StrList may contain duplicates
+#define D_STRLIST_ALLOW_EMPTY      D_CUSTOM_BIT_3                      ///< StrList may be empty
+#define D_STRLIST_CASE_SENSITIVE   D_CUSTOM_BIT_4                      ///< StrList is case-sensitive
 
 #define D_SORT_LAST                D_CUSTOM_BIT_0                      ///< Sort flag for -last prefix
 #define D_SORT_REVERSE             D_CUSTOM_BIT_1                      ///< Sort flag for -reverse prefix
