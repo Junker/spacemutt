@@ -381,7 +381,6 @@ static void hcache_per_folder(struct HeaderCache *hc, struct Buffer *hcpath,
   }
   else
   {
-    unsigned char m[16]; /* binary md5sum */
     struct Buffer *name = buf_pool_get();
 
 #ifdef USE_HCACHE_COMPRESSION
@@ -390,9 +389,12 @@ static void hcache_per_folder(struct HeaderCache *hc, struct Buffer *hcpath,
 #else
     buf_printf(name, "%s|%s", hc->store_ops->name, hc->folder);
 #endif
-    mutt_md5(buf_string(name), m);
+    GChecksum *checksum = g_checksum_new(G_CHECKSUM_MD5);
+    g_checksum_update(checksum, (const guchar *)buf_string(name), -1);
     buf_reset(name);
-    mutt_md5_toascii(m, name->data);
+    name->data = mutt_str_dup(g_checksum_get_string(checksum));
+    g_checksum_free(checksum);
+
     mutt_encode_path(name, buf_string(name));
     buf_printf(hcpath, "%s%s%s", path, slash ? "" : "/", buf_string(name));
     buf_pool_release(&name);
@@ -434,34 +436,34 @@ static unsigned int generate_hcachever(void)
 {
   union
   {
-    unsigned char charval[16]; ///< MD5 digest as a string
+    guint8 charval[16];        ///< MD5 digest as a string
     unsigned int intval;       ///< MD5 digest as an integer
   } digest;
-  struct Md5Ctx md5ctx = { 0 };
 
-  mutt_md5_init_ctx(&md5ctx);
+  GChecksum *checksum = g_checksum_new(G_CHECKSUM_MD5);
 
   /* Seed with the compiled-in header structure hash */
-  unsigned int ver = HCACHEVER;
-  mutt_md5_process_bytes(&ver, sizeof(ver), &md5ctx);
+  g_checksum_update(checksum, (const guchar*)G_STRINGIFY(HCACHEVER), -1);
 
   /* Mix in user's spam list */
   for (GSList *np = SpamList; np != NULL; np = np->next)
   {
     struct Replace *sp = np->data;
-    mutt_md5_process(sp->regex->pattern, &md5ctx);
-    mutt_md5_process(sp->templ, &md5ctx);
+    g_checksum_update(checksum, (const guchar*)sp->regex->pattern, -1);
+    g_checksum_update(checksum, (const guchar*)sp->templ, -1);
   }
 
   /* Mix in user's nospam list */
   for (GSList *np = NoSpamList; np != NULL; np = np->next)
   {
     struct Regex *regex = np->data;
-    mutt_md5_process(regex->pattern, &md5ctx);
+    g_checksum_update(checksum, (const guchar*)regex->pattern, -1);
   }
 
   /* Get a hash and take its bytes as an (unsigned int) hash version */
-  mutt_md5_finish_ctx(&md5ctx, digest.charval);
+  gsize digest_len;
+  g_checksum_get_digest(checksum, digest.charval, &digest_len);
+  g_checksum_free(checksum);
 
   return digest.intval;
 }
