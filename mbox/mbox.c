@@ -577,7 +577,7 @@ static int reopen_mailbox(struct Mailbox *m)
   old_msg_count = 0;
 
   /* simulate a close */
-  mutt_hash_free(&m->id_hash);
+  g_hash_table_destroy(g_steal_pointer(&m->id_hash));
   mutt_hash_free(&m->subj_hash);
   mutt_hash_free(&m->label_hash);
   FREE(&m->v2r);
@@ -604,7 +604,6 @@ static int reopen_mailbox(struct Mailbox *m)
   m->msg_unread = 0;
   m->msg_flagged = 0;
   m->changed = false;
-  m->id_hash = NULL;
   m->subj_hash = NULL;
   mutt_make_label_hash(m);
 

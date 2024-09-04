@@ -735,7 +735,7 @@ int mutt_get_postponed(struct Mailbox *m_cur, struct Email *hdr,
         p = mutt_str_skip_email_wsp(np->data + plen);
         if (!m_cur->id_hash)
           m_cur->id_hash = mutt_make_id_hash(m_cur);
-        *cur = mutt_hash_find(m_cur->id_hash, p);
+        *cur = g_hash_table_lookup(m_cur->id_hash, p);
 
         if (*cur)
           rc |= SEND_REPLY;

@@ -734,7 +734,7 @@ static struct Email *get_mutt_email(struct Mailbox *m, notmuch_message_t *msg)
   char *mid = nm2mutt_message_id(id);
   log_debug2("nm: neomutt id='%s'", mid);
 
-  struct Email *e = mutt_hash_find(m->id_hash, mid);
+  struct Email *e = g_hash_table_lookup(m->id_hash, mid);
   FREE(&mid);
   return e;
 }

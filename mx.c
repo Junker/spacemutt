@@ -429,7 +429,7 @@ void mx_fastclose_mailbox(struct Mailbox *m, bool keep_account)
     m->mx_ops->mbox_close(m);
 
   mutt_hash_free(&m->subj_hash);
-  mutt_hash_free(&m->id_hash);
+  g_hash_table_destroy(g_steal_pointer(&m->id_hash));
   mutt_hash_free(&m->label_hash);
 
   if (m->emails)

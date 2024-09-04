@@ -144,7 +144,7 @@ void mview_update(struct MailboxView *mv)
   struct Mailbox *m = mv->mailbox;
 
   mutt_hash_free(&m->subj_hash);
-  mutt_hash_free(&m->id_hash);
+  g_hash_table_destroy(g_steal_pointer(&m->id_hash));
 
   /* reset counters */
   m->msg_unread = 0;
@@ -189,7 +189,7 @@ void mview_update(struct MailboxView *mv)
       if (!m->id_hash)
         m->id_hash = mutt_make_id_hash(m);
 
-      e2 = mutt_hash_find(m->id_hash, e->env->supersedes);
+      e2 = g_hash_table_lookup(m->id_hash, e->env->supersedes);
       if (e2)
       {
         e2->superseded = true;
@@ -200,7 +200,7 @@ void mview_update(struct MailboxView *mv)
 
     /* add this message to the hash tables */
     if (m->id_hash && e->env->message_id)
-      mutt_hash_insert(m->id_hash, e->env->message_id, e);
+      g_hash_table_insert(m->id_hash, e->env->message_id, e);
     if (m->subj_hash && e->env->real_subj)
       mutt_hash_insert(m->subj_hash, e->env->real_subj, e);
     mutt_label_hash_add(m, e);
@@ -306,7 +306,7 @@ static void update_tables(struct MailboxView *mv)
       if (m->subj_hash && m->emails[i]->env->real_subj)
         mutt_hash_delete(m->subj_hash, m->emails[i]->env->real_subj, m->emails[i]);
       if (m->id_hash && m->emails[i]->env->message_id)
-        mutt_hash_delete(m->id_hash, m->emails[i]->env->message_id, m->emails[i]);
+        g_hash_table_remove(m->id_hash, m->emails[i]->env->message_id);
       mutt_label_hash_remove(m, m->emails[i]);
 
       if (m->type == MUTT_IMAP)

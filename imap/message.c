@@ -1049,7 +1049,7 @@ fail:
   imap_msn_free(&mdata->msn);
   mutt_hash_free(&mdata->uid_hash);
   mutt_hash_free(&m->subj_hash);
-  mutt_hash_free(&m->id_hash);
+  g_hash_table_destroy(g_steal_pointer(&m->id_hash));
   mutt_hash_free(&m->label_hash);
 
   for (int i = 0; i < m->msg_count; i++)

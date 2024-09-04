@@ -2615,7 +2615,7 @@ static int op_get_children(struct IndexSharedData *shared,
   {
     for (GList *ref = e->env->references->head; ref != NULL; ref = ref->next)
     {
-      if (!mutt_hash_find(m->id_hash, ref->data))
+      if (!g_hash_table_lookup(m->id_hash, ref->data))
       {
         rc = nntp_check_msgid(m, ref->data);
         if (rc < 0)
@@ -2644,7 +2644,7 @@ static int op_get_children(struct IndexSharedData *shared,
     m->verbose = verbose;
 
     /* if the root message was retrieved, move to it */
-    struct Email *e2 = mutt_hash_find(m->id_hash, buf);
+    struct Email *e2 = g_hash_table_lookup(m->id_hash, buf);
     if (e2)
     {
       menu_set_index(priv->menu, e2->vnum);
@@ -2715,7 +2715,7 @@ static int op_get_message(struct IndexSharedData *shared,
 
   if (!m->id_hash)
     m->id_hash = mutt_make_id_hash(m);
-  struct Email *e = mutt_hash_find(m->id_hash, buf_string(buf));
+  struct Email *e = g_hash_table_lookup(m->id_hash, buf_string(buf));
   if (e)
   {
     if (e->vnum != -1)

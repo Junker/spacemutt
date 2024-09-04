@@ -2727,7 +2727,7 @@ static bool nntp_msg_open(struct Mailbox *m, struct Message *msg, struct Email *
   /* replace envelope with new one
    * hash elements must be updated because pointers will be changed */
   if (m->id_hash && e->env->message_id)
-    mutt_hash_delete(m->id_hash, e->env->message_id, e);
+    g_hash_table_remove(m->id_hash, e->env->message_id);
   if (m->subj_hash && e->env->real_subj)
     mutt_hash_delete(m->subj_hash, e->env->real_subj, e);
 
@@ -2735,7 +2735,7 @@ static bool nntp_msg_open(struct Mailbox *m, struct Message *msg, struct Email *
   e->env = mutt_rfc822_read_header(msg->fp, e, false, false);
 
   if (m->id_hash && e->env->message_id)
-    mutt_hash_insert(m->id_hash, e->env->message_id, e);
+    g_hash_table_insert(m->id_hash, e->env->message_id, e);
   if (m->subj_hash && e->env->real_subj)
     mutt_hash_insert(m->subj_hash, e->env->real_subj, e);
 

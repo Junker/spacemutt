@@ -1703,9 +1703,9 @@ int mutt_messages_in_thread(struct Mailbox *m, struct Email *e, enum MessageInTh
  * @param m Mailbox
  * @retval ptr Newly allocated Hash Table
  */
-struct HashTable *mutt_make_id_hash(struct Mailbox *m)
+GHashTable *mutt_make_id_hash(struct Mailbox *m)
 {
-  struct HashTable *hash = mutt_hash_new(m->msg_count * 2, MUTT_HASH_NO_FLAGS);
+  GHashTable *hash = g_hash_table_new(g_str_hash, g_str_equal);
 
   for (int i = 0; i < m->msg_count; i++)
   {
@@ -1714,7 +1714,7 @@ struct HashTable *mutt_make_id_hash(struct Mailbox *m)
       continue;
 
     if (e->env->message_id)
-      mutt_hash_insert(hash, e->env->message_id, e);
+      g_hash_table_insert(hash, e->env->message_id, e);
   }
 
   return hash;
