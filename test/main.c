@@ -471,15 +471,6 @@ void test_fini(void);
   SPACEMUTT_TEST_ITEM(test_mutt_mb_width)                                        \
   SPACEMUTT_TEST_ITEM(test_mutt_mb_width_ceiling)                                \
                                                                                  \
-  /* md5 */                                                                      \
-  SPACEMUTT_TEST_ITEM(test_mutt_md5)                                             \
-  SPACEMUTT_TEST_ITEM(test_mutt_md5_bytes)                                       \
-  SPACEMUTT_TEST_ITEM(test_mutt_md5_finish_ctx)                                  \
-  SPACEMUTT_TEST_ITEM(test_mutt_md5_init_ctx)                                    \
-  SPACEMUTT_TEST_ITEM(test_mutt_md5_process)                                     \
-  SPACEMUTT_TEST_ITEM(test_mutt_md5_process_bytes)                               \
-  SPACEMUTT_TEST_ITEM(test_mutt_md5_toascii)                                     \
-                                                                                 \
   /* memory */                                                                   \
   SPACEMUTT_TEST_ITEM(test_mutt_mem_calloc)                                      \
   SPACEMUTT_TEST_ITEM(test_mutt_mem_free)                                        \

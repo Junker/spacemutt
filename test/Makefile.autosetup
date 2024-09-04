@@ -422,15 +422,6 @@ MBYTE_OBJS	= test/mbyte/buf_mb_wcstombs.o \
 		  test/mbyte/mutt_mb_width.o \
 		  test/mbyte/mutt_mb_width_ceiling.o
 
-MD5_OBJS	= test/md5/common.o \
-		  test/md5/mutt_md5.o \
-		  test/md5/mutt_md5_bytes.o \
-		  test/md5/mutt_md5_finish_ctx.o \
-		  test/md5/mutt_md5_init_ctx.o \
-		  test/md5/mutt_md5_process.o \
-		  test/md5/mutt_md5_process_bytes.o \
-		  test/md5/mutt_md5_toascii.o
-
 MEMORY_OBJS	= test/memory/mutt_mem_calloc.o \
 		  test/memory/mutt_mem_free.o \
 		  test/memory/mutt_mem_malloc.o \
@@ -653,7 +644,7 @@ BUILD_DIRS	= $(PWD)/test/account $(PWD)/test/address $(PWD)/test/array \
 		  $(PWD)/test/gui $(PWD)/test/hash $(PWD)/test/history \
 		  $(PWD)/test/idna $(PWD)/test/imap $(PWD)/test/list \
 		  $(PWD)/test/logging $(PWD)/test/mailbox $(PWD)/test/mapping \
-		  $(PWD)/test/mbyte $(PWD)/test/md5 $(PWD)/test/memory \
+		  $(PWD)/test/mbyte $(PWD)/test/memory \
 		  $(PWD)/test/neo $(PWD)/test/notify $(PWD)/test/notmuch \
 		  $(PWD)/test/parameter $(PWD)/test/parse $(PWD)/test/path \
 		  $(PWD)/test/pattern $(PWD)/test/pool $(PWD)/test/prex \
@@ -697,7 +688,6 @@ TEST_OBJS	= test/common.o test/main.o \
 		  $(MAILBOX_OBJS) \
 		  $(MAPPING_OBJS) \
 		  $(MBYTE_OBJS) \
-		  $(MD5_OBJS) \
 		  $(MEMORY_OBJS) \
 		  $(SPACEMUTT_OBJS) \
 		  $(NOTIFY_OBJS) \
