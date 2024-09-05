@@ -544,7 +544,7 @@ static enum MxStatus maildir_check(struct Mailbox *m)
   bool occult = false;        /* messages were removed from the mailbox */
   int num_new = 0;            /* number of new messages added to the mailbox */
   bool flags_changed = false; /* message flags were changed in the mailbox */
-  struct HashTable *hash_names = NULL; // Hash Table: "base-filename" -> MdEmail
+  GHashTable *hash_names = NULL; // Hash Table: "base-filename" -> MdEmail
   struct MaildirMboxData *mdata = maildir_mdata_get(m);
 
   const bool c_check_new = cs_subset_bool(SpaceMutt->sub, "check_new");
@@ -607,7 +607,7 @@ static enum MxStatus maildir_check(struct Mailbox *m)
   /* we create a hash table keyed off the canonical (sans flags) filename
    * of each message we scanned.  This is used in the loop over the
    * existing messages below to do some correlation.  */
-  hash_names = mutt_hash_new(ARRAY_SIZE(&mda), MUTT_HASH_NO_FLAGS);
+  hash_names = g_hash_table_new(g_str_hash, g_str_equal);
 
   struct MdEmail *md = NULL;
   struct MdEmail **mdp = NULL;
@@ -616,7 +616,7 @@ static enum MxStatus maildir_check(struct Mailbox *m)
     md = *mdp;
     maildir_canon_filename(buf, md->email->path);
     md->canon_fname = buf_strdup(buf);
-    mutt_hash_insert(hash_names, md->canon_fname, md);
+    g_hash_table_insert(hash_names, md->canon_fname, md);
   }
 
   /* check for modifications and adjust flags */
@@ -627,7 +627,7 @@ static enum MxStatus maildir_check(struct Mailbox *m)
       break;
 
     maildir_canon_filename(buf, e->path);
-    md = mutt_hash_find(hash_names, buf_string(buf));
+    md = g_hash_table_lookup(hash_names, buf_string(buf));
     if (md && md->email)
     {
       /* message already exists, merge flags */
@@ -678,7 +678,7 @@ static enum MxStatus maildir_check(struct Mailbox *m)
   }
 
   /* destroy the file name hash */
-  mutt_hash_free(&hash_names);
+  g_hash_table_destroy(hash_names);
 
   /* If we didn't just get new mail, update the tables. */
   if (occult)
