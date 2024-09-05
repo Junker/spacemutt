@@ -46,7 +46,6 @@
  * | mutt/mapping.c   | @subpage mutt_mapping   |
  * | mutt/mbyte.c     | @subpage mutt_mbyte     |
  * | mutt/md5.c       | @subpage mutt_md5       |
- * | mutt/memory.c    | @subpage mutt_memory    |
  * | mutt/notify.c    | @subpage mutt_notify    |
  * | mutt/path.c      | @subpage mutt_path      |
  * | mutt/pool.c      | @subpage mutt_pool      |

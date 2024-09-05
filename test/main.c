@@ -471,12 +471,6 @@ void test_fini(void);
   SPACEMUTT_TEST_ITEM(test_mutt_mb_width)                                        \
   SPACEMUTT_TEST_ITEM(test_mutt_mb_width_ceiling)                                \
                                                                                  \
-  /* memory */                                                                   \
-  SPACEMUTT_TEST_ITEM(test_mutt_mem_calloc)                                      \
-  SPACEMUTT_TEST_ITEM(test_mutt_mem_free)                                        \
-  SPACEMUTT_TEST_ITEM(test_mutt_mem_malloc)                                      \
-  SPACEMUTT_TEST_ITEM(test_mutt_mem_realloc)                                     \
-                                                                                 \
   /* neomutt */                                                                  \
   SPACEMUTT_TEST_ITEM(test_spacemutt_account_add)                                \
   SPACEMUTT_TEST_ITEM(test_spacemutt_account_remove)                             \

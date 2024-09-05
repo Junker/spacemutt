@@ -686,7 +686,7 @@ static void encode_headers(GQueue *h, struct ConfigSubset *sub)
       continue;
 
     rfc2047_encode(&tmp, NULL, i + 2, c_send_charset);
-    mutt_mem_realloc(&np->data, i + 2 + mutt_str_len(tmp) + 1);
+    np->data = g_realloc(np->data, i + 2 + mutt_str_len(tmp) + 1);
 
     sprintf(np->data + i + 2, "%s", tmp);
 

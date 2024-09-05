@@ -35,6 +35,7 @@
 #include "buffer.h"
 #include "memory.h"
 #include "string2.h"
+#include "glib.h"
 
 #define BAD -1
 

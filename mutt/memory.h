@@ -25,23 +25,10 @@
 
 #include <stddef.h>
 
-#undef MAX
-#undef MIN
-#undef CLAMP
-#define MAX(a, b) (((a) < (b)) ? (b) : (a))
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define CLAMP(val, lo, hi) MIN(hi, MAX(lo, val))
-
 #undef ROUND_UP
 #define ROUND_UP(NUM, STEP) ((((NUM) + (STEP) -1) / (STEP)) * (STEP))
-
 #define mutt_array_size(x) (sizeof(x) / sizeof((x)[0]))
 
-void *mutt_mem_calloc(size_t nmemb, size_t size);
-void  mutt_mem_free(void *ptr);
-void *mutt_mem_malloc(size_t size);
-void  mutt_mem_realloc(void *ptr, size_t size);
-
-#define FREE(x) mutt_mem_free(x)
+#define FREE(x) ((void *)x != NULL) ? g_free(g_steal_pointer((void**)x)) : NULL
 
 #endif /* MUTT_MUTT_MEMORY_H */

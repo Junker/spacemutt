@@ -422,11 +422,6 @@ MBYTE_OBJS	= test/mbyte/buf_mb_wcstombs.o \
 		  test/mbyte/mutt_mb_width.o \
 		  test/mbyte/mutt_mb_width_ceiling.o
 
-MEMORY_OBJS	= test/memory/mutt_mem_calloc.o \
-		  test/memory/mutt_mem_free.o \
-		  test/memory/mutt_mem_malloc.o \
-		  test/memory/mutt_mem_realloc.o
-
 SPACEMUTT_OBJS	= test/neo/spacemutt_account_add.o \
 		  test/neo/spacemutt_account_remove.o \
 		  test/neo/spacemutt_free.o \
@@ -688,7 +683,6 @@ TEST_OBJS	= test/common.o test/main.o \
 		  $(MAILBOX_OBJS) \
 		  $(MAPPING_OBJS) \
 		  $(MBYTE_OBJS) \
-		  $(MEMORY_OBJS) \
 		  $(SPACEMUTT_OBJS) \
 		  $(NOTIFY_OBJS) \
 		  $(NOTMUCH_OBJS) \
