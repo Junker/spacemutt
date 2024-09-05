@@ -122,7 +122,7 @@ static void *compr_zstd_compress(ComprHandle *handle, const char *data,
   struct ZstdComprData *cdata = handle;
 
   size_t len = ZSTD_compressBound(dlen);
-  mutt_mem_realloc(&cdata->buf, len);
+  cdata->buf = g_realloc(cdata->buf, len);
 
   size_t rc = ZSTD_compressCCtx(cdata->cctx, cdata->buf, len, data, dlen, cdata->level);
   if (ZSTD_isError(rc))
@@ -151,7 +151,7 @@ static void *compr_zstd_decompress(ComprHandle *handle, const char *cbuf, size_t
     return NULL;
   else if (len == 0)
     return NULL; // LCOV_EXCL_LINE
-  mutt_mem_realloc(&cdata->buf, len);
+  cdata->buf = g_realloc(cdata->buf, len);
 
   size_t rc = ZSTD_decompressDCtx(cdata->dctx, cdata->buf, len, cbuf, clen);
   if (ZSTD_isError(rc))

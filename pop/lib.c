@@ -556,7 +556,7 @@ int pop_fetch_data(struct PopAccountData *adata, const char *query,
       lenbuf = 0;
     }
 
-    mutt_mem_realloc(&inbuf, lenbuf + sizeof(buf));
+    inbuf = g_realloc(inbuf, lenbuf + sizeof(buf));
   }
 
   FREE(&inbuf);

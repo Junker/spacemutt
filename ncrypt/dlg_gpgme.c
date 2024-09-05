@@ -658,7 +658,7 @@ struct CryptKeyInfo *dlg_gpgme(struct CryptKeyInfo *keys, struct Address *p,
     if (i == keymax)
     {
       keymax += 20;
-      mutt_mem_realloc(&key_table, sizeof(struct CryptKeyInfo *) * keymax);
+      key_table = g_realloc(key_table, sizeof(struct CryptKeyInfo *) * keymax);
     }
 
     key_table[i++] = k;

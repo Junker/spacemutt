@@ -209,7 +209,7 @@ struct SmimeKey *dlg_smime(struct SmimeKey *keys, const char *query)
     if (table_index == table_size)
     {
       table_size += 5;
-      mutt_mem_realloc(&table, sizeof(struct SmimeKey *) * table_size);
+      table = g_realloc(table, sizeof(struct SmimeKey *) * table_size);
     }
 
     table[table_index++] = key;

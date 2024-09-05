@@ -373,7 +373,7 @@ static int mutt_sasl_cb_pass(sasl_conn_t *conn, void *context, int id, sasl_secr
 
   len = strlen(cac->pass);
 
-  mutt_mem_realloc(&SecretPtr, sizeof(sasl_secret_t) + len);
+  SecretPtr = g_realloc(SecretPtr, sizeof(sasl_secret_t) + len);
   memcpy((char *) SecretPtr->data, cac->pass, (size_t) len);
   SecretPtr->len = len;
   *psecret = SecretPtr;

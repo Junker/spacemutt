@@ -300,7 +300,7 @@ void mutt_str_adjust(char **ptr)
 {
   if (!ptr || !*ptr)
     return;
-  mutt_mem_realloc(ptr, strlen(*ptr) + 1);
+  *ptr = g_realloc(*ptr, strlen(*ptr) + 1);
 }
 
 /**
@@ -809,12 +809,12 @@ int mutt_str_asprintf(char **strp, const char *fmt, ...)
       if (n == 0) /* convention is to use NULL for zero-length strings. */
         FREE(strp);
       else if (n != rlen - 1)
-        mutt_mem_realloc(strp, n + 1);
+        *strp = g_realloc(*strp, n + 1);
       return n;
     }
     /* increase size and try again */
     rlen = n + 1;
-    mutt_mem_realloc(strp, rlen);
+    *strp = g_realloc(*strp, rlen);
   }
   /* not reached */
 }

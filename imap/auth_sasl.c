@@ -169,7 +169,7 @@ enum ImapAuthRes imap_auth_sasl(struct ImapAccountData *adata, const char *metho
         if (len > bufsize)
         {
           bufsize = len;
-          mutt_mem_realloc(&buf, bufsize);
+          buf = g_realloc(buf, bufsize);
         }
         /* For sasl_decode64, the fourth parameter, outmax, doesn't
          * include space for the trailing null */
@@ -204,7 +204,7 @@ enum ImapAuthRes imap_auth_sasl(struct ImapAccountData *adata, const char *metho
       if ((olen * 2) > bufsize)
       {
         bufsize = olen * 2;
-        mutt_mem_realloc(&buf, bufsize);
+        buf = g_realloc(buf, bufsize);
       }
       if (sasl_encode64(pc, olen, buf, bufsize, &olen) != SASL_OK)
       {

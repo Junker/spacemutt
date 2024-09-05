@@ -108,7 +108,7 @@ static void *compr_zlib_compress(ComprHandle *handle, const char *data,
   struct ZlibComprData *cdata = handle;
 
   uLong len = compressBound(dlen);
-  mutt_mem_realloc(&cdata->buf, len + 4);
+  cdata->buf = g_realloc(cdata->buf, len + 4);
   Bytef *cbuf = (unsigned char *) cdata->buf + 4;
   const void *ubuf = data;
   int rc = compress2(cbuf, &len, ubuf, dlen, cdata->level);
@@ -148,7 +148,7 @@ static void *compr_zlib_decompress(ComprHandle *handle, const char *cbuf, size_t
   if (ulen == 0)
     return NULL;
 
-  mutt_mem_realloc(&cdata->buf, ulen);
+  cdata->buf = g_realloc(cdata->buf, ulen);
   Bytef *ubuf = cdata->buf;
   cs = (const unsigned char *) cbuf;
   int rc = uncompress(ubuf, &ulen, cs + 4, clen - 4);

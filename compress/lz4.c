@@ -111,7 +111,7 @@ static void *compr_lz4_compress(ComprHandle *handle, const char *data,
   int len = LZ4_compressBound(dlen);
   if (len > (INT_MAX - 4))
     return NULL; // LCOV_EXCL_LINE
-  mutt_mem_realloc(&cdata->buf, len + 4);
+  cdata->buf = g_realloc(cdata->buf, len + 4);
   char *cbuf = cdata->buf;
 
   len = LZ4_compress_fast(data, cbuf + 4, datalen, len, cdata->level);
@@ -153,7 +153,7 @@ static void *compr_lz4_decompress(ComprHandle *handle, const char *cbuf, size_t 
   if (ulen == 0)
     return (void *) cbuf;
 
-  mutt_mem_realloc(&cdata->buf, ulen);
+  cdata->buf = g_realloc(cdata->buf, ulen);
   void *ubuf = cdata->buf;
   const char *data = cbuf;
   int rc = LZ4_decompress_safe(data + 4, ubuf, clen - 4, ulen);

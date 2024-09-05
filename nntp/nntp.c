@@ -341,7 +341,7 @@ static int nntp_attempt_features(struct NntpAccountData *adata)
         if ((buflen - off) < 1024)
         {
           buflen *= 2;
-          mutt_mem_realloc(&adata->overview_fmt, buflen);
+          adata->overview_fmt = g_realloc(adata->overview_fmt, buflen);
         }
 
         const int chunk = mutt_socket_readln_d(adata->overview_fmt + off,
@@ -380,7 +380,7 @@ static int nntp_attempt_features(struct NntpAccountData *adata)
         }
       }
       adata->overview_fmt[off++] = '\0';
-      mutt_mem_realloc(&adata->overview_fmt, off);
+      adata->overview_fmt = g_realloc(adata->overview_fmt, off);
     }
   }
   rc = 0; // Success
@@ -873,7 +873,7 @@ static int nntp_fetch_lines(struct NntpMboxData *mdata, char *query, size_t qlen
         off = 0;
       }
 
-      mutt_mem_realloc(&line, off + sizeof(buf));
+      line = g_realloc(line, off + sizeof(buf));
     }
     FREE(&line);
     func(NULL, data);
@@ -1450,7 +1450,7 @@ static int nntp_group_poll(struct NntpMboxData *mdata, bool update_stat)
     mdata->last_cached = 0;
     if (mdata->newsrc_len)
     {
-      mutt_mem_realloc(&mdata->newsrc_ent, sizeof(struct NewsrcEntry));
+      mdata->newsrc_ent = g_realloc(mdata->newsrc_ent, sizeof(struct NewsrcEntry));
       mdata->newsrc_len = 1;
       mdata->newsrc_ent[0].first = 1;
       mdata->newsrc_ent[0].last = 0;
@@ -1744,7 +1744,7 @@ static int fetch_children(char *line, void *data)
   if (cc->num >= cc->max)
   {
     cc->max *= 2;
-    mutt_mem_realloc(&cc->child, sizeof(anum_t) * cc->max);
+    cc->child = g_realloc(cc->child, sizeof(anum_t) * cc->max);
   }
   cc->child[cc->num++] = anum;
   return 0;

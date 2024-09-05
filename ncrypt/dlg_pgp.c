@@ -655,7 +655,7 @@ struct PgpKeyInfo *dlg_pgp(struct PgpKeyInfo *keys, struct Address *p, const cha
       if (i == keymax)
       {
         keymax += 5;
-        mutt_mem_realloc(&key_table, sizeof(struct PgpUid *) * keymax);
+        key_table = g_realloc(key_table, sizeof(struct PgpUid *) * keymax);
       }
 
       key_table[i++] = a;

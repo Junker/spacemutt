@@ -3631,7 +3631,7 @@ static char *find_keys(const AddressList *addrlist, unsigned int app, bool oppen
 
     bypass_selection:
       keylist_size += mutt_str_len(keyid) + 4 + 1;
-      mutt_mem_realloc(&keylist, keylist_size);
+      keylist = g_realloc(keylist, keylist_size);
       sprintf(keylist + keylist_used, "%s0x%s%s", keylist_used ? " " : "",
               keyid, forced_valid ? "!" : "");
       keylist_used = mutt_str_len(keylist);

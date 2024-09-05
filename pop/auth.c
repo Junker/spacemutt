@@ -252,7 +252,7 @@ static enum PopAuthRes pop_auth_sasl(struct PopAccountData *adata, const char *m
       if ((olen * 2) > bufsize)
       {
         bufsize = olen * 2;
-        mutt_mem_realloc(&buf, bufsize);
+        buf = g_realloc(buf, bufsize);
       }
       if (sasl_encode64(pc, olen, buf, bufsize, &olen) != SASL_OK)
       {

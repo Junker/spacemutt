@@ -119,7 +119,7 @@ bool envlist_set(char ***envp, const char *name, const char *value, bool overwri
   else
   {
     // not found, add a new entry
-    mutt_mem_realloc(envp, (count + 2) * sizeof(char *));
+    *envp = g_realloc(*envp, (count + 2) * sizeof(char *));
     (*envp)[count] = mutt_str_dup(work);
     (*envp)[count + 1] = NULL;
   }
@@ -153,7 +153,7 @@ bool envlist_unset(char ***envp, const char *name)
       // Move down the later entries
       memmove(&(*envp)[match], &(*envp)[match + 1], (count - match) * sizeof(char *));
       // Shrink the array
-      mutt_mem_realloc(envp, count * sizeof(char *));
+      *envp = g_realloc(*envp, count * sizeof(char *));
       return true;
     }
   }

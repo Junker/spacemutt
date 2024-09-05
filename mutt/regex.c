@@ -377,7 +377,7 @@ char *mutt_replacelist_apply(ReplaceList *rl, const char *str)
     /* If this pattern needs more matches, expand pmatch. */
     if (rp->nmatch > nmatch)
     {
-      mutt_mem_realloc(&pmatch, rp->nmatch * sizeof(regmatch_t));
+      pmatch = g_realloc(pmatch, rp->nmatch * sizeof(regmatch_t));
       nmatch = rp->nmatch;
     }
 
@@ -482,7 +482,7 @@ bool mutt_replacelist_match(ReplaceList *rl, char *buf, size_t buflen, const cha
     /* If this pattern needs more matches, expand pmatch. */
     if (rp->nmatch > nmatch)
     {
-      mutt_mem_realloc(&pmatch, rp->nmatch * sizeof(regmatch_t));
+      pmatch = g_realloc(pmatch, rp->nmatch * sizeof(regmatch_t));
       nmatch = rp->nmatch;
     }
 
