@@ -135,7 +135,7 @@ void menu_free(struct Menu **ptr)
  */
 struct Menu *menu_new(enum MenuType type, struct MuttWindow *win, struct ConfigSubset *sub)
 {
-  struct Menu *menu = mutt_mem_calloc(1, sizeof(struct Menu));
+  struct Menu *menu = g_new0(struct Menu, 1);
 
   menu->type = type;
   menu->redraw = MENU_REDRAW_FULL;

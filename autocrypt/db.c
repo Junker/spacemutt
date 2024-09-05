@@ -237,7 +237,7 @@ static char *strdup_column_text(sqlite3_stmt *stmt, int index)
  */
 struct AutocryptAccount *mutt_autocrypt_db_account_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct AutocryptAccount));
+  return g_new0(struct AutocryptAccount, 1);
 }
 
 /**
@@ -527,7 +527,7 @@ cleanup:
  */
 struct AutocryptPeer *mutt_autocrypt_db_peer_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct AutocryptPeer));
+  return g_new0(struct AutocryptPeer, 1);
 }
 
 /**
@@ -748,7 +748,7 @@ cleanup:
  */
 struct AutocryptPeerHistory *mutt_autocrypt_db_peer_history_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct AutocryptPeerHistory));
+  return g_new0(struct AutocryptPeerHistory, 1);
 }
 
 /**
@@ -829,7 +829,7 @@ cleanup:
  */
 struct AutocryptGossipHistory *mutt_autocrypt_db_gossip_history_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct AutocryptGossipHistory));
+  return g_new0(struct AutocryptGossipHistory, 1);
 }
 
 /**

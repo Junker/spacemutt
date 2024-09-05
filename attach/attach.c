@@ -39,7 +39,7 @@
  */
 struct AttachPtr *mutt_aptr_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct AttachPtr));
+  return g_new0(struct AttachPtr, 1);
 }
 
 /**
@@ -188,7 +188,7 @@ void mutt_actx_entries_free(struct AttachCtx *actx)
  */
 struct AttachCtx *mutt_actx_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct AttachCtx));
+  return g_new0(struct AttachCtx, 1);
 }
 
 /**

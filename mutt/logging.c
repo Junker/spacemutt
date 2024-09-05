@@ -509,7 +509,7 @@ int log_queue_save(FILE *fp)
  */
 GLogWriterOutput log_writer_queue(GLogLevelFlags level, const GLogField *fields, gsize n_fields, gpointer user_data)
 {
-  LogLine *ll = g_slice_new0(LogLine);
+  LogLine *ll = g_new0(LogLine, 1);
   ll->time = mutt_date_now();
   ll->level = level;
 

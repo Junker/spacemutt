@@ -46,7 +46,7 @@
  */
 struct NodePaddingPrivate *node_padding_private_new(enum ExpandoPadType pad_type)
 {
-  struct NodePaddingPrivate *priv = mutt_mem_calloc(1, sizeof(struct NodePaddingPrivate));
+  struct NodePaddingPrivate *priv = g_new0(struct NodePaddingPrivate, 1);
 
   priv->pad_type = pad_type;
 

@@ -51,5 +51,5 @@ void cbar_data_free(struct MuttWindow *win, void **ptr)
  */
 struct ComposeBarData *cbar_data_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct ComposeBarData));
+  return g_new0(struct ComposeBarData, 1);
 }

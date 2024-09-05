@@ -578,7 +578,7 @@ static int inline_forward_attachments(struct Mailbox *m, struct Email *e,
   mutt_parse_mime_message(e, msg->fp);
   mutt_message_hook(m, e, MUTT_MESSAGE_HOOK);
 
-  actx = mutt_mem_calloc(1, sizeof(*actx));
+  actx = g_new0(struct AttachCtx, 1);
   actx->email = e;
   actx->fp_root = msg->fp;
 

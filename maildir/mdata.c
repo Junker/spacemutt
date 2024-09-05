@@ -48,7 +48,7 @@ void maildir_mdata_free(void **ptr)
  */
 struct MaildirMboxData *maildir_mdata_new(void)
 {
-  struct MaildirMboxData *mdata = mutt_mem_calloc(1, sizeof(struct MaildirMboxData));
+  struct MaildirMboxData *mdata = g_new0(struct MaildirMboxData, 1);
   return mdata;
 }
 

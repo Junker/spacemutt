@@ -50,7 +50,7 @@
  */
 struct StrList *strlist_new(uint32_t flags)
 {
-  struct StrList *list = mutt_mem_calloc(1, sizeof(*list));
+  struct StrList *list = g_new0(struct StrList, 1);
   list->flags = flags;
   list->head = NULL;
 
@@ -183,7 +183,7 @@ struct StrList *strlist_parse(const char *str, uint32_t flags)
   else if ((flags & D_STRLIST_SEP_MASK) == D_STRLIST_SEP_COLON)
     sep = ':';
 
-  struct StrList *list = mutt_mem_calloc(1, sizeof(struct StrList));
+  struct StrList *list = g_new0(struct StrList, 1);
   list->flags = flags;
 
   if (!src)

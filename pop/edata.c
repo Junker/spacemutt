@@ -55,7 +55,7 @@ void pop_edata_free(void **ptr)
  */
 struct PopEmailData *pop_edata_new(const char *uid)
 {
-  struct PopEmailData *edata = mutt_mem_calloc(1, sizeof(struct PopEmailData));
+  struct PopEmailData *edata = g_new0(struct PopEmailData, 1);
   edata->uid = mutt_str_dup(uid);
   return edata;
 }

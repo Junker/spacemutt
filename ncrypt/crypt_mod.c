@@ -52,7 +52,7 @@ static CryptModuleList *CryptModules = NULL;
  */
 void crypto_module_register(const struct CryptModuleSpecs *specs)
 {
-  struct CryptModule *module = mutt_mem_calloc(1, sizeof(struct CryptModule));
+  struct CryptModule *module = g_new0(struct CryptModule, 1);
   module->specs = specs;
   CryptModules = g_slist_prepend(CryptModules, module);
 }

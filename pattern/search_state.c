@@ -38,7 +38,7 @@
  */
 struct SearchState *search_state_new(void)
 {
-  struct SearchState *s = mutt_mem_calloc(1, sizeof(struct SearchState));
+  struct SearchState *s = g_new0(struct SearchState, 1);
   s->string = buf_pool_get();
   s->string_expn = buf_pool_get();
   return s;

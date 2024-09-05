@@ -137,7 +137,7 @@ void replace_part(struct EnterState *es, size_t from, const char *buf)
 
   if (savelen)
   {
-    savebuf = mutt_mem_calloc(savelen, sizeof(wchar_t));
+    savebuf = g_new0(wchar_t, savelen);
     wmemcpy(savebuf, es->wbuf + es->curpos, savelen);
   }
 

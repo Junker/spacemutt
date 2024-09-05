@@ -488,8 +488,8 @@ int text_enriched_handler(struct Body *b_email, struct State *state)
                              state->wraplen - 4 :
                              72;
   enriched.line_max = enriched.wrap_margin * 4;
-  enriched.line = mutt_mem_calloc((enriched.line_max + 1), sizeof(wchar_t));
-  enriched.param = mutt_mem_calloc(256, sizeof(wchar_t));
+  enriched.line = g_new0(wchar_t, (enriched.line_max + 1));
+  enriched.param = g_new0(wchar_t, 256);
 
   enriched.param_len = 256;
   enriched.param_used = 0;

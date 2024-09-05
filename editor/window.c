@@ -137,7 +137,7 @@ bool self_insert(struct EnterWindowData *wdata, int ch)
       {
         char **tfiles = NULL;
         *cdata->numfiles = 1;
-        tfiles = mutt_mem_calloc(*cdata->numfiles, sizeof(char *));
+        tfiles = g_malloc0_n(*cdata->numfiles, sizeof(char *));
         buf_expand_path_regex(wdata->buffer, false);
         tfiles[0] = buf_strdup(wdata->buffer);
         *cdata->files = tfiles;

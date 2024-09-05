@@ -77,7 +77,7 @@ static bool parse_query_string(UrlQueryList **list, char *src)
     if ((url_pct_decode(key) < 0) || (url_pct_decode(val) < 0))
       return false;
 
-    struct UrlQuery *qs = mutt_mem_calloc(1, sizeof(struct UrlQuery));
+    struct UrlQuery *qs = g_new0(struct UrlQuery, 1);
     qs->name = key;
     qs->value = val;
     *list = g_slist_append(*list, qs);
@@ -112,7 +112,7 @@ static enum UrlScheme get_scheme(const char *src, const regmatch_t *match)
  */
 static struct Url *url_new(void)
 {
-  struct Url *url = mutt_mem_calloc(1, sizeof(struct Url));
+  struct Url *url = g_new0(struct Url, 1);
   url->query_strings = NULL;
   return url;
 }

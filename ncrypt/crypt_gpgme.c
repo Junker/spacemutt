@@ -235,7 +235,7 @@ struct CryptKeyInfo *crypt_copy_key(struct CryptKeyInfo *key)
 {
   struct CryptKeyInfo *k = NULL;
 
-  k = mutt_mem_calloc(1, sizeof(*k));
+  k = g_malloc0(sizeof(*k));
   k->kobj = key->kobj;
   gpgme_key_ref(key->kobj);
   k->idx = key->idx;
@@ -3019,7 +3019,7 @@ static char *list_to_pattern(GSList *list)
     n++; /* delimiter or end of string */
   }
   n++; /* make sure to allocate at least one byte */
-  p = mutt_mem_calloc(1, n);
+  p = g_malloc0(n);
   pattern = p;
   for (GSList *np = list; np != NULL; np = np->next)
   {
@@ -3098,7 +3098,7 @@ static struct CryptKeyInfo *get_candidates(GSList *hints, SecurityFlags app, int
     if (n == 0)
       goto no_pgphints;
 
-    char **patarr = mutt_mem_calloc(n + 1, sizeof(*patarr));
+    char **patarr = g_malloc0_n(n + 1, sizeof(*patarr));
     n = 0;
     for (GSList *np = hints; np != NULL; np = np->next)
     {
@@ -3136,7 +3136,7 @@ static struct CryptKeyInfo *get_candidates(GSList *hints, SecurityFlags app, int
 
       for (idx = 0, uid = key->uids; uid; idx++, uid = uid->next)
       {
-        k = mutt_mem_calloc(1, sizeof(*k));
+        k = g_malloc0(sizeof(*k));
         k->kobj = key;
         gpgme_key_ref(k->kobj);
         k->idx = idx;
@@ -3187,7 +3187,7 @@ static struct CryptKeyInfo *get_candidates(GSList *hints, SecurityFlags app, int
 
       for (idx = 0, uid = key->uids; uid; idx++, uid = uid->next)
       {
-        k = mutt_mem_calloc(1, sizeof(*k));
+        k = g_malloc0(sizeof(*k));
         k->kobj = key;
         gpgme_key_ref(k->kobj);
         k->idx = idx;
@@ -3717,7 +3717,7 @@ int mutt_gpgme_select_secret_key(struct Buffer *keyid)
     int idx;
     for (idx = 0, uid = key->uids; uid; idx++, uid = uid->next)
     {
-      k = mutt_mem_calloc(1, sizeof(*k));
+      k = g_malloc0(sizeof(*k));
       k->kobj = key;
       gpgme_key_ref(k->kobj);
       k->idx = idx;

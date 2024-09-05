@@ -66,7 +66,7 @@ void tag_free(struct Tag **ptr)
  */
 struct Tag *tag_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct Tag));
+  return g_new0(struct Tag, 1);
 }
 
 /**

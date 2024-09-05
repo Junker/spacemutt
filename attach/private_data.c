@@ -49,7 +49,7 @@ void attach_private_data_free(struct Menu *menu, void **ptr)
  */
 struct AttachPrivateData *attach_private_data_new(void)
 {
-  struct AttachPrivateData *priv = mutt_mem_calloc(1, sizeof(struct AttachPrivateData));
+  struct AttachPrivateData *priv = g_new0(struct AttachPrivateData, 1);
 
   return priv;
 }

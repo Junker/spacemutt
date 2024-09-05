@@ -43,7 +43,7 @@ struct IndexSharedData;
  */
 struct SidebarWindowData *sb_wdata_new(struct MuttWindow *win, struct IndexSharedData *shared)
 {
-  struct SidebarWindowData *wdata = mutt_mem_calloc(1, sizeof(struct SidebarWindowData));
+  struct SidebarWindowData *wdata = g_new0(struct SidebarWindowData, 1);
   wdata->win = win;
   wdata->shared = shared;
   ARRAY_INIT(&wdata->entries);

@@ -47,7 +47,7 @@
  */
 struct Envelope *mutt_env_new(void)
 {
-  struct Envelope *env = mutt_mem_calloc(1, sizeof(struct Envelope));
+  struct Envelope *env = g_new0(struct Envelope, 1);
   env->return_path = mutt_addrlist_new();
   env->from = mutt_addrlist_new();
   env->to = mutt_addrlist_new();
@@ -96,7 +96,7 @@ void mutt_env_set_subject(struct Envelope *env, const char *subj)
  */
 struct AutocryptHeader *mutt_autocrypthdr_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct AutocryptHeader));
+  return g_new0(struct AutocryptHeader, 1);
 }
 
 /**

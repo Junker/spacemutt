@@ -94,7 +94,7 @@ static bool eat_regex(struct Pattern *pat, PatternCompFlags flags,
   }
   else
   {
-    pat->p.regex = mutt_mem_calloc(1, sizeof(regex_t));
+    pat->p.regex = g_new0(regex_t, 1);
 #ifdef USE_DEBUG_GRAPHVIZ
     pat->raw_pattern = mutt_str_dup(buf->data);
 #endif
@@ -818,7 +818,7 @@ void mutt_patternlist_free_full(PatternList *pat)
  */
 static struct Pattern *mutt_pattern_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct Pattern));
+  return g_new0(struct Pattern, 1);
 }
 
 /**

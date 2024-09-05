@@ -277,12 +277,12 @@ static struct PrexStorage *prex(enum Prex which)
     uint32_t ccount = 0;
     pcre2_pattern_info(h->re, PCRE2_INFO_CAPTURECOUNT, &ccount);
     ASSERT(((ccount + 1) == h->nmatches) && "Number of matches do not match (...)");
-    h->matches = mutt_mem_calloc(h->nmatches, sizeof(*h->matches));
+    h->matches = g_malloc0_n(h->nmatches, sizeof(*h->matches));
 #else
-    h->re = mutt_mem_calloc(1, sizeof(*h->re));
+    h->re = g_malloc0(sizeof(*h->re));
     const int rc = regcomp(h->re, h->str, REG_EXTENDED);
     ASSERT(rc == 0 && "Fix your RE");
-    h->matches = mutt_mem_calloc(h->nmatches, sizeof(*h->matches));
+    h->matches = g_malloc0_n(h->nmatches, sizeof(*h->matches));
 #endif
   }
   return h;

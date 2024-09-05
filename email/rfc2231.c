@@ -135,7 +135,7 @@ static void decode_one(char *dest, char *src)
  */
 static struct Rfc2231Parameter *parameter_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct Rfc2231Parameter));
+  return g_new0(struct Rfc2231Parameter, 1);
 }
 
 /**

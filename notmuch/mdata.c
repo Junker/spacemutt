@@ -70,7 +70,7 @@ struct NmMboxData *nm_mdata_new(const char *url)
   if (!url)
     return NULL;
 
-  struct NmMboxData *mdata = mutt_mem_calloc(1, sizeof(struct NmMboxData));
+  struct NmMboxData *mdata = g_new0(struct NmMboxData, 1);
   log_debug1("nm: initialize mailbox mdata %p", (void *) mdata);
 
   const short c_nm_db_limit = cs_subset_number(SpaceMutt->sub, "nm_db_limit");

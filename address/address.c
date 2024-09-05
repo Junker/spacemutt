@@ -401,7 +401,7 @@ static bool add_addrspec(AddressList *al, const char *phrase,
  */
 struct Address *mutt_addr_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct Address));
+  return g_new0(struct Address, 1);
 }
 
 /**

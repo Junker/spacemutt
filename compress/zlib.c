@@ -70,7 +70,7 @@ void zlib_cdata_free(struct ZlibComprData **ptr)
  */
 static struct ZlibComprData *zlib_cdata_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct ZlibComprData));
+  return g_new0(struct ZlibComprData, 1);
 }
 
 /**
@@ -80,7 +80,7 @@ static ComprHandle *compr_zlib_open(short level)
 {
   struct ZlibComprData *cdata = zlib_cdata_new();
 
-  cdata->buf = mutt_mem_calloc(1, compressBound(1024 * 32));
+  cdata->buf = g_malloc0(compressBound(1024 * 32));
 
   if ((level < MIN_COMP_LEVEL) || (level > MAX_COMP_LEVEL))
   {

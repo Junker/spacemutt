@@ -34,6 +34,7 @@
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
+#include <glib.h>
 #include "mbyte.h"
 #include "buffer.h"
 #include "charset.h"
@@ -452,7 +453,7 @@ int mutt_mb_filter_unprintable(char **s)
   FREE(s);
 
   if (buf_is_empty(buf))
-    *s = mutt_mem_calloc(1, 1); // Fake empty string
+    *s = g_malloc0(1); // Fake empty string
   else
     *s = buf_strdup(buf);
 

@@ -48,14 +48,14 @@ void test_mailbox_free(void)
   }
 
   {
-    struct Mailbox *m = mutt_mem_calloc(1, sizeof(*m));
+    struct Mailbox *m = g_new0(struct Mailbox, 1);
     mailbox_free(&m);
     TEST_CHECK_(1, "mailbox_free(&m)");
   }
 
   {
-    struct Mailbox *m = mutt_mem_calloc(1, sizeof(*m));
-    m->mdata = mutt_mem_calloc(1, 32);
+    struct Mailbox *m = g_new0(struct Mailbox, 1);
+    m->mdata = g_malloc0(32);
     m->mdata_free = mdata_free;
 
     mailbox_free(&m);

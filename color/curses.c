@@ -170,7 +170,7 @@ struct CursesColor *curses_color_new(color_t fg, color_t bg)
   if (index == 0)
     return NULL;
 
-  struct CursesColor *cc_new = mutt_mem_calloc(1, sizeof(*cc_new));
+  struct CursesColor *cc_new = g_new0(struct CursesColor, 1);
   NumCursesColors++;
   log_color_debug("CursesColor %p\n", (void *) cc_new);
   cc_new->fg = fg;

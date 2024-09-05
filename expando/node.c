@@ -38,7 +38,7 @@
  */
 struct ExpandoNode *node_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct ExpandoNode));
+  return g_new0(struct ExpandoNode, 1);
 }
 
 /**

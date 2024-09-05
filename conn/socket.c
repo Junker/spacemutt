@@ -271,7 +271,7 @@ int mutt_socket_readln_d(char *buf, size_t buflen, struct Connection *conn, GLog
  */
 struct Connection *mutt_socket_new(enum ConnectionType type)
 {
-  struct Connection *conn = mutt_mem_calloc(1, sizeof(struct Connection));
+  struct Connection *conn = g_new0(struct Connection, 1);
   conn->fd = -1;
 
   if (type == MUTT_CONNECTION_TUNNEL)

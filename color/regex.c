@@ -68,21 +68,21 @@ RegexColorList *StatusList;         ///< List of colours applied to the status b
 void regex_colors_init(void)
 {
   log_color_debug("init AttachList, BodyList, etc\n");
-  AttachList = g_slice_new0(RegexColorList);
-  BodyList = g_slice_new0(RegexColorList);
-  HeaderList = g_slice_new0(RegexColorList);
-  IndexAuthorList = g_slice_new0(RegexColorList);
-  IndexCollapsedList = g_slice_new0(RegexColorList);
-  IndexDateList = g_slice_new0(RegexColorList);
-  IndexLabelList = g_slice_new0(RegexColorList);
-  IndexNumberList = g_slice_new0(RegexColorList);
-  IndexSizeList = g_slice_new0(RegexColorList);
-  IndexTagsList = g_slice_new0(RegexColorList);
-  IndexFlagsList = g_slice_new0(RegexColorList);
-  IndexList = g_slice_new0(RegexColorList);
-  IndexSubjectList = g_slice_new0(RegexColorList);
-  IndexTagList = g_slice_new0(RegexColorList);
-  StatusList = g_slice_new0(RegexColorList);
+  AttachList = g_new0(RegexColorList, 1);
+  BodyList = g_new0(RegexColorList, 1);
+  HeaderList = g_new0(RegexColorList, 1);
+  IndexAuthorList = g_new0(RegexColorList, 1);
+  IndexCollapsedList = g_new0(RegexColorList, 1);
+  IndexDateList = g_new0(RegexColorList, 1);
+  IndexLabelList = g_new0(RegexColorList, 1);
+  IndexNumberList = g_new0(RegexColorList, 1);
+  IndexSizeList = g_new0(RegexColorList, 1);
+  IndexTagsList = g_new0(RegexColorList, 1);
+  IndexFlagsList = g_new0(RegexColorList, 1);
+  IndexList = g_new0(RegexColorList, 1);
+  IndexSubjectList = g_new0(RegexColorList, 1);
+  IndexTagList = g_new0(RegexColorList, 1);
+  StatusList = g_new0(RegexColorList, 1);
 }
 
 /**
@@ -150,7 +150,7 @@ void regex_color_free(RegexColorList *list, struct RegexColor **ptr)
  */
 struct RegexColor *regex_color_new(void)
 {
-  struct RegexColor *rcol = mutt_mem_calloc(1, sizeof(*rcol));
+  struct RegexColor *rcol = g_new0(struct RegexColor, 1);
 
   return rcol;
 }

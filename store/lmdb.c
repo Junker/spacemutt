@@ -86,7 +86,7 @@ static void lmdb_sdata_free(struct LmdbStoreData **ptr)
  */
 static struct LmdbStoreData *lmdb_sdata_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct LmdbStoreData));
+  return g_new0(struct LmdbStoreData, 1);
 }
 
 /**

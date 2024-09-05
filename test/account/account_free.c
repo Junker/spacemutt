@@ -48,14 +48,14 @@ void test_account_free(void)
   }
 
   {
-    struct Account *a = mutt_mem_calloc(1, sizeof(*a));
+    struct Account *a = g_new0(struct Account, 1);
     account_free(&a);
     TEST_CHECK_(1, "account_free(&a)");
   }
 
   {
-    struct Account *a = mutt_mem_calloc(1, sizeof(*a));
-    a->adata = mutt_mem_calloc(1, 32);
+    struct Account *a = g_new0(struct Account, 1);
+    a->adata = g_malloc0(32);
     a->adata_free = adata_free;
 
     account_free(&a);

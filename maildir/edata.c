@@ -52,7 +52,7 @@ void maildir_edata_free(void **ptr)
  */
 struct MaildirEmailData *maildir_edata_new(void)
 {
-  struct MaildirEmailData *edata = mutt_mem_calloc(1, sizeof(struct MaildirEmailData));
+  struct MaildirEmailData *edata = g_new0(struct MaildirEmailData, 1);
   return edata;
 }
 

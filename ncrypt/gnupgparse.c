@@ -336,7 +336,7 @@ static struct PgpKeyInfo *parse_pub_line(char *buf, bool *is_subkey, struct PgpK
 
         log_debug2("user ID: %s", NONULL(p));
 
-        uid = mutt_mem_calloc(1, sizeof(struct PgpUid));
+        uid = g_new0(struct PgpUid, 1);
         fix_uid(p);
         uid->addr = mutt_str_dup(p);
         uid->trust = trust;

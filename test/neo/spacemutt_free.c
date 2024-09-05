@@ -43,7 +43,7 @@ void test_spacemutt_free(void)
   }
 
   {
-    struct SpaceMutt *n = mutt_mem_calloc(1, sizeof(*n));
+    struct SpaceMutt *n = g_new0(struct SpaceMutt, 1);
     spacemutt_free(&n);
     TEST_CHECK_(1, "spacemutt_free(&n)");
   }

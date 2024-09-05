@@ -97,7 +97,7 @@ void imap_adata_free(void **ptr)
  */
 struct ImapAccountData *imap_adata_new(struct Account *a)
 {
-  struct ImapAccountData *adata = mutt_mem_calloc(1, sizeof(struct ImapAccountData));
+  struct ImapAccountData *adata = g_new0(struct ImapAccountData, 1);
   adata->account = a;
 
   static unsigned char new_seqid = 'a';
@@ -105,7 +105,7 @@ struct ImapAccountData *imap_adata_new(struct Account *a)
   adata->seqid = new_seqid;
   const short c_imap_pipeline_depth = cs_subset_number(SpaceMutt->sub, "imap_pipeline_depth");
   adata->cmdslots = c_imap_pipeline_depth + 2;
-  adata->cmds = mutt_mem_calloc(adata->cmdslots, sizeof(*adata->cmds));
+  adata->cmds = g_malloc0_n(adata->cmdslots, sizeof(*adata->cmds));
 
   if (++new_seqid > 'z')
     new_seqid = 'a';

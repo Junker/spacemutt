@@ -180,7 +180,7 @@ static struct Menu *create_pattern_menu(struct MuttWindow *dlg)
     num_entries++;
   /* Add three more hard-coded entries */
   num_entries += 3;
-  struct PatternEntry *entries = mutt_mem_calloc(num_entries, sizeof(struct PatternEntry));
+  struct PatternEntry *entries = g_new0(struct PatternEntry, num_entries);
 
   struct Menu *menu = dlg->wdata;
   menu->make_entry = pattern_make_entry;

@@ -78,7 +78,7 @@ struct Email *email_new(void)
 {
   static size_t sequence = 0;
 
-  struct Email *e = mutt_mem_calloc(1, sizeof(struct Email));
+  struct Email *e = g_new0(struct Email, 1);
   e->tags = NULL;
   e->visible = true;
   e->sequence = sequence++;

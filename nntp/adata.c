@@ -66,7 +66,7 @@ void nntp_adata_free(void **ptr)
  */
 struct NntpAccountData *nntp_adata_new(struct Connection *conn)
 {
-  struct NntpAccountData *adata = mutt_mem_calloc(1, sizeof(struct NntpAccountData));
+  struct NntpAccountData *adata = g_new0(struct NntpAccountData, 1);
   adata->conn = conn;
   adata->groups_hash = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify)nntp_mdata_free);
   adata->groups_max = 16;

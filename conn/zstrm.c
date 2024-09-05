@@ -70,7 +70,7 @@ struct ZstrmContext
  */
 static void *zstrm_malloc(void *opaque, unsigned int items, unsigned int size)
 {
-  return mutt_mem_calloc(items, size);
+  return g_malloc0_n(items, size);
 }
 
 /**
@@ -290,7 +290,7 @@ static int zstrm_write(struct Connection *conn, const char *buf, size_t count)
  */
 void mutt_zstrm_wrap_conn(struct Connection *conn)
 {
-  struct ZstrmContext *zctx = mutt_mem_calloc(1, sizeof(struct ZstrmContext));
+  struct ZstrmContext *zctx = g_new0(struct ZstrmContext, 1);
 
   /* store wrapped stream as next stream */
   zctx->next_conn.fd = conn->fd;

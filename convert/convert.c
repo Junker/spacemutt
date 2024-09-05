@@ -74,10 +74,10 @@ size_t mutt_convert_file_to(FILE *fp, const char *fromcode, struct StrList const
     return -1;
 
   int ncodes = tocodes->count;
-  iconv_t *cd = mutt_mem_calloc(ncodes, sizeof(iconv_t));
-  size_t *score = mutt_mem_calloc(ncodes, sizeof(size_t));
-  struct ContentState *states = mutt_mem_calloc(ncodes, sizeof(struct ContentState));
-  struct Content *infos = mutt_mem_calloc(ncodes, sizeof(struct Content));
+  iconv_t *cd = g_new0(iconv_t, ncodes);
+  size_t *score = g_new0(size_t, ncodes);
+  struct ContentState *states = g_new0(struct ContentState, ncodes);
+  struct Content *infos = g_new0(struct Content, ncodes);
 
   int ni = 0;
   for (GSList *np = tocodes->head; np != NULL; np = np->next)
@@ -220,7 +220,7 @@ size_t mutt_convert_file_from_to(FILE *fp, const struct StrList *fromcodes,
   int cn;
 
   /* Copy them */
-  tcode = mutt_mem_calloc(tocodes->count, sizeof(char *));
+  tcode = g_malloc0_n(tocodes->count, sizeof(char *));
   cn = 0;
   for (GSList *np = tocodes->head; np != NULL; np = np->next)
   {

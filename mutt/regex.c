@@ -59,9 +59,9 @@ struct Regex *mutt_regex_compile(const char *str, uint16_t flags)
 {
   if (!str || (*str == '\0'))
     return NULL;
-  struct Regex *rx = mutt_mem_calloc(1, sizeof(struct Regex));
+  struct Regex *rx = g_new0(struct Regex, 1);
   rx->pattern = mutt_str_dup(str);
-  rx->regex = mutt_mem_calloc(1, sizeof(regex_t));
+  rx->regex = g_new0(regex_t, 1);
   if (REG_COMP(rx->regex, str, flags) != 0)
     mutt_regex_free(&rx);
 
@@ -82,9 +82,9 @@ struct Regex *mutt_regex_new(const char *str, uint32_t flags, struct Buffer *err
     return NULL;
 
   uint16_t rflags = 0;
-  struct Regex *reg = mutt_mem_calloc(1, sizeof(struct Regex));
+  struct Regex *reg = g_new0(struct Regex, 1);
 
-  reg->regex = mutt_mem_calloc(1, sizeof(regex_t));
+  reg->regex = g_new0(regex_t, 1);
   reg->pattern = mutt_str_dup(str);
 
   /* Should we use smart case matching? */
@@ -545,7 +545,7 @@ bool mutt_replacelist_match(ReplaceList *rl, char *buf, size_t buflen, const cha
  */
 struct Replace *mutt_replacelist_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct Replace));
+  return g_new0(struct Replace, 1);
 }
 
 /**

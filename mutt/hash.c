@@ -30,6 +30,7 @@
 #include "config.h"
 #include <ctype.h>
 #include <stdbool.h>
+#include <glib.h>
 #include "hash.h"
 #include "memory.h"
 #include "string2.h"
@@ -120,11 +121,11 @@ static int cmp_key_int(union HashKey a, union HashKey b)
  */
 static struct HashTable *hash_new(size_t num_elems)
 {
-  struct HashTable *table = mutt_mem_calloc(1, sizeof(struct HashTable));
+  struct HashTable *table = g_new0(struct HashTable, 1);
   if (num_elems == 0)
     num_elems = 2;
   table->num_elems = num_elems;
-  table->table = mutt_mem_calloc(num_elems, sizeof(struct HashElem *));
+  table->table = g_malloc0_n(num_elems, sizeof(struct HashElem *));
   return table;
 }
 
@@ -142,7 +143,7 @@ static struct HashElem *union_hash_insert(struct HashTable *table,
   if (!table)
     return NULL; // LCOV_EXCL_LINE
 
-  struct HashElem *he = mutt_mem_calloc(1, sizeof(struct HashElem));
+  struct HashElem *he = g_new0(struct HashElem, 1);
   size_t hash = table->gen_hash(key, table->num_elems);
   he->key = key;
   he->data = data;

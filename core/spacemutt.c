@@ -52,7 +52,7 @@ struct SpaceMutt *spacemutt_new(struct ConfigSet *cs)
   if (!cs)
     return NULL;
 
-  struct SpaceMutt *n = mutt_mem_calloc(1, sizeof(*SpaceMutt));
+  struct SpaceMutt *n = g_new0(struct SpaceMutt, 1);
 
   n->accounts = g_queue_new();
   n->notify = notify_new();

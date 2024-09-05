@@ -74,13 +74,13 @@ struct MbTable *mbtable_parse(const char *s)
   if (!slen)
     return NULL;
 
-  t = mutt_mem_calloc(1, sizeof(struct MbTable));
+  t = g_new0(struct MbTable, 1);
 
   t->orig_str = mutt_str_dup(s);
   /* This could be more space efficient.  However, being used on tiny
    * strings (`$to_chars` and `$status_chars`), the overhead is not great. */
-  t->chars = mutt_mem_calloc(slen, sizeof(char *));
-  t->segmented_str = mutt_mem_calloc(slen * 2, sizeof(char));
+  t->chars = g_malloc0_n(slen, sizeof(char *));
+  t->segmented_str = g_new0(char, slen * 2);
   d = t->segmented_str;
 
   while (slen && (k = mbrtowc(NULL, s, slen, &mbstate)))
@@ -205,7 +205,7 @@ static struct MbTable *mbtable_dup(struct MbTable *table)
   if (!table)
     return NULL; /* LCOV_EXCL_LINE */
 
-  struct MbTable *m = mutt_mem_calloc(1, sizeof(*m));
+  struct MbTable *m = g_new0(struct MbTable, 1);
   m->orig_str = mutt_str_dup(table->orig_str);
   return m;
 }

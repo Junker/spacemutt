@@ -64,7 +64,7 @@ int complete_all_nm_tags(struct CompletionData *cd, const char *pt)
     goto done;
 
   /* Get all the tags. */
-  const char **nm_tags = mutt_mem_calloc(tag_count_1, sizeof(char *));
+  const char **nm_tags = g_malloc0_n(tag_count_1, sizeof(char *));
   if ((nm_get_all_tags(m_cur, nm_tags, &tag_count_2) != 0) || (tag_count_1 != tag_count_2))
   {
     completion_data_free_match_strings(cd);

@@ -68,7 +68,7 @@ static void group_free(struct Group *g)
  */
 static struct Group *group_new(const char *pat)
 {
-  struct Group *g = mutt_mem_calloc(1, sizeof(struct Group));
+  struct Group *g = g_new0(struct Group, 1);
 
   g->name = mutt_str_dup(pat);
   g->rs = NULL;

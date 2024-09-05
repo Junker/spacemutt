@@ -60,7 +60,7 @@ struct Notify
  */
 struct Notify *notify_new(void)
 {
-  struct Notify *notify = mutt_mem_calloc(1, sizeof(*notify));
+  struct Notify *notify = g_new0(struct Notify, 1);
 
   notify->observers = NULL;
 
@@ -194,7 +194,7 @@ bool notify_observer_add(struct Notify *notify, enum NotifyType type,
       return true;
   }
 
-  struct Observer *o = mutt_mem_calloc(1, sizeof(*o));
+  struct Observer *o = g_new0(struct Observer, 1);
   o->type = type;
   o->callback = callback;
   o->global_data = global_data;

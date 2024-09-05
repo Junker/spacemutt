@@ -48,7 +48,7 @@ void index_private_data_free(struct MuttWindow *win, void **ptr)
  */
 struct IndexPrivateData *index_private_data_new(struct IndexSharedData *shared)
 {
-  struct IndexPrivateData *priv = mutt_mem_calloc(1, sizeof(struct IndexPrivateData));
+  struct IndexPrivateData *priv = g_new0(struct IndexPrivateData, 1);
 
   priv->shared = shared;
   priv->oldcount = -1;

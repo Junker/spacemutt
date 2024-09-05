@@ -131,7 +131,7 @@ enum CommandResult mutt_parse_score(struct Buffer *buf, struct Buffer *s,
       FREE(&pattern);
       return MUTT_CMD_ERROR;
     }
-    ptr = mutt_mem_calloc(1, sizeof(struct Score));
+    ptr = g_new0(struct Score, 1);
     if (last)
       last->next = ptr;
     else

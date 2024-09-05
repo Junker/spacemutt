@@ -54,7 +54,7 @@ void browser_private_data_free(struct BrowserPrivateData **ptr)
  */
 struct BrowserPrivateData *browser_private_data_new(void)
 {
-  struct BrowserPrivateData *priv = mutt_mem_calloc(1, sizeof(struct BrowserPrivateData));
+  struct BrowserPrivateData *priv = g_new0(struct BrowserPrivateData, 1);
 
   priv->old_last_dir = buf_pool_get();
   priv->prefix = buf_pool_get();

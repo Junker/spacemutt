@@ -1229,8 +1229,8 @@ void mx_alloc_memory(struct Mailbox *m, int req_size)
   }
   else
   {
-    m->emails = mutt_mem_calloc(req_size, sizeof(struct Email *));
-    m->v2r = mutt_mem_calloc(req_size, sizeof(int));
+    m->emails = g_malloc0_n(req_size, sizeof(struct Email *));
+    m->v2r = g_malloc0_n(req_size, sizeof(int));
   }
 
   for (int i = m->email_max; i < req_size; i++)

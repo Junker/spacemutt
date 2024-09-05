@@ -105,9 +105,9 @@ struct Regex *regex_new(const char *str, uint32_t flags, struct Buffer *err)
     return NULL;
 
   int rflags = 0;
-  struct Regex *reg = mutt_mem_calloc(1, sizeof(struct Regex));
+  struct Regex *reg = g_new0(struct Regex, 1);
 
-  reg->regex = mutt_mem_calloc(1, sizeof(regex_t));
+  reg->regex = g_new0(regex_t, 1);
   reg->pattern = mutt_str_dup(str);
 
   /* Should we use smart case matching? */

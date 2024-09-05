@@ -31,6 +31,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <glib.h>
 #include "envlist.h"
 #include "memory.h"
 #include "string2.h"
@@ -66,7 +67,7 @@ char **envlist_init(char **envp)
   for (src = envp; src && *src; src++)
     count++;
 
-  char **env_copy = mutt_mem_calloc(count + 1, sizeof(char *));
+  char **env_copy = g_malloc0_n(count + 1, sizeof(char *));
   for (src = envp, dst = env_copy; src && *src; src++, dst++)
     *dst = mutt_str_dup(*src);
 

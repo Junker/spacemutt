@@ -48,7 +48,7 @@
  */
 struct NodeCondDatePrivate *node_conddate_private_new(int count, char period)
 {
-  struct NodeCondDatePrivate *priv = mutt_mem_calloc(1, sizeof(struct NodeCondDatePrivate));
+  struct NodeCondDatePrivate *priv = g_new0(struct NodeCondDatePrivate, 1);
 
   priv->count = count;
   priv->period = period;

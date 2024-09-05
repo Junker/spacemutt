@@ -94,7 +94,7 @@ static void mbox_adata_free(void **ptr)
  */
 static struct MboxAccountData *mbox_adata_new(void)
 {
-  return mutt_mem_calloc(1, sizeof(struct MboxAccountData));
+  return g_new0(struct MboxAccountData, 1);
 }
 
 /**
@@ -1164,8 +1164,8 @@ static enum MxStatus mbox_mbox_sync(struct Mailbox *m)
     offset -= (sizeof(MMDF_SEP) - 1);
 
   /* allocate space for the new offsets */
-  new_offset = mutt_mem_calloc(m->msg_count - first, sizeof(struct MUpdate));
-  old_offset = mutt_mem_calloc(m->msg_count - first, sizeof(struct MUpdate));
+  new_offset = g_new0(struct MUpdate, m->msg_count - first);
+  old_offset = g_new0(struct MUpdate, m->msg_count - first);
 
   if (m->verbose)
   {

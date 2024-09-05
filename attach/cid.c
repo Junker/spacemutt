@@ -67,7 +67,7 @@ struct CidMap *cid_map_new(const char *cid, const char *filename)
   if (!cid || !filename)
     return NULL;
 
-  struct CidMap *cid_map = mutt_mem_calloc(1, sizeof(struct CidMap));
+  struct CidMap *cid_map = g_new0(struct CidMap, 1);
 
   cid_map->cid = mutt_str_dup(cid);
   cid_map->fname = mutt_str_dup(filename);

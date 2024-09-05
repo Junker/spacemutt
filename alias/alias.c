@@ -661,7 +661,7 @@ bool mutt_addr_is_user(const struct Address *addr)
  */
 struct Alias *alias_new(void)
 {
-  struct Alias *a = mutt_mem_calloc(1, sizeof(struct Alias));
+  struct Alias *a = g_new0(struct Alias, 1);
   a->addr = mutt_addrlist_new();
   a->tags = NULL;
   return a;
