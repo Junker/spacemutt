@@ -25,10 +25,10 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include "email/body.h"
 
 struct AttachCtx;
 struct Body;
-struct BodyArray;
 struct ConfigSubset;
 struct Email;
 struct MailboxView;
@@ -44,6 +44,6 @@ struct AttachPtr *current_attachment(struct AttachCtx *actx, struct Menu *menu);
 void mutt_update_recvattach_menu(struct AttachCtx *actx, struct Menu *menu, bool init);
 void recvattach_edit_content_type(struct AttachCtx *actx, struct Menu *menu, struct Email *e);
 
-int ba_add_tagged(struct BodyArray *ba, struct AttachCtx *actx, struct Menu *menu);
+int ba_add_tagged(BodyArray *ba, struct AttachCtx *actx, struct Menu *menu);
 
 #endif /* MUTT_ATTACH_RECVATTACH_H */

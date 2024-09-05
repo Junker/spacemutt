@@ -1245,27 +1245,27 @@ static int op_attachment_get_attachment(struct ComposeSharedData *shared, int op
 
   int rc = FR_ERROR;
   struct Menu *menu = shared->adata->menu;
-  struct BodyArray ba = ARRAY_HEAD_INITIALIZER;
-  ba_add_tagged(&ba, actx, menu);
-  if (ARRAY_EMPTY(&ba))
+  BodyArray *ba = g_ptr_array_new();
+  ba_add_tagged(ba, actx, menu);
+  if (ba->len == 0)
     goto done;
 
-  struct Body **bp = NULL;
-  ARRAY_FOREACH(bp, &ba)
+  for (guint i = 0; i < ba->len; i++)
   {
-    if ((*bp)->type == TYPE_MULTIPART)
+    struct Body *bp = g_ptr_array_index(ba, i);
+    if (bp->type == TYPE_MULTIPART)
     {
       log_warning(_("Can't get multipart attachments"));
       continue;
     }
-    mutt_get_tmp_attachment(*bp);
+    mutt_get_tmp_attachment(bp);
   }
 
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
   rc = FR_SUCCESS;
 
 done:
-  ARRAY_FREE(&ba);
+  g_ptr_array_free(ba, true);
   /* No send2hook since this doesn't change the message. */
   return rc;
 }
@@ -1721,15 +1721,15 @@ static int op_attachment_update_encoding(struct ComposeSharedData *shared, int o
 
   int rc = FR_NO_ACTION;
   struct Menu *menu = shared->adata->menu;
-  struct BodyArray ba = ARRAY_HEAD_INITIALIZER;
-  ba_add_tagged(&ba, actx, menu);
-  if (ARRAY_EMPTY(&ba))
+  BodyArray *ba = g_ptr_array_new();
+  ba_add_tagged(ba, actx, menu);
+  if (ba->len == 0)
     goto done;
 
-  struct Body **bp = NULL;
-  ARRAY_FOREACH(bp, &ba)
+  for (guint i = 0; i < ba->len; i++)
   {
-    mutt_update_encoding(*bp, shared->sub);
+    struct Body *bp = g_ptr_array_index(ba, i);
+    mutt_update_encoding(bp, shared->sub);
   }
 
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
@@ -1738,7 +1738,7 @@ static int op_attachment_update_encoding(struct ComposeSharedData *shared, int o
   rc = FR_SUCCESS;
 
 done:
-  ARRAY_FREE(&ba);
+  g_ptr_array_free(ba, true);
   return rc;
 }
 

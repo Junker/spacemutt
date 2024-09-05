@@ -1238,7 +1238,7 @@ void mutt_update_recvattach_menu(struct AttachCtx *actx, struct Menu *menu, bool
  * @retval num Number of selected Attachments
  * @retval -1  Error
  */
-int ba_add_tagged(struct BodyArray *ba, struct AttachCtx *actx, struct Menu *menu)
+int ba_add_tagged(BodyArray *ba, struct AttachCtx *actx, struct Menu *menu)
 {
   if (!ba || !actx || !menu)
     return -1;
@@ -1250,7 +1250,7 @@ int ba_add_tagged(struct BodyArray *ba, struct AttachCtx *actx, struct Menu *men
       struct Body *b = actx->idx[i]->body;
       if (b->tagged)
       {
-        ARRAY_ADD(ba, b);
+        g_ptr_array_add(ba, b);
       }
     }
   }
@@ -1260,8 +1260,8 @@ int ba_add_tagged(struct BodyArray *ba, struct AttachCtx *actx, struct Menu *men
     if (!cur)
       return -1;
 
-    ARRAY_ADD(ba, cur->body);
+    g_ptr_array_add(ba, cur->body);
   }
 
-  return ARRAY_SIZE(ba);
+  return ba->len;
 }

@@ -90,7 +90,7 @@ struct Body
   bool tagged           : 1;      ///< This attachment is tagged
   signed short attach_count;      ///< Number of attachments
 };
-ARRAY_HEAD(BodyArray, struct Body *);
+typedef GPtrArray BodyArray;
 
 /**
  * ExpandoDataBody - Expando UIDs for Bodies
