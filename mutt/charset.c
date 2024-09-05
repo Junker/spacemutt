@@ -340,7 +340,7 @@ int mutt_ch_convert_nonmime_string(const struct StrList *const assumed_charset,
   {
     char const *c = np->data;
     size_t n = mutt_str_len(c);
-    char *fromcode = mutt_mem_malloc(n + 1);
+    char *fromcode = g_malloc(n + 1);
     mutt_str_copy(fromcode, c, n + 1);
     char *s = g_strndup(u, ulen);
     int m = mutt_ch_convert_string(&s, fromcode, charset, MUTT_ICONV_NO_FLAGS);
@@ -797,7 +797,7 @@ int mutt_ch_check(const char *s, size_t slen, const char *from, const char *to)
     return -1;
 
   size_t outlen = MB_LEN_MAX * slen;
-  char *out = mutt_mem_malloc(outlen + 1);
+  char *out = g_malloc(outlen + 1);
   char *saved_out = out;
 
   const size_t convlen = iconv(cd, (ICONV_CONST char **) &s, &slen, &out, &outlen);
@@ -858,7 +858,7 @@ int mutt_ch_convert_string(char **ps, const char *from, const char *to, uint8_t 
     return -1;
   }
   size_t obl = MB_LEN_MAX * ibl;
-  char *buf = mutt_mem_malloc(obl + 1);
+  char *buf = g_malloc(obl + 1);
   char *ob = buf;
 
   mutt_ch_iconv(cd, &ib, &ibl, &ob, &obl, inrepls, outrepl, &rc);
@@ -935,7 +935,7 @@ struct FgetConv *mutt_ch_fgetconv_open(FILE *fp, const char *from, const char *t
   {
     static const char *repls[] = { "\357\277\275", "?", 0 };
 
-    fc = mutt_mem_malloc(sizeof(struct FgetConv));
+    fc = g_new(struct FgetConv, 1);
     fc->p = fc->bufo;
     fc->ob = fc->bufo;
     fc->ib = fc->bufi;
@@ -944,7 +944,7 @@ struct FgetConv *mutt_ch_fgetconv_open(FILE *fp, const char *from, const char *t
   }
   else
   {
-    fc = mutt_mem_malloc(sizeof(struct FgetConvNot));
+    fc = g_malloc(sizeof(struct FgetConvNot));
   }
   fc->fp = fp;
   fc->cd = cd;

@@ -1696,7 +1696,7 @@ static bool search_attach_keyword(char *filename, struct ConfigSubset *sub)
   if (!fp_att)
     return false;
 
-  char *inputline = mutt_mem_malloc(1024);
+  char *inputline = g_malloc(1024);
   bool found = false;
   while (!feof(fp_att) && fgets(inputline, 1024, fp_att))
   {

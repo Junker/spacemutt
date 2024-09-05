@@ -348,7 +348,7 @@ static enum CommandResult parse_attach_list(struct Buffer *buf, struct Buffer *s
     }
 
     len = strlen(a->minor);
-    tmpminor = mutt_mem_malloc(len + 3);
+    tmpminor = g_malloc(len + 3);
     strcpy(&tmpminor[1], a->minor);
     tmpminor[0] = '^';
     tmpminor[len + 1] = '$';

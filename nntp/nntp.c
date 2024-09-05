@@ -334,7 +334,7 @@ static int nntp_attempt_features(struct NntpAccountData *adata)
       size_t buflen = 2048, off = 0, b = 0;
 
       FREE(&adata->overview_fmt);
-      adata->overview_fmt = mutt_mem_malloc(buflen);
+      adata->overview_fmt = g_malloc(buflen);
 
       while (true)
       {
@@ -827,7 +827,7 @@ static int nntp_fetch_lines(struct NntpMboxData *mdata, char *query, size_t qlen
       return 1;
     }
 
-    line = mutt_mem_malloc(sizeof(buf));
+    line = g_malloc(sizeof(buf));
     rc = 0;
 
     if (msg)
@@ -2296,7 +2296,7 @@ int nntp_check_children(struct Mailbox *m, const char *msgid)
   cc.mailbox = m;
   cc.num = 0;
   cc.max = 10;
-  cc.child = mutt_mem_malloc(sizeof(anum_t) * cc.max);
+  cc.child = g_malloc(sizeof(anum_t) * cc.max);
 
   /* fetch numbers of child messages */
   snprintf(buf, sizeof(buf), "XPAT References " ANUM_FMT "-" ANUM_FMT " *%s*\r\n",

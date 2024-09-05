@@ -70,6 +70,6 @@ struct NntpAccountData *nntp_adata_new(struct Connection *conn)
   adata->conn = conn;
   adata->groups_hash = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify)nntp_mdata_free);
   adata->groups_max = 16;
-  adata->groups_list = mutt_mem_malloc(adata->groups_max * sizeof(struct NntpMboxData *));
+  adata->groups_list = g_malloc(adata->groups_max * sizeof(struct NntpMboxData *));
   return adata;
 }

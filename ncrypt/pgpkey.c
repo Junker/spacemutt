@@ -233,7 +233,7 @@ struct PgpKeyInfo *pgp_ask_for_key(char *tag, const char *whatfor,
       }
       else
       {
-        l = mutt_mem_malloc(sizeof(struct PgpCache));
+        l = g_new(struct PgpCache, 1);
         l->next = IdDefaults;
         IdDefaults = l;
         l->what = mutt_str_dup(whatfor);

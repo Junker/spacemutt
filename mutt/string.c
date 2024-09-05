@@ -789,7 +789,7 @@ int mutt_str_asprintf(char **strp, const char *fmt, ...)
 
   int rlen = 256;
 
-  *strp = mutt_mem_malloc(rlen);
+  *strp = g_malloc(rlen);
   while (true)
   {
     va_list ap;
