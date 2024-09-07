@@ -173,7 +173,7 @@ void alias_array_sort(AliasViewArray *ava, const struct ConfigSubset *sub)
   const short c_sort_alias = cs_subset_sort(sub, "sort_alias");
   bool sort_reverse = (c_sort_alias & SORT_REVERSE);
 
-  g_ptr_array_sort_with_data(ava, alias_get_sort_function(c_sort_alias), &sort_reverse);
+  g_ptr_array_sort_values_with_data(ava, alias_get_sort_function(c_sort_alias), &sort_reverse);
 
   for (guint i = 0; i < ava->len; i++)
   {
