@@ -221,8 +221,8 @@ void alias_Y(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 static int alias_make_entry(struct Menu *menu, int line, int max_cols, struct Buffer *buf)
 {
   const struct AliasMenuData *mdata = menu->mdata;
-  const struct AliasViewArray *ava = &mdata->ava;
-  struct AliasView *av = ARRAY_GET(ava, line);
+  const AliasViewArray *ava = mdata->ava;
+  struct AliasView *av = g_ptr_array_index(ava, line);
 
   const bool c_arrow_cursor = cs_subset_bool(menu->sub, "arrow_cursor");
   if (c_arrow_cursor)
@@ -242,8 +242,8 @@ static int alias_make_entry(struct Menu *menu, int line, int max_cols, struct Bu
 static int alias_tag(struct Menu *menu, int sel, int act)
 {
   const struct AliasMenuData *mdata = menu->mdata;
-  const struct AliasViewArray *ava = &mdata->ava;
-  struct AliasView *av = ARRAY_GET(ava, sel);
+  const AliasViewArray *ava = mdata->ava;
+  struct AliasView *av = g_ptr_array_index(ava, sel);
 
   bool ot = av->is_tagged;
 
@@ -269,26 +269,26 @@ static int alias_alias_observer(struct NotifyCallback *nc)
 
   if (nc->event_subtype == NT_ALIAS_ADD)
   {
-    alias_array_alias_add(&mdata->ava, alias);
+    alias_array_alias_add(mdata->ava, alias);
 
-    if (alias_array_count_visible(&mdata->ava) != ARRAY_SIZE(&mdata->ava))
+    if (alias_array_count_visible(mdata->ava) != mdata->ava->len)
     {
       mutt_pattern_alias_func(NULL, mdata, menu);
     }
   }
   else if (nc->event_subtype == NT_ALIAS_DELETE)
   {
-    alias_array_alias_delete(&mdata->ava, alias);
+    alias_array_alias_delete(mdata->ava, alias);
 
-    int vcount = alias_array_count_visible(&mdata->ava);
+    int vcount = alias_array_count_visible(mdata->ava);
     int index = menu_get_index(menu);
     if ((index > (vcount - 1)) && (index > 0))
       menu_set_index(menu, index - 1);
   }
 
-  alias_array_sort(&mdata->ava, mdata->sub);
+  alias_array_sort(mdata->ava, mdata->sub);
 
-  menu->max = alias_array_count_visible(&mdata->ava);
+  menu->max = alias_array_count_visible(mdata->ava);
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
   log_debug5("alias done, request WA_RECALC, MENU_REDRAW_FULL");
 
@@ -339,7 +339,7 @@ static struct MuttWindow *alias_dialog_new(struct AliasMenuData *mdata)
 
   menu->make_entry = alias_make_entry;
   menu->tag = alias_tag;
-  menu->max = alias_array_count_visible(&mdata->ava);
+  menu->max = alias_array_count_visible(mdata->ava);
   menu->mdata = mdata;
   menu->mdata_free = NULL; // Menu doesn't own the data
 
@@ -370,7 +370,7 @@ static struct MuttWindow *alias_dialog_new(struct AliasMenuData *mdata)
  */
 static bool dlg_alias(struct Buffer *buf, struct AliasMenuData *mdata)
 {
-  if (ARRAY_EMPTY(&mdata->ava))
+  if (mdata->ava->len == 0)
   {
     log_warning(_("You have no aliases"));
     return false;
@@ -385,12 +385,12 @@ static bool dlg_alias(struct Buffer *buf, struct AliasMenuData *mdata)
   mdata->menu = menu;
   mdata->sbar = win_sbar;
 
-  alias_array_sort(&mdata->ava, mdata->sub);
+  alias_array_sort(mdata->ava, mdata->sub);
 
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, &mdata->ava)
+  for (guint i = 0; i < mdata->ava->len; i++)
   {
-    avp->num = ARRAY_FOREACH_IDX;
+    struct AliasView *avp = g_ptr_array_index(mdata->ava, i);
+    avp->num = i;
   }
 
   struct MuttWindow *old_focus = window_set_focus(menu->win);
@@ -443,7 +443,7 @@ int alias_complete(struct Buffer *buf, struct ConfigSubset *sub)
 {
   char bestname[8192] = { 0 };
 
-  struct AliasMenuData mdata = { ARRAY_HEAD_INITIALIZER, NULL, sub };
+  struct AliasMenuData mdata = { g_ptr_array_new(), NULL, sub };
   mdata.limit = buf_strdup(buf);
   mdata.search_state = search_state_new();
 
@@ -477,7 +477,7 @@ int alias_complete(struct Buffer *buf, struct ConfigSubset *sub)
       for (GList *np = Aliases->head; np != NULL; np = np->next)
       {
         struct Alias *alias = np->data;
-        alias_array_alias_add(&mdata.ava, alias);
+        alias_array_alias_add(mdata.ava, alias);
       }
     }
     else
@@ -501,9 +501,9 @@ int alias_complete(struct Buffer *buf, struct ConfigSubset *sub)
       for (GList *np = Aliases->head; np != NULL; np = np->next)
       {
         struct Alias *alias = np->data;
-        int aasize = alias_array_alias_add(&mdata.ava, alias);
+        int aasize = alias_array_alias_add(mdata.ava, alias);
 
-        struct AliasView *av = ARRAY_GET(&mdata.ava, aasize - 1);
+        struct AliasView *av = g_ptr_array_index(mdata.ava, aasize - 1);
 
         if (alias->name && !mutt_strn_equal(alias->name, buf_string(buf), buf_len(buf)))
         {
@@ -513,12 +513,12 @@ int alias_complete(struct Buffer *buf, struct ConfigSubset *sub)
     }
   }
 
-  if (ARRAY_EMPTY(&mdata.ava))
+  if (mdata.ava->len == 0)
   {
     for (GList *np = Aliases->head; np != NULL; np = np->next)
     {
       struct Alias *alias = np->data;
-      alias_array_alias_add(&mdata.ava, alias);
+      alias_array_alias_add(mdata.ava, alias);
     }
 
     mutt_pattern_alias_func(NULL, &mdata, NULL);
@@ -531,9 +531,10 @@ int alias_complete(struct Buffer *buf, struct ConfigSubset *sub)
 
   // Extract the selected aliases
   struct Buffer *tmpbuf = buf_pool_get();
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, &mdata.ava)
+
+  for (guint i = 0; i < mdata.ava->len; i++)
   {
+    struct AliasView *avp = g_ptr_array_index(mdata.ava, i);
     if (!avp->is_tagged)
       continue;
 
@@ -545,8 +546,9 @@ int alias_complete(struct Buffer *buf, struct ConfigSubset *sub)
 
 done:
   // Process any deleted aliases
-  ARRAY_FOREACH(avp, &mdata.ava)
+  for (guint i = 0; i < mdata.ava->len; i++)
   {
+    struct AliasView *avp = g_ptr_array_index(mdata.ava, i);
     if (!avp->is_deleted)
       continue;
 
@@ -554,7 +556,7 @@ done:
     alias_free(&avp->alias);
   }
 
-  ARRAY_FREE(&mdata.ava);
+  g_ptr_array_free(mdata.ava, true);
   FREE(&mdata.limit);
   FREE(&mdata.title);
   search_state_free(&mdata.search_state);
@@ -569,14 +571,14 @@ done:
  */
 void alias_dialog(struct Mailbox *m, struct ConfigSubset *sub)
 {
-  struct AliasMenuData mdata = { ARRAY_HEAD_INITIALIZER, NULL, sub };
+  struct AliasMenuData mdata = { g_ptr_array_new(), NULL, sub };
   mdata.search_state = search_state_new();
 
   // Create a View Array of all the Aliases
   for (GList *np = Aliases->head; np != NULL; np = np->next)
   {
     struct Alias *alias = np->data;
-    alias_array_alias_add(&mdata.ava, alias);
+    alias_array_alias_add(mdata.ava, alias);
   }
 
   if (!dlg_alias(NULL, &mdata))
@@ -586,9 +588,9 @@ void alias_dialog(struct Mailbox *m, struct ConfigSubset *sub)
   struct Email *e = email_new();
   e->env = mutt_env_new();
 
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, &mdata.ava)
+  for (guint i = 0; i < mdata.ava->len; i++)
   {
+    struct AliasView *avp = g_ptr_array_index(mdata.ava, i);
     if (!avp->is_tagged)
       continue;
 
@@ -604,8 +606,9 @@ void alias_dialog(struct Mailbox *m, struct ConfigSubset *sub)
 
 done:
   // Process any deleted aliases
-  ARRAY_FOREACH(avp, &mdata.ava)
+  for (guint i = 0; i < mdata.ava->len; i++)
   {
+    struct AliasView *avp = g_ptr_array_index(mdata.ava, i);
     if (avp->is_deleted)
     {
       g_queue_remove(Aliases, avp->alias);
@@ -613,7 +616,7 @@ done:
     }
   }
 
-  ARRAY_FREE(&mdata.ava);
+  g_ptr_array_free(mdata.ava, true);
   FREE(&mdata.limit);
   FREE(&mdata.title);
   search_state_free(&mdata.search_state);

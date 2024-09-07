@@ -25,10 +25,11 @@
 
 #include <stdbool.h>
 #include "address/address.h"
+#include "alias/gui.h"
+
 
 struct Alias;
 struct AliasMenuData;
-struct AliasViewArray;
 struct ConfigSubset;
 struct MuttWindow;
 
@@ -53,7 +54,7 @@ struct AliasFunction
   alias_function_t function; ///< Function to call
 };
 
-void alias_array_sort(struct AliasViewArray *ava, const struct ConfigSubset *sub);
+void alias_array_sort(AliasViewArray *ava, const struct ConfigSubset *sub);
 int alias_function_dispatcher(struct MuttWindow *win, int op);
 bool alias_to_addrlist(AddressList *al, struct Alias *alias);
 int query_run(const char *s, bool verbose, AliasList *al, const struct ConfigSubset *sub);

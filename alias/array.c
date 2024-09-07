@@ -44,21 +44,22 @@ struct Alias;
  * @note The Alias is wrapped in an AliasView
  * @note Call alias_array_sort() to sort and reindex the AliasViewArray
  */
-int alias_array_alias_add(struct AliasViewArray *ava, struct Alias *alias)
+int alias_array_alias_add(AliasViewArray *ava, struct Alias *alias)
 {
   if (!ava || !alias)
     return -1;
 
-  struct AliasView av = {
-    .num = 0,
-    .orig_seq = ARRAY_SIZE(ava),
-    .is_tagged = false,
-    .is_deleted = false,
-    .is_visible = true,
-    .alias = alias,
-  };
-  ARRAY_ADD(ava, av);
-  return ARRAY_SIZE(ava);
+  
+  struct AliasView *av = g_new0(struct AliasView, 1);
+  av->num = 0;
+  av->orig_seq = ava->len;
+  av->is_tagged = false;
+  av->is_deleted = false;
+  av->is_visible = true;
+  av->alias = alias;
+
+  g_ptr_array_add(ava, av);
+  return ava->len;
 }
 
 /**
@@ -70,35 +71,35 @@ int alias_array_alias_add(struct AliasViewArray *ava, struct Alias *alias)
  *
  * @note Call alias_array_sort() to sort and reindex the AliasViewArray
  */
-int alias_array_alias_delete(struct AliasViewArray *ava, const struct Alias *alias)
+int alias_array_alias_delete(AliasViewArray *ava, const struct Alias *alias)
 {
   if (!ava || !alias)
     return -1;
 
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, ava)
+  for (guint i = 0; i < ava->len; i++)
   {
+    struct AliasView *avp = g_ptr_array_index(ava, i);
     if (avp->alias != alias)
       continue;
 
-    ARRAY_REMOVE(ava, avp);
+    g_ptr_array_remove_index(ava, i);
     break;
   }
 
-  return ARRAY_SIZE(ava);
+  return ava->len;
 }
 
 /**
  * alias_array_count_visible - Count number of visible Aliases
  * @param ava Array of Aliases
  */
-int alias_array_count_visible(struct AliasViewArray *ava)
+int alias_array_count_visible(AliasViewArray *ava)
 {
   int count = 0;
 
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, ava)
+  for (guint i = 0; i < ava->len; i++)
   {
+    struct AliasView *avp = g_ptr_array_index(ava, i);
     if (avp->is_visible)
       count++;
   }

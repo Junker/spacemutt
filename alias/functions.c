@@ -34,6 +34,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "address/lib.h"
 #include "config/lib.h"
@@ -124,9 +125,9 @@ static int op_create_alias(struct AliasMenuData *mdata, int op)
   {
     AddressList *naddr = mutt_addrlist_new();
 
-    struct AliasView *avp = NULL;
-    ARRAY_FOREACH(avp, &mdata->ava)
+    for (guint i = 0; i < mdata->ava->len; i++)
     {
+      struct AliasView *avp = g_ptr_array_index(mdata->ava, i);
       if (!avp->is_tagged)
         continue;
 
@@ -144,7 +145,7 @@ static int op_create_alias(struct AliasMenuData *mdata, int op)
   else
   {
     AddressList *al = mutt_addrlist_new();
-    if (alias_to_addrlist(al, ARRAY_GET(&mdata->ava, menu_get_index(menu))->alias))
+    if (alias_to_addrlist(al, ((struct AliasView*)g_ptr_array_index(mdata->ava, menu_get_index(menu)))->alias))
     {
       alias_create(al, mdata->sub);
       mutt_addrlist_free_full(al);
@@ -162,9 +163,9 @@ static int op_delete(struct AliasMenuData *mdata, int op)
 
   if (menu->tag_prefix)
   {
-    struct AliasView *avp = NULL;
-    ARRAY_FOREACH(avp, &mdata->ava)
+    for (guint i = 0; i < mdata->ava->len; i++)
     {
+      struct AliasView *avp = g_ptr_array_index(mdata->ava, i);
       if (avp->is_tagged)
         avp->is_deleted = (op == OP_DELETE);
     }
@@ -173,7 +174,7 @@ static int op_delete(struct AliasMenuData *mdata, int op)
   else
   {
     int index = menu_get_index(menu);
-    ARRAY_GET(&mdata->ava, index)->is_deleted = (op == OP_DELETE);
+    ((struct AliasView*)g_ptr_array_index(mdata->ava, index))->is_deleted = (op == OP_DELETE);
     menu_queue_redraw(menu, MENU_REDRAW_CURRENT);
     const bool c_resolve = cs_subset_bool(mdata->sub, "resolve");
     if (c_resolve && (index < (menu->max - 1)))
@@ -208,9 +209,9 @@ static int op_generic_select_entry(struct AliasMenuData *mdata, int op)
   if (menu->tag_prefix)
   {
     // Untag any non-visible aliases
-    struct AliasView *avp = NULL;
-    ARRAY_FOREACH(avp, &mdata->ava)
+    for (guint i = 0; i < mdata->ava->len; i++)
     {
+      struct AliasView *avp = g_ptr_array_index(mdata->ava, i);
       if (avp->is_tagged && !avp->is_visible)
         avp->is_tagged = false;
     }
@@ -218,11 +219,11 @@ static int op_generic_select_entry(struct AliasMenuData *mdata, int op)
   else
   {
     // Untag all but the current alias
-    struct AliasView *avp = NULL;
     const int idx = menu_get_index(menu);
-    ARRAY_FOREACH(avp, &mdata->ava)
+    for (guint i = 0; i < mdata->ava->len; i++)
     {
-      avp->is_tagged = (ARRAY_FOREACH_IDX == idx);
+      struct AliasView *avp = g_ptr_array_index(mdata->ava, i);
+      avp->is_tagged = (i == idx);
     }
   }
 
@@ -239,7 +240,7 @@ static int op_main_limit(struct AliasMenuData *mdata, int op)
   if (rc != 0)
     return FR_NO_ACTION;
 
-  alias_array_sort(&mdata->ava, mdata->sub);
+  alias_array_sort(mdata->ava, mdata->sub);
   alias_set_title(mdata->sbar, mdata->title, mdata->limit);
   menu_queue_redraw(menu, MENU_REDRAW_FULL);
   window_redraw(NULL);
@@ -265,7 +266,7 @@ static int op_query(struct AliasMenuData *mdata, int op)
 
   if (op == OP_QUERY)
   {
-    ARRAY_FREE(&mdata->ava);
+    g_ptr_array_free(mdata->ava, true);
     aliaslist_clear(mdata->al);
   }
 
@@ -288,11 +289,11 @@ static int op_query(struct AliasMenuData *mdata, int op)
   struct Alias *alias = NULL;
   while ((alias = g_queue_pop_head(al)) != NULL)
   {
-    alias_array_alias_add(&mdata->ava, alias);
+    alias_array_alias_add(mdata->ava, alias);
     g_queue_push_tail(mdata->al, alias); // Transfer
   }
-  alias_array_sort(&mdata->ava, mdata->sub);
-  menu->max = ARRAY_SIZE(&mdata->ava);
+  alias_array_sort(mdata->ava, mdata->sub);
+  menu->max = mdata->ava->len;
   return FR_SUCCESS;
 }
 

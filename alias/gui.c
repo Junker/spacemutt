@@ -91,7 +91,7 @@ int alias_recalc(struct MuttWindow *win)
   struct Menu *menu = win->wdata;
   struct AliasMenuData *mdata = menu->mdata;
 
-  alias_array_sort(&mdata->ava, mdata->sub);
+  alias_array_sort(mdata->ava, mdata->sub);
 
   win->actions |= WA_REPAINT;
   log_debug5("recalc done, request WA_REPAINT");

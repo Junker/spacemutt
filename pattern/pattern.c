@@ -234,14 +234,14 @@ int mutt_pattern_alias_func(char *prompt, struct AliasMenuData *mdata, struct Me
     match_all = true;
   }
 
-  progress = progress_new(MUTT_PROGRESS_READ, ARRAY_SIZE(&mdata->ava));
+  progress = progress_new(MUTT_PROGRESS_READ, mdata->ava->len);
   progress_set_message(progress, _("Executing command on matching messages..."));
 
   int vcounter = 0;
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, &mdata->ava)
+  for (guint i = 0; i < mdata->ava->len; i++)
   {
-    progress_update(progress, ARRAY_FOREACH_IDX, -1);
+    struct AliasView *avp = g_ptr_array_index(mdata->ava, i);
+    progress_update(progress, i, -1);
 
     if (match_all ||
         mutt_pattern_alias_exec(pat->data, MUTT_MATCH_FULL_ADDRESS, avp, NULL))
@@ -612,7 +612,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
 {
   struct Progress *progress = NULL;
   const struct AliasMenuData *mdata = menu->mdata;
-  const struct AliasViewArray *ava = &mdata->ava;
+  const AliasViewArray *ava = mdata->ava;
   int rc = -1;
   bool pattern_changed = false;
 
@@ -660,9 +660,9 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
 
   if (pattern_changed)
   {
-    struct AliasView *av = NULL;
-    ARRAY_FOREACH(av, ava)
+    for (guint i = 0; i < ava->len; i++)
     {
+      struct AliasView *av = g_ptr_array_index(ava, i);
       av->is_searched = false;
     }
   }
@@ -671,15 +671,15 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
   if (flags & SEARCH_OPPOSITE)
     incr = -incr;
 
-  progress = progress_new(MUTT_PROGRESS_READ, ARRAY_SIZE(ava));
+  progress = progress_new(MUTT_PROGRESS_READ, ava->len);
   progress_set_message(progress, _("Searching..."));
 
   const bool c_wrap_search = cs_subset_bool(SpaceMutt->sub, "wrap_search");
-  for (int i = cur + incr, j = 0; j != ARRAY_SIZE(ava); j++)
+  for (int i = cur + incr, j = 0; j != ava->len; j++)
   {
     const char *msg = NULL;
     progress_update(progress, j, -1);
-    if (i > ARRAY_SIZE(ava) - 1)
+    if (i > ava->len - 1)
     {
       i = 0;
       if (c_wrap_search)
@@ -694,7 +694,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
     }
     else if (i < 0)
     {
-      i = ARRAY_SIZE(ava) - 1;
+      i = ava->len - 1;
       if (c_wrap_search)
       {
         msg = _("Search wrapped to bottom");
@@ -706,7 +706,7 @@ int mutt_search_alias_command(struct Menu *menu, int cur,
       }
     }
 
-    struct AliasView *av = ARRAY_GET(ava, i);
+    struct AliasView *av = g_ptr_array_index(ava, i);
     if (av->is_searched)
     {
       /* if we've already evaluated this message, use the cached value */

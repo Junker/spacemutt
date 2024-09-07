@@ -165,18 +165,19 @@ static sort_t alias_get_sort_function(short sort)
  * @param ava Array of Aliases
  * @param sub Config items
  */
-void alias_array_sort(struct AliasViewArray *ava, const struct ConfigSubset *sub)
+void alias_array_sort(AliasViewArray *ava, const struct ConfigSubset *sub)
 {
-  if (!ava || ARRAY_EMPTY(ava))
+  if (!ava || ava->len == 0)
     return;
 
   const short c_sort_alias = cs_subset_sort(sub, "sort_alias");
   bool sort_reverse = (c_sort_alias & SORT_REVERSE);
-  ARRAY_SORT(ava, alias_get_sort_function(c_sort_alias), &sort_reverse);
 
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, ava)
+  g_ptr_array_sort_with_data(ava, alias_get_sort_function(c_sort_alias), &sort_reverse);
+
+  for (guint i = 0; i < ava->len; i++)
   {
-    avp->num = ARRAY_FOREACH_IDX;
+    struct AliasView *avp = g_ptr_array_index(ava, i);
+    avp->num = i;
   }
 }

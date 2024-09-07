@@ -231,8 +231,8 @@ void query_Y(const struct ExpandoNode *node, void *data, MuttFormatFlags flags,
 static int query_make_entry(struct Menu *menu, int line, int max_cols, struct Buffer *buf)
 {
   const struct AliasMenuData *mdata = menu->mdata;
-  const struct AliasViewArray *ava = &mdata->ava;
-  struct AliasView *av = ARRAY_GET(ava, line);
+  const AliasViewArray *ava = mdata->ava;
+  struct AliasView *av = g_ptr_array_index(ava, line);
 
   const bool c_arrow_cursor = cs_subset_bool(menu->sub, "arrow_cursor");
   if (c_arrow_cursor)
@@ -252,8 +252,8 @@ static int query_make_entry(struct Menu *menu, int line, int max_cols, struct Bu
 static int query_tag(struct Menu *menu, int sel, int act)
 {
   const struct AliasMenuData *mdata = menu->mdata;
-  const struct AliasViewArray *ava = &mdata->ava;
-  struct AliasView *av = ARRAY_GET(ava, sel);
+  const AliasViewArray *ava = mdata->ava;
+  struct AliasView *av = g_ptr_array_index(ava, sel);
 
   bool ot = av->is_tagged;
 
@@ -385,7 +385,7 @@ static struct MuttWindow *query_dialog_new(struct AliasMenuData *mdata, const ch
 
   menu->make_entry = query_make_entry;
   menu->tag = query_tag;
-  menu->max = ARRAY_SIZE(&mdata->ava);
+  menu->max = mdata->ava->len;
   mdata->title = mutt_str_dup(_("Query"));
   menu->mdata = mdata;
   menu->mdata_free = NULL; // Menu doesn't own the data
@@ -428,12 +428,12 @@ static bool dlg_query(struct Buffer *buf, struct AliasMenuData *mdata)
   mdata->sbar = win_sbar;
   mdata->query = buf;
 
-  alias_array_sort(&mdata->ava, mdata->sub);
+  alias_array_sort(mdata->ava, mdata->sub);
 
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, &mdata->ava)
+  for (guint i = 0; i < mdata->ava->len; i++)
   {
-    avp->num = ARRAY_FOREACH_IDX;
+    struct AliasView *avp = g_ptr_array_index(mdata->ava, i);
+    avp->num = i;
   }
 
   struct MuttWindow *old_focus = window_set_focus(menu->win);
@@ -479,7 +479,7 @@ static bool dlg_query(struct Buffer *buf, struct AliasMenuData *mdata)
  */
 int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
 {
-  struct AliasMenuData mdata = { ARRAY_HEAD_INITIALIZER, NULL, sub };
+  struct AliasMenuData mdata = { g_ptr_array_new(), NULL, sub };
   mdata.search_state = search_state_new();
 
   AliasList *al = aliaslist_new();
@@ -514,7 +514,7 @@ int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
   for (GList *np = mdata.al->head; np != NULL; np = np->next)
   {
     struct Alias *alias = np->data;
-    alias_array_alias_add(&mdata.ava, alias);
+    alias_array_alias_add(mdata.ava, alias);
   }
 
   /* multiple results, choose from query menu */
@@ -524,9 +524,9 @@ int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
   buf_reset(buf);
   buf_alloc(buf, 8192);
   bool first = true;
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, &mdata.ava)
+  for (guint i = 0; i < mdata.ava->len; i++)
   {
+    struct AliasView *avp = g_ptr_array_index(mdata.ava, i);
     if (!avp->is_tagged)
       continue;
 
@@ -546,7 +546,7 @@ int query_complete(struct Buffer *buf, struct ConfigSubset *sub)
   }
 
 done:
-  ARRAY_FREE(&mdata.ava);
+  g_ptr_array_free(mdata.ava, true);
   FREE(&mdata.title);
   FREE(&mdata.limit);
   search_state_free(&mdata.search_state);
@@ -569,7 +569,7 @@ void query_index(struct Mailbox *m, struct ConfigSubset *sub)
   }
 
   AliasList *al = aliaslist_new();
-  struct AliasMenuData mdata = { ARRAY_HEAD_INITIALIZER, NULL, sub };
+  struct AliasMenuData mdata = { g_ptr_array_new(), NULL, sub };
   mdata.al = al;
   mdata.search_state = search_state_new();
 
@@ -587,7 +587,7 @@ void query_index(struct Mailbox *m, struct ConfigSubset *sub)
   for (GList *np = mdata.al->head; np != NULL; np = np->next)
   {
     struct Alias *alias = np->data;
-    alias_array_alias_add(&mdata.ava, alias);
+    alias_array_alias_add(mdata.ava, alias);
   }
 
   if (!dlg_query(buf, &mdata))
@@ -597,9 +597,9 @@ void query_index(struct Mailbox *m, struct ConfigSubset *sub)
   struct Email *e = email_new();
   e->env = mutt_env_new();
 
-  struct AliasView *avp = NULL;
-  ARRAY_FOREACH(avp, &mdata.ava)
+  for (guint i = 0; i < mdata.ava->len; i++)
   {
+    struct AliasView *avp = g_ptr_array_index(mdata.ava, i);
     if (!avp->is_tagged)
       continue;
 
@@ -614,7 +614,7 @@ void query_index(struct Mailbox *m, struct ConfigSubset *sub)
   mutt_send_message(SEND_REVIEW_TO, e, NULL, m, NULL, sub);
 
 done:
-  ARRAY_FREE(&mdata.ava);
+  g_ptr_array_free(mdata.ava, true);
   FREE(&mdata.title);
   FREE(&mdata.limit);
   search_state_free(&mdata.search_state);

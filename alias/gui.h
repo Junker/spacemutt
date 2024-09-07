@@ -47,14 +47,14 @@ struct AliasView
   bool is_visible  : 1; ///< Is visible?
   struct Alias *alias;  ///< Alias
 };
-ARRAY_HEAD(AliasViewArray, struct AliasView);
+typedef GPtrArray AliasViewArray;
 
 /**
  * struct AliasMenuData - AliasView array wrapper with Pattern information - @extends Menu
  */
 struct AliasMenuData
 {
-  struct AliasViewArray  ava;           ///< All Aliases/Queries
+  AliasViewArray        *ava;           ///< All Aliases/Queries
   AliasList             *al;            ///< Alias data
   struct ConfigSubset   *sub;           ///< Config items
   struct Menu           *menu;          ///< Menu
@@ -83,9 +83,9 @@ enum ExpandoDataAlias
 
 int alias_config_observer(struct NotifyCallback *nc);
 
-int  alias_array_alias_add    (struct AliasViewArray *ava, struct Alias *alias);
-int  alias_array_alias_delete (struct AliasViewArray *ava, const struct Alias *alias);
-int  alias_array_count_visible(struct AliasViewArray *ava);
+int  alias_array_alias_add    (AliasViewArray *ava, struct Alias *alias);
+int  alias_array_alias_delete (AliasViewArray *ava, const struct Alias *alias);
+int  alias_array_count_visible(AliasViewArray *ava);
 
 void alias_set_title(struct MuttWindow *sbar, char *menu_name, char *limit);
 int alias_recalc(struct MuttWindow *win);
