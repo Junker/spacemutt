@@ -489,7 +489,7 @@ int log_queue_save(FILE *fp)
     if (ll->err_no)
       fprintf(fp, ": %s\n", strerror(ll->err_no));
     else
-      fputs("\n", LogFileFP);
+      fputs("\n", fp);
     count++;
   }
 
