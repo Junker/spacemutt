@@ -19,6 +19,11 @@
 
 This fork aims to enhance NeoMutt by leveraging the powerful features of Guile Scheme and GLib, improving both its configuration flexibility and internal code structure.
 
+## Warning
+
+The project is under very active development. Expect bugs and changes.
+
+
 ## Where is SpaceMutt?
 
 - Source Code:     https://github.com/Junker/spacemutt
