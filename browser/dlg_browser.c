@@ -85,6 +85,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <glib.h>
 #include "mutt/lib.h"
 #include "config/lib.h"
 #include "core/lib.h"
@@ -643,41 +644,41 @@ void browser_add_folder(const struct Menu *menu, struct BrowserState *state,
     return;
   }
 
-  struct FolderFile ff = { 0 };
+  struct FolderFile *ff = g_new0(struct FolderFile, 1);
 
   if (st)
   {
-    ff.mode = st->st_mode;
-    ff.mtime = st->st_mtime;
-    ff.size = st->st_size;
-    ff.gid = st->st_gid;
-    ff.uid = st->st_uid;
-    ff.nlink = st->st_nlink;
-    ff.local = true;
+    ff->mode = st->st_mode;
+    ff->mtime = st->st_mtime;
+    ff->size = st->st_size;
+    ff->gid = st->st_gid;
+    ff->uid = st->st_uid;
+    ff->nlink = st->st_nlink;
+    ff->local = true;
   }
   else
   {
-    ff.local = false;
+    ff->local = false;
   }
 
   if (m)
   {
-    ff.has_mailbox = true;
-    ff.gen = m->gen;
-    ff.has_new_mail = m->has_new;
-    ff.msg_count = m->msg_count;
-    ff.msg_unread = m->msg_unread;
-    ff.notify_user = m->notify_user;
-    ff.poll_new_mail = m->poll_new_mail;
+    ff->has_mailbox = true;
+    ff->gen = m->gen;
+    ff->has_new_mail = m->has_new;
+    ff->msg_count = m->msg_count;
+    ff->msg_unread = m->msg_unread;
+    ff->notify_user = m->notify_user;
+    ff->poll_new_mail = m->poll_new_mail;
   }
 
-  ff.name = mutt_str_dup(name);
-  ff.desc = mutt_str_dup(desc ? desc : name);
-  ff.imap = false;
+  ff->name = mutt_str_dup(name);
+  ff->desc = mutt_str_dup(desc ? desc : name);
+  ff->imap = false;
   if (OptNews)
-    ff.nd = data;
+    ff->nd = data;
 
-  ARRAY_ADD(&state->entry, ff);
+  g_ptr_array_add(state->entry, ff);
 }
 
 /**
@@ -687,13 +688,13 @@ void browser_add_folder(const struct Menu *menu, struct BrowserState *state,
  */
 void init_state(struct BrowserState *state, struct Menu *menu)
 {
-  ARRAY_INIT(&state->entry);
-  ARRAY_RESERVE(&state->entry, 256);
+  state->entry = g_ptr_array_sized_new(256);
+  g_ptr_array_set_free_func(state->entry, g_free);
   state->imap_browse = false;
 
   if (menu)
   {
-    menu->mdata = &state->entry;
+    menu->mdata = state->entry;
     menu->mdata_free = NULL; // Menu doesn't own the data
   }
 }
@@ -942,10 +943,10 @@ int examine_mailboxes(struct Mailbox *m, struct Menu *menu, struct BrowserState 
  */
 static int select_file_search(struct Menu *menu, regex_t *rx, int line)
 {
-  struct BrowserEntryArray *entry = menu->mdata;
+  BrowserEntryArray *entry = menu->mdata;
   if (OptNews)
-    return regexec(rx, ARRAY_GET(entry, line)->desc, 0, NULL, 0);
-  struct FolderFile *ff = ARRAY_GET(entry, line);
+    return regexec(rx, ((struct FolderFile*)g_ptr_array_index(entry, line))->desc, 0, NULL, 0);
+  struct FolderFile *ff = g_ptr_array_index(entry, line);
   char *search_on = ff->desc ? ff->desc : ff->name;
 
   return regexec(rx, search_on, 0, NULL, 0);
@@ -959,9 +960,9 @@ static int select_file_search(struct Menu *menu, regex_t *rx, int line)
 static int folder_make_entry(struct Menu *menu, int line, int max_cols, struct Buffer *buf)
 {
   struct BrowserState *bstate = menu->mdata;
-  struct BrowserEntryArray *entry = &bstate->entry;
+  BrowserEntryArray *entry = bstate->entry;
   struct Folder folder = {
-    .ff = ARRAY_GET(entry, line),
+    .ff = g_ptr_array_index(entry, line),
     .num = line,
   };
 
@@ -1005,16 +1006,18 @@ void browser_highlight_default(struct BrowserState *state, struct Menu *menu)
   /* Reset menu position to 1.
    * We do not risk overflow as the init_menu function changes
    * current if it is bigger than state->entrylen.  */
-  if (!ARRAY_EMPTY(&state->entry) &&
-      (mutt_str_equal(ARRAY_FIRST(&state->entry)->desc, "..") ||
-       mutt_str_equal(ARRAY_FIRST(&state->entry)->desc, "../")))
+  if (state->entry->len > 0)
   {
-    /* Skip the first entry, unless there's only one entry. */
-    menu_set_index(menu, (menu->max > 1));
-  }
-  else
-  {
-    menu_set_index(menu, 0);
+    struct FolderFile *ff = g_ptr_array_index(state->entry, 0);
+    if ((mutt_str_equal(ff->desc, "..") || mutt_str_equal(ff->desc, "../")))
+    {
+      /* Skip the first entry, unless there's only one entry. */
+      menu_set_index(menu, (menu->max > 1));
+    }
+    else
+    {
+      menu_set_index(menu, 0);
+    }
   }
 }
 
@@ -1029,7 +1032,7 @@ void init_menu(struct BrowserState *state, struct Menu *menu, struct Mailbox *m,
                struct MuttWindow *sbar)
 {
   char title[256] = { 0 };
-  menu->max = ARRAY_SIZE(&state->entry);
+  menu->max = state->entry->len;
 
   int index = menu_get_index(menu);
   if (index >= menu->max)
@@ -1106,12 +1109,12 @@ void init_menu(struct BrowserState *state, struct Menu *menu, struct Mailbox *m,
      * LastDirBackup.  I.e., we're returning from a subdirectory, and we want
      * to position the cursor on the directory we're returning from. */
     bool matched = false;
-    struct FolderFile *ff = NULL;
-    ARRAY_FOREACH(ff, &state->entry)
+    for (guint i = 0; i < state->entry->len; i++)
     {
+      struct FolderFile *ff = g_ptr_array_index(state->entry, i);
       if (mutt_str_equal(ff->name, target_dir))
       {
-        menu_set_index(menu, ARRAY_FOREACH_IDX);
+        menu_set_index(menu, i);
         matched = true;
         break;
       }
@@ -1132,8 +1135,8 @@ void init_menu(struct BrowserState *state, struct Menu *menu, struct Mailbox *m,
  */
 static int file_tag(struct Menu *menu, int sel, int act)
 {
-  struct BrowserEntryArray *entry = menu->mdata;
-  struct FolderFile *ff = ARRAY_GET(entry, sel);
+  BrowserEntryArray *entry = menu->mdata;
+  struct FolderFile *ff = g_ptr_array_index(entry, sel);
   if (S_ISDIR(ff->mode) ||
       (S_ISLNK(ff->mode) && link_is_dir(buf_string(&LastDir), ff->name)))
   {
@@ -1206,9 +1209,9 @@ static int browser_mailbox_observer(struct NotifyCallback *nc)
   {
     struct EventMailbox *ev_m = nc->event_data;
     struct Mailbox *m = ev_m->mailbox;
-    struct FolderFile *ff = NULL;
-    ARRAY_FOREACH(ff, &state->entry)
+    for (guint i = 0; i < state->entry->len; i++)
     {
+      struct FolderFile *ff = g_ptr_array_index(state->entry, i);
       if (ff->gen != m->gen)
         continue;
 

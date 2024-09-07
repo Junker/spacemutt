@@ -73,7 +73,7 @@ static void add_folder(char delim, char *folder, bool noselect, bool noinferiors
   char relpath[PATH_MAX] = { 0 };
   struct ConnAccount cac = { { 0 } };
   char mailbox[1024] = { 0 };
-  struct FolderFile ff = { 0 };
+  struct FolderFile *ff = g_new0(struct FolderFile, 1);
 
   if (imap_parse_path(state->folder, &cac, mailbox, sizeof(mailbox)))
     return;
@@ -103,7 +103,7 @@ static void add_folder(char delim, char *folder, bool noselect, bool noinferiors
   }
 
   imap_qualify_path(tmp, sizeof(tmp), &cac, folder);
-  ff.name = mutt_str_dup(tmp);
+  ff->name = mutt_str_dup(tmp);
 
   /* mark desc with delim in browser if it can have subfolders */
   if (!isparent && !noinferiors && (strlen(relpath) < sizeof(relpath) - 1))
@@ -112,15 +112,15 @@ static void add_folder(char delim, char *folder, bool noselect, bool noinferiors
     relpath[strlen(relpath)] = delim;
   }
 
-  ff.desc = mutt_str_dup(relpath);
-  ff.imap = true;
+  ff->desc = mutt_str_dup(relpath);
+  ff->imap = true;
 
   /* delimiter at the root is useless. */
   if (folder[0] == '\0')
     delim = '\0';
-  ff.delim = delim;
-  ff.selectable = !noselect;
-  ff.inferiors = !noinferiors;
+  ff->delim = delim;
+  ff->selectable = !noselect;
+  ff->inferiors = !noinferiors;
 
   MailboxList *ml = NULL;
   spacemutt_mailboxlist_get_all(&ml, SpaceMutt, MUTT_MAILBOX_ANY);
@@ -136,14 +136,14 @@ static void add_folder(char delim, char *folder, bool noselect, bool noinferiors
 
   if (m)
   {
-    ff.has_mailbox = true;
-    ff.has_new_mail = m->has_new;
-    ff.msg_count = m->msg_count;
-    ff.msg_unread = m->msg_unread;
+    ff->has_mailbox = true;
+    ff->has_new_mail = m->has_new;
+    ff->msg_count = m->msg_count;
+    ff->msg_unread = m->msg_unread;
   }
   spacemutt_mailboxlist_free(ml);
 
-  ARRAY_ADD(&state->entry, ff);
+  g_ptr_array_add(state->entry, ff);
 }
 
 /**
@@ -369,7 +369,7 @@ int imap_browse(const char *path, struct BrowserState *state)
   if (browse_add_list_result(adata, buf, state, false))
     goto fail;
 
-  if (ARRAY_EMPTY(&state->entry))
+  if (state->entry->len == 0)
   {
     // L10N: (%s) is the name / path of the folder we were trying to browse
     log_fault(_("No such folder: %s"), path);

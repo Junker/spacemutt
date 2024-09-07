@@ -136,13 +136,13 @@ const struct MenuOpSeq BrowserDefaultBindings[] = { /* map: browser */
  */
 void destroy_state(struct BrowserState *state)
 {
-  struct FolderFile *ff = NULL;
-  ARRAY_FOREACH(ff, &state->entry)
+  for (guint i = 0; i < state->entry->len; i++)
   {
+    struct FolderFile *ff = g_ptr_array_index(state->entry, i);
     FREE(&ff->name);
     FREE(&ff->desc);
   }
-  ARRAY_FREE(&state->entry);
+  g_ptr_array_free(state->entry, true);
   FREE(&state->folder);
 }
 
@@ -185,7 +185,7 @@ static int op_browser_subscribe(struct BrowserPrivateData *priv, int op)
     struct NntpAccountData *adata = CurrentNewsSrv;
     int index = menu_get_index(priv->menu);
 
-    if (ARRAY_EMPTY(&priv->state.entry))
+    if (priv->state.entry->len == 0)
     {
       log_fault(_("No newsgroups match the mask"));
       return FR_ERROR;
@@ -195,7 +195,7 @@ static int op_browser_subscribe(struct BrowserPrivateData *priv, int op)
     if (rc < 0)
       return FR_ERROR;
 
-    struct FolderFile *ff = ARRAY_GET(&priv->state.entry, index);
+    struct FolderFile *ff = g_ptr_array_index(priv->state.entry, index);
     if (op == OP_BROWSER_SUBSCRIBE)
       mutt_newsgroup_subscribe(adata, ff->name);
     else
@@ -211,7 +211,7 @@ static int op_browser_subscribe(struct BrowserPrivateData *priv, int op)
   }
   else
   {
-    if (ARRAY_EMPTY(&priv->state.entry))
+    if (priv->state.entry->len == 0)
     {
       log_fault(_("There are no mailboxes"));
       return FR_ERROR;
@@ -219,7 +219,7 @@ static int op_browser_subscribe(struct BrowserPrivateData *priv, int op)
 
     struct Buffer *buf = buf_pool_get();
     int index = menu_get_index(priv->menu);
-    struct FolderFile *ff = ARRAY_GET(&priv->state.entry, index);
+    struct FolderFile *ff = g_ptr_array_index(priv->state.entry, index);
     buf_strcpy(buf, ff->name);
     buf_expand_path(buf);
     imap_subscribe(buf_string(buf), (op == OP_BROWSER_SUBSCRIBE));
@@ -234,10 +234,10 @@ static int op_browser_subscribe(struct BrowserPrivateData *priv, int op)
 static int op_browser_tell(struct BrowserPrivateData *priv, int op)
 {
   int index = menu_get_index(priv->menu);
-  if (ARRAY_EMPTY(&priv->state.entry))
+  if (priv->state.entry->len == 0)
     return FR_ERROR;
 
-  log_message("%s", ARRAY_GET(&priv->state.entry, index)->name);
+  log_message("%s", ((struct FolderFile*)g_ptr_array_index(priv->state.entry, index))->name);
   return FR_SUCCESS;
 }
 
@@ -257,14 +257,14 @@ static int op_browser_toggle_lsub(struct BrowserPrivateData *priv, int op)
  */
 static int op_browser_view_file(struct BrowserPrivateData *priv, int op)
 {
-  if (ARRAY_EMPTY(&priv->state.entry))
+  if (priv->state.entry->len == 0)
   {
     log_fault(_("No files match the file mask"));
     return FR_ERROR;
   }
 
   int index = menu_get_index(priv->menu);
-  struct FolderFile *ff = ARRAY_GET(&priv->state.entry, index);
+  struct FolderFile *ff = g_ptr_array_index(priv->state.entry, index);
   if (ff->selectable)
   {
     buf_strcpy(priv->file, ff->name);
@@ -312,7 +312,7 @@ static int op_catchup(struct BrowserPrivateData *priv, int op)
     return FR_ERROR;
 
   int index = menu_get_index(priv->menu);
-  struct FolderFile *ff = ARRAY_GET(&priv->state.entry, index);
+  struct FolderFile *ff = g_ptr_array_index(priv->state.entry, index);
   if (op == OP_CATCHUP)
     mdata = mutt_newsgroup_catchup(priv->mailbox, CurrentNewsSrv, ff->name);
   else
@@ -482,7 +482,7 @@ static int op_create_mailbox(struct BrowserPrivateData *priv, int op)
 static int op_delete_mailbox(struct BrowserPrivateData *priv, int op)
 {
   int index = menu_get_index(priv->menu);
-  struct FolderFile *ff = ARRAY_GET(&priv->state.entry, index);
+  struct FolderFile *ff = g_ptr_array_index(priv->state.entry, index);
   if (!ff->imap)
   {
     log_fault(_("Delete is only supported for IMAP mailboxes"));
@@ -517,7 +517,7 @@ static int op_delete_mailbox(struct BrowserPrivateData *priv, int op)
   FREE(&ff->name);
   FREE(&ff->desc);
   /* and move all other entries up */
-  ARRAY_REMOVE(&priv->state.entry, ff);
+  g_ptr_array_remove(priv->state.entry, ff);
   log_message(_("Mailbox deleted"));
   init_menu(&priv->state, priv->menu, priv->mailbox, priv->sbar);
 
@@ -582,7 +582,7 @@ static int op_enter_mask(struct BrowserPrivateData *priv, int op)
     return FR_ERROR;
   }
   priv->kill_prefix = false;
-  if (ARRAY_EMPTY(&priv->state.entry))
+  if (priv->state.entry->len == 0)
   {
     log_fault(_("No files match the file mask"));
     return FR_ERROR;
@@ -604,9 +604,9 @@ static int op_exit(struct BrowserPrivateData *priv, int op)
       *priv->numfiles = priv->menu->num_tagged;
       tfiles = g_malloc0_n(*priv->numfiles, sizeof(char *));
       size_t j = 0;
-      struct FolderFile *ff = NULL;
-      ARRAY_FOREACH(ff, &priv->state.entry)
+      for (guint i = 0; i < priv->state.entry->len; i++)
       {
+        struct FolderFile *ff = g_ptr_array_index(priv->state.entry, i);
         if (ff->tagged)
         {
           struct Buffer *buf = buf_pool_get();
@@ -641,14 +641,14 @@ static int op_exit(struct BrowserPrivateData *priv, int op)
  */
 static int op_generic_select_entry(struct BrowserPrivateData *priv, int op)
 {
-  if (ARRAY_EMPTY(&priv->state.entry))
+  if (priv->state.entry->len == 0)
   {
     log_fault(_("No files match the file mask"));
     return FR_ERROR;
   }
 
   int index = menu_get_index(priv->menu);
-  struct FolderFile *ff = ARRAY_GET(&priv->state.entry, index);
+  struct FolderFile *ff = g_ptr_array_index(priv->state.entry, index);
   if (S_ISDIR(ff->mode) ||
       (S_ISLNK(ff->mode) && link_is_dir(buf_string(&LastDir), ff->name)) || ff->inferiors)
   {
@@ -774,7 +774,7 @@ static int op_generic_select_entry(struct BrowserPrivateData *priv, int op)
   }
   else if (op == OP_DESCEND_DIRECTORY)
   {
-    log_fault(_("%s is not a directory"), ARRAY_GET(&priv->state.entry, index)->name);
+    log_fault(_("%s is not a directory"), ((struct FolderFile*)g_ptr_array_index(priv->state.entry, index))->name);
     return FR_ERROR;
   }
 
@@ -847,7 +847,7 @@ static int op_mailbox_list(struct BrowserPrivateData *priv, int op)
 static int op_rename_mailbox(struct BrowserPrivateData *priv, int op)
 {
   int index = menu_get_index(priv->menu);
-  struct FolderFile *ff = ARRAY_GET(&priv->state.entry, index);
+  struct FolderFile *ff = g_ptr_array_index(priv->state.entry, index);
   if (!ff->imap)
   {
     log_fault(_("Rename is only supported for IMAP mailboxes"));
@@ -983,9 +983,9 @@ static int op_subscribe_pattern(struct BrowserPrivateData *priv, int op)
   if (rc < 0)
     return FR_ERROR;
 
-  struct FolderFile *ff = NULL;
-  ARRAY_FOREACH_FROM(ff, &priv->state.entry, index)
+  for (guint i = 0; i < priv->state.entry->len; i++)
   {
+    struct FolderFile *ff = g_ptr_array_index(priv->state.entry, i);
     if (regexec(&rx, ff->name, 0, NULL, 0) == 0)
     {
       if (op == OP_SUBSCRIBE_PATTERN)

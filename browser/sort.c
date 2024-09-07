@@ -230,5 +230,5 @@ void browser_sort(struct BrowserState *state)
     .sort_dirs_first = cs_subset_bool(SpaceMutt->sub, "browser_sort_dirs_first"),
   };
 
-  ARRAY_SORT(&state->entry, browser_sort_helper, &cd);
+  g_ptr_array_sort_values_with_data(state->entry, browser_sort_helper, &cd);
 }

@@ -104,8 +104,7 @@ struct FolderFile
 
   int gen;                 ///< Unique id, used for (un)sorting
 };
-
-ARRAY_HEAD(BrowserEntryArray, struct FolderFile);
+typedef GPtrArray BrowserEntryArray;
 
 /**
  * ExpandoDataFolder - Expando UIDs for the File Browser
@@ -142,7 +141,7 @@ enum ExpandoDataFolder
  */
 struct BrowserState
 {
-  struct BrowserEntryArray entry; ///< Array of files / dirs / mailboxes
+  BrowserEntryArray *entry; ///< Array of files / dirs / mailboxes
   bool imap_browse; ///< IMAP folder
   char *folder;     ///< Folder name
   bool is_mailbox_list; ///< Viewing mailboxes
